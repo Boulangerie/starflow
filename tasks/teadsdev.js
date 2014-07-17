@@ -12,7 +12,12 @@ module.exports = function (grunt) {
     gitlab: {
       url: 'https://git.teads.tv',
       project: 'manager',
-      managerId: 4
+      managerId: 4,
+      taskId: 226,
+      mr: {
+        doneAssignee: 'blongearet',
+        refBranch: 'master'
+      }
     },
     jira: {
       url: 'https://jira.teads.tv',
