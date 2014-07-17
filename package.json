@@ -1,0 +1,20 @@
+{
+  "name": "grunt-teads-dev",
+  "version": "0.0.1",
+  "description": "Handle the workflow when creating and finishing a feature in a Teads project",
+  "main": "Gruntfile.js",
+  "dependencies": {
+    "node-rest-client": "^1.0.0",
+    "gitty": "^2.1.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.teads.tv:front-dev/grunt-teads-dev.git"
+  },
+  "author": "Teads Technology",
+  "license": "ISC"
+}
