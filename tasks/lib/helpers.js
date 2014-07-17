@@ -246,7 +246,7 @@ exports.init = function (config, grunt) {
       data: {
         "id": config.gitlab.taskId,
         "source_branch": exports.branchName,
-        "target_branch": onfig.gitlab.mr.refBranch,
+        "target_branch": config.gitlab.mr.refBranch,
         "title": exports.jiraCard.fields.description
       }
     };
