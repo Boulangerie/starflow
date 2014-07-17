@@ -21,6 +21,7 @@ exports.init = function (config, grunt) {
   var Buffer = require('buffer').Buffer;
   var Client = require('node-rest-client').Client;
   var exec = require('child_process').exec;
+  var _ = require('lodash');
 
   // instance of Client used to make connections to JIRA and GitLab APIs
   var client = new Client();
@@ -51,9 +52,10 @@ exports.init = function (config, grunt) {
           current: null,
           others: []
         };
-   
-        data = data.replace(/  /, '').split('\n');
+        
+        data = data.split('\n');
         for (var i = 0; i < data.length; i++) {
+          data[i] = data[i].trim();
           if (data[i].match(/\* (.+)/)) {
             branches.current = data[i].replace(/\* /, '');
           }
@@ -152,19 +154,77 @@ exports.init = function (config, grunt) {
   exports.gitPullRebaseOrigin = function () {
     var deferred = Q.defer();
     gitBranches().then(function (branches) {
-      deferred.resolve(branches);
+      if (branches.current !== 'master') {
+        exec('git checkout master', function (err, data) {
+          if (err) {
+            deferred.reject(new Error(err));
+          }
+          else {
+            grunt.log.writeln('Switched to branch master.');
+          }
+        });
+      }
+      // current branch is master
+      exec('git pull --rebase origin master', function (err, data) {
+        if (err) {
+          deferred.reject(new Error(err));
+        }
+        else {
+          grunt.log.writeln('Local master is now up-to-date.');
+          deferred.resolve(data);
+        }
+      });
     }, function (err) {
-      deferred.reject(err);
+      deferred.reject(new Error(err));
     });
     return deferred.promise;
   };
 
+  /**
+   * Creates a new branch 'branchName' (if it doesn't exist yet) and checkout to this branch
+   * @param  {String} branchName 
+   * @return {Promise}            
+   */
   exports.gitCreateAndSwitchBranch = function (branchName) {
-    
+    var deferred = Q.defer();
+    gitBranches().then(function (branches) {
+      var option = (branches.current !== branchName && !_.contains(branches.others, branchName)) ? '-b' : '';
+      console.log(branches);
+      console.log(branchName);
+      exec('git checkout ' + option + ' ' + branchName, function (err, data) {
+        if (err) {
+          deferred.reject(new Error(err));
+        }
+        else {
+          if (option === '-b') {
+            grunt.log.success('New branch created: ' + branchName + '.');
+          }
+          grunt.log.writeln('Switched to branch ' + branchName + '.');
+          deferred.resolve(data);
+        }
+      });
+    }, function (err) {
+      deferred.reject(new Error(err));
+    });
+    return deferred.promise;
   };
 
-  exports.gitPushOrigin = function () {
-    
+  exports.gitPushOrigin = function (branchName) {
+    var deferred = Q.defer();
+    gitBranches().then(function (branches) {
+      exec('git push -u origin ' + branchName, function (err, data) {
+        if (err) {
+          deferred.reject(new Error(err));
+        }
+        else {
+          grunt.log.success('Branch ' + branchName + ' was pushed to remote repository.');
+          deferred.resolve(data);
+        }
+      });
+    }, function (err) {
+      deferred.reject(new Error(err));
+    });
+    return deferred.promise;
   };
 
   exports.createMergeRequest = function () {

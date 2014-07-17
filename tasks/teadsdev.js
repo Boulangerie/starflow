@@ -42,9 +42,21 @@ module.exports = function (grunt) {
     allConnectionsChecksPromise.then(function () {
       helpers.checkJiraCard(card).then(function () {
         // connections established, JIRA card found -> let's go!
-        helpers.gitPullRebaseOrigin().then(function (branches) {
-          console.log("BRANCHES", branches);
-          
+        var branchName = 'feat-' + card;
+        helpers.gitPullRebaseOrigin().then(function () {
+
+          helpers.gitCreateAndSwitchBranch(branchName).then(function () {
+            // branch created, we can push to remote
+            helpers.gitPushOrigin().then(function () {
+              // branch pushed, we can create merge request
+              // TODO
+
+            });
+
+          }, function (err) {
+            helpers.failTask(err, done);
+          });
+
         }, function (err) {
           helpers.failTask(err, done);
         });
