@@ -74,6 +74,12 @@ exports.init = function (config, grunt) {
   };
 
   /**
+   * Name of the branch where the feature/fix/... is developed
+   * @type {String}
+   */
+  exports.branchName = null;
+
+  /**
    * Displays the error and triggers the end of the grunt task
    * @param  {Object}   err
    * @param  {Function} done
@@ -186,11 +192,10 @@ exports.init = function (config, grunt) {
    * @return {Promise}            
    */
   exports.gitCreateAndSwitchBranch = function (branchName) {
+    exports.branchName = branchName;
     var deferred = Q.defer();
     gitBranches().then(function (branches) {
       var option = (branches.current !== branchName && !_.contains(branches.others, branchName)) ? '-b' : '';
-      console.log(branches);
-      console.log(branchName);
       exec('git checkout ' + option + ' ' + branchName, function (err, data) {
         if (err) {
           deferred.reject(new Error(err));
@@ -212,12 +217,12 @@ exports.init = function (config, grunt) {
   exports.gitPushOrigin = function (branchName) {
     var deferred = Q.defer();
     gitBranches().then(function (branches) {
-      exec('git push -u origin ' + branchName, function (err, data) {
+      exec('git push -u origin ' + exports.branchName, function (err, data) {
         if (err) {
           deferred.reject(new Error(err));
         }
         else {
-          grunt.log.success('Branch ' + branchName + ' was pushed to remote repository.');
+          grunt.log.success('Branch ' + exports.branchName + ' was pushed to remote repository.');
           deferred.resolve(data);
         }
       });
@@ -228,7 +233,23 @@ exports.init = function (config, grunt) {
   };
 
   exports.createMergeRequest = function () {
-    
+    var deferred = Q.defer();
+    var params = {
+      id: 226, // config TODO
+      source_branch: exports.branchName,
+      target_branch: 'master', // config TODO
+      title: 'JIRA CARD TITLE'
+    };
+    client.post(config.gitlab.url + '/api/v3/projects/226/merge_requests?private_token=' + config.gitlab.token, function(data, response) {
+      if (response.statusCode !== 200) {
+        deferred.reject(new Error('Creation of the merge request failed. Reason: ' + data.message));
+      }
+      else {
+        grunt.log.success('Merge request successfully created.');
+        deferred.resolve(data);
+      }
+    });
+    return deferred.promise;
   };
 
   exports.moveJiraCard = function (from, to) {

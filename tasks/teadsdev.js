@@ -49,8 +49,15 @@ module.exports = function (grunt) {
             // branch created, we can push to remote
             helpers.gitPushOrigin().then(function () {
               // branch pushed, we can create merge request
-              // TODO
+              
+              helpers.createMergeRequest().then(function (data) {
+                console.log('THE END');
+              }, function (err) {
+                helpers.failTask(err, done);
+              });
 
+            }, function (err) {
+              helpers.failTask(err, done);
             });
 
           }, function (err) {
