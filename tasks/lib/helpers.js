@@ -221,6 +221,11 @@ exports.init = function (config, grunt) {
     return deferred.promise;
   };
 
+  /**
+   * Pushes the local feature branch to the remote repository
+   * @param  {String} branchName 
+   * @return {Promise}            
+   */
   exports.gitPushOrigin = function (branchName) {
     var deferred = Q.defer();
     gitBranches().then(function (branches) {
@@ -239,6 +244,10 @@ exports.init = function (config, grunt) {
     return deferred.promise;
   };
 
+  /**
+   * Creates a merge request on the Gitlab project
+   * @return {Promise} 
+   */
   exports.createMergeRequest = function () {
     var deferred = Q.defer();
     var args = {
@@ -262,8 +271,55 @@ exports.init = function (config, grunt) {
     return deferred.promise;
   };
 
-  exports.moveJiraCard = function (from, to) {
-    
+  exports.moveJiraCard = function (to) {
+    var jiraCredentialsStr = getJiraCredentialsString(config.jira.credentials);
+    var deferred = Q.defer();
+
+    // client.get(config.jira.url + '/rest/api/latest/issue/MANTEST-1', {headers: {"Authorization": "Basic " + jiraCredentialsStr}}, function(data, response) {
+    client.get(config.jira.url + '/rest/api/latest/status/Reviews', {headers: {"Authorization": "Basic " + jiraCredentialsStr}}, function(data, response) {
+      if (response.statusCode !== 200) {
+        var errMessage = response.statusCode + ' Connection to JIRA API could not be established.';
+        if (data.errorMessages) {
+          for (var i = 0; i < data.errorMessages.length; i++) {
+            errMessage += '\n  ' + data.errorMessages[i];
+          } 
+        }
+        deferred.reject(new Error(errMessage));
+      }
+      else {
+        var args = {
+          headers: { "Content-Type": "application/json", "Authorization": "Basic " + jiraCredentialsStr },
+          data: {
+            "fields": {
+              "status": data
+            }
+          }
+        };
+        /**/
+        /* TODO */
+        /* SCREEN to expose properties of issues and edit them */
+        /**/
+        console.log(args);
+        client.put(config.jira.url + '/rest/api/latest/issue/MANTEST-1', args, function(data, response) {
+          if (response.statusCode !== 200) {
+            // console.log(response);
+            console.log('DATA', data);
+            var errMessage = response.statusCode + ' Connection to JIRA API could not be established.';
+            if (data.errorMessages) {
+              for (var i = 0; i < data.errorMessages.length; i++) {
+                errMessage += '\n  ' + data.errorMessages[i];
+              } 
+            }
+            deferred.reject(new Error(errMessage));
+          }
+          else {
+            console.log('MOVED');
+            deferred.resolve(data);
+          }
+        });
+      }
+    });
+    return deferred.promise;
   };
 
   exports.assignMergeRequest = function (assignee) {
@@ -276,6 +332,15 @@ exports.init = function (config, grunt) {
 
   exports.checkMergeRequest = function (mrId) {
 
+  };
+
+  exports.reset = function () {
+    // switch to master
+    // delete local feat branch
+    // close mr
+    // delete remote feat branch
+    // move card jira to TODO
+    
   };
 
   return exports;

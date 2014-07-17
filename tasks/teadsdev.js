@@ -47,7 +47,7 @@ module.exports = function (grunt) {
     allConnectionsChecksPromise.then(function () {
       helpers.checkJiraCard(card).then(function () {
         // connections established, JIRA card found -> let's go!
-        var branchName = 'feat-' + card;
+        /*var branchName = 'feat-' + card;
         helpers.gitPullRebaseOrigin().then(function () {
 
           helpers.gitCreateAndSwitchBranch(branchName).then(function () {
@@ -56,7 +56,7 @@ module.exports = function (grunt) {
               // branch pushed, we can create merge request
               
               helpers.createMergeRequest().then(function (data) {
-                console.log('THE END');
+                console.log('You can now work on your feature/fix/whatever! :)');
               }, function (err) {
                 helpers.failTask(err, done);
               });
@@ -71,7 +71,7 @@ module.exports = function (grunt) {
 
         }, function (err) {
           helpers.failTask(err, done);
-        });
+        });*/
 
       }, function (err) {
         helpers.failTask(err, done);
@@ -79,6 +79,14 @@ module.exports = function (grunt) {
 
     }, function (err) {
       helpers.failTask(err, done);
+    })
+
+    .then(function () {
+      helpers.moveJiraCard('to').then(function (data) {
+        console.log('HEHE', data);
+      }, function (err) {
+        grunt.log.error(err);
+      })
     });
 
   });
