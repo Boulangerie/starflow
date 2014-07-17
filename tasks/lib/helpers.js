@@ -80,6 +80,12 @@ exports.init = function (config, grunt) {
   exports.branchName = null;
 
   /**
+   * Object containing information from the JIRA Card
+   * @type {Object}
+   */
+  exports.jiraCard = null;
+
+  /**
    * Displays the error and triggers the end of the grunt task
    * @param  {Object}   err
    * @param  {Function} done
@@ -151,6 +157,7 @@ exports.init = function (config, grunt) {
       }
       else {
         grunt.log.success('JIRA card "' + cardname + '" was found.');
+        exports.jiraCard = data;
         deferred.resolve(data);
       }
     });
@@ -234,18 +241,21 @@ exports.init = function (config, grunt) {
 
   exports.createMergeRequest = function () {
     var deferred = Q.defer();
-    var params = {
-      id: 226, // config TODO
-      source_branch: exports.branchName,
-      target_branch: 'master', // config TODO
-      title: 'JIRA CARD TITLE'
+    var args = {
+      headers: { "Content-Type": "application/json" },
+      data: {
+        "id": config.gitlab.taskId,
+        "source_branch": exports.branchName,
+        "target_branch": onfig.gitlab.mr.refBranch,
+        "title": exports.jiraCard.fields.description
+      }
     };
-    client.post(config.gitlab.url + '/api/v3/projects/226/merge_requests?private_token=' + config.gitlab.token, function(data, response) {
-      if (response.statusCode !== 200) {
+    client.post(config.gitlab.url + '/api/v3/projects/' + config.gitlab.taskId + '/merge_requests?private_token=' + config.gitlab.token, args, function(data, response) {
+      if (response.statusCode !== 201) { // 201 = HTTP CREATED
         deferred.reject(new Error('Creation of the merge request failed. Reason: ' + data.message));
       }
       else {
-        grunt.log.success('Merge request successfully created.');
+        grunt.log.success('Merge request "' + args.data.title + '" successfully created.');
         deferred.resolve(data);
       }
     });
