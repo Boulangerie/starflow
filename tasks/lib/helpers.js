@@ -253,15 +253,26 @@ exports.init = function (config, grunt) {
   exports.gitPushOrigin = function (branchName) {
     var deferred = Q.defer();
     gitBranches().then(function (branches) {
-      exec('git push -u origin ' + exports.branchName, function (err, data) {
-        if (err) {
-          deferred.reject(new Error(err));
+      checkBranch(branchName).then(function (branchExists) {
+        if (!branchExists) {
+          exec('git push -u origin ' + exports.branchName, function (err, data) {
+            if (err) {
+              deferred.reject(new Error(err));
+            }
+            else {
+              grunt.log.success('Branch ' + exports.branchName + ' was pushed to remote repository.');
+              deferred.resolve(data);
+            }
+          });
         }
         else {
-          grunt.log.success('Branch ' + exports.branchName + ' was pushed to remote repository.');
-          deferred.resolve(data);
+          deferred.reject(new Error('The branch "'+branchName+'" already exists on the remote repository.'));
         }
+
+      }, function (err) {
+        deferred.reject(new Error(err));
       });
+
     }, function (err) {
       deferred.reject(new Error(err));
     });
