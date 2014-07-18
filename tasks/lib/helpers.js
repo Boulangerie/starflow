@@ -121,10 +121,6 @@ exports.init = function (config, grunt) {
     return deferred.promise;
   };
 
-  var assignMergeRequest = function (assignee) {
-    
-  };
-
   /**
    * Uses the GitLab API to get the id of the merge request
    * @return {Promise} 
@@ -168,6 +164,31 @@ exports.init = function (config, grunt) {
       }
       else {
         deferred.resolve(true);
+      }
+    });
+    return deferred.promise;
+  };
+
+  /**
+   * Uses the GitLab API to get the MR assigned user
+   * @return {Promise} 
+   */
+  var getAssignee = function (assignee) {
+    var deferred = Q.defer();
+    client.get(config.gitlab.url + '/api/v3/users?state=opened&private_token=' + config.gitlab.token, function(data, response) {
+      if (response.statusCode !== 200) {
+        deferred.reject(new Error(data.message));
+      }
+      else {
+        var user = null,
+            i = 0;
+        while (!user && i < data.length) {
+          if (data[i].username === assignee) {
+            user = data[i];
+          }
+          i++;
+        }
+        deferred.resolve(user);
       }
     });
     return deferred.promise;
@@ -443,6 +464,35 @@ exports.init = function (config, grunt) {
           }
         });
       }
+    });
+    return deferred.promise;
+  };
+
+  /**
+   * Assigns a GitLab user to review the merge request
+   * @param  {String} assignee username
+   * @return {Promise}         
+   */
+  exports.assignMergeRequest = function (assignee) {
+    var deferred = Q.defer();
+    getMergeRequestId().then(function (id) {
+      var args = {
+        headers: { "Content-Type": "application/json" },
+        data: {
+          "assignee": user
+        }
+      };
+      client.put(config.gitlab.url + '/api/v3/projects/' + config.gitlab.taskId + '/merge_request/' + id + '?private_token=' + config.gitlab.token, args, function(data, response) {
+        if (response.statusCode !== 200) {
+          deferred.reject(new Error(data.message));
+        }
+        else {
+          grunt.log.success('Merge request "' + exports.jiraCard.fields.description + '" assigned to ' + assignee + '.');
+          deferred.resolve(data);
+        }
+      });
+    }, function (err) {
+      deferred.reject(new Error(err));
     });
     return deferred.promise;
   };

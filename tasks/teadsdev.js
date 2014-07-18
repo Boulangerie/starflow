@@ -15,7 +15,7 @@ module.exports = function (grunt) {
       managerId: 4,
       taskId: 226,
       mr: {
-        doneAssignee: 'blongearet',
+        doneAssignee: 'bruiz',
         refBranch: 'master'
       }
     },
@@ -43,20 +43,25 @@ module.exports = function (grunt) {
         checkJiraConnectionPromise = helpers.checkJiraConnection(),
         checkGitlabConnectionPromise = helpers.checkGitlabConnection(),
         allConnectionsChecksPromise = Q.all([ checkJiraConnectionPromise, checkGitlabConnectionPromise]);
-  
-    allConnectionsChecksPromise.then(function () {
-      helpers.checkJiraCard(card).then(function () {
-        // connections established, JIRA card found -> let's go!
-        var branchName = 'feat-' + card;
-        helpers.gitPullRebaseOrigin().then(function () {
+    
+    if (step === 'new') {
+      allConnectionsChecksPromise.then(function () {
+        helpers.checkJiraCard(card).then(function () {
+          // connections established, JIRA card found -> let's go!
+          var branchName = 'feat-' + card;
+          helpers.gitPullRebaseOrigin().then(function () {
 
-          helpers.gitCreateAndSwitchBranch(branchName).then(function () {
-            // branch created, we can push to remote
-            helpers.gitPushOrigin().then(function () {
-              // branch pushed, we can create merge request
-              
-              helpers.createMergeRequest().then(function (data) {
-                console.log('You can now work on your feature/fix/whatever! :)');
+            helpers.gitCreateAndSwitchBranch(branchName).then(function () {
+              // branch created, we can push to remote
+              helpers.gitPushOrigin().then(function () {
+                // branch pushed, we can create merge request
+                
+                helpers.createMergeRequest().then(function (data) {
+                  console.log('You can now work on your feature/fix/whatever! :)');
+                }, function (err) {
+                  helpers.failTask(err, done);
+                });
+
               }, function (err) {
                 helpers.failTask(err, done);
               });
@@ -75,19 +80,39 @@ module.exports = function (grunt) {
 
       }, function (err) {
         helpers.failTask(err, done);
+      })
+
+      .then(function () {
+        // helpers.moveJiraCard('to').then(function (data) {
+        //   console.log('HEHE', data);
+        // }, function (err) {
+        //   grunt.log.error(err);
+        // })
       });
 
-    }, function (err) {
-      helpers.failTask(err, done);
-    })
+    } // end step is 'new'
+    else if (step === 'finish') {
+      allConnectionsChecksPromise.then(function () {
+        helpers.checkJiraCard(card).then(function () {
+          // connections established, JIRA card found -> let's go!
+          var branchName = 'feat-' + card;
+          helpers.assignMergeRequest(config.gitlab.mr.doneAssignee).then(function () {
 
-    .then(function () {
-      // helpers.moveJiraCard('to').then(function (data) {
-      //   console.log('HEHE', data);
-      // }, function (err) {
-      //   grunt.log.error(err);
-      // })
-    });
+            console.log('ASSIGN');
+
+          }, function (err) {
+            helpers.failTask(err, done);
+          });
+
+        }, function (err) {
+          helpers.failTask(err, done);
+        });
+
+      }, function (err) {
+        helpers.failTask(err, done);
+      });
+
+    }
 
   });
 
