@@ -44,7 +44,7 @@ module.exports = function (grunt) {
         checkGitlabConnectionPromise = helpers.checkGitlabConnection(),
         allConnectionsChecksPromise = Q.all([ checkJiraConnectionPromise, checkGitlabConnectionPromise]),
         branchName = 'feat-' + card;
-    
+
     if (step === 'new') {
       allConnectionsChecksPromise.then(function () {
         helpers.checkJiraCard(card).then(function () {

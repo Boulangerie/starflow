@@ -503,7 +503,6 @@ exports.init = function (config, grunt) {
     }, function (err) {
       deferred.reject(new Error(err));
     });
-
     return deferred.promise;
   };
 
