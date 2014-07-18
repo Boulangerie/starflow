@@ -74,6 +74,31 @@ exports.init = function (config, grunt) {
   };
 
   /**
+   * Uses JIRA API to get the object status that has the name given in param
+   * @param  {String} status  
+   * @return {Promise}        
+   */
+  var getJiraStatus = function (status) {
+    var jiraCredentialsStr = getJiraCredentialsString(config.jira.credentials);
+    var deferred = Q.defer();
+    client.get(config.jira.url + '/rest/api/latest/status/' + status, {headers: {"Authorization": "Basic " + jiraCredentialsStr}}, function(data, response) {
+      if (response.statusCode !== 200) {
+        var errMessage = response.statusCode + ' Connection to JIRA API could not be established.';
+        if (data.errorMessages) {
+          for (var i = 0; i < data.errorMessages.length; i++) {
+            errMessage += '\n  ' + data.errorMessages[i];
+          } 
+        }
+        deferred.reject(new Error(errMessage));
+      }
+      else {
+        deferred.resolve(data);
+      }
+    });
+    return deferred.promise;
+  };
+
+  /**
    * Name of the branch where the feature/fix/... is developed
    * @type {String}
    */
@@ -110,7 +135,6 @@ exports.init = function (config, grunt) {
             errMessage += '\n  ' + data.errorMessages[i];
           } 
         }
-
         deferred.reject(new Error(errMessage));
       }
       else {
@@ -326,8 +350,27 @@ exports.init = function (config, grunt) {
     
   };
 
+  /**
+   * Uses the GitLab API to check if the branch "branchName" already exists on the remote repository or not
+   * @param  {String} branchName 
+   * @return {Boolean}            true if the branch exists, false otherwise
+   */
   exports.checkBranch = function (branchName) {
-    
+    var deferred = Q.defer();
+    client.get(config.gitlab.url + '/api/v3/projects/'+config.gitlab.taskId+'/repository/branches/'+branchName+'?private_token=' + config.gitlab.token, function(data, response) {
+      if (response.statusCode !== 200) {
+        if (response.statusCode === 404) {
+          deferred.resolve(false);
+        }
+        else {
+          deferred.reject(new Error(data.message));
+        }
+      }
+      else {
+        deferred.resolve(true);
+      }
+    });
+    return deferred.promise;
   };
 
   exports.checkMergeRequest = function (mrId) {
