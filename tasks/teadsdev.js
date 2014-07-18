@@ -42,13 +42,13 @@ module.exports = function (grunt) {
     var done = this.async(),
         checkJiraConnectionPromise = helpers.checkJiraConnection(),
         checkGitlabConnectionPromise = helpers.checkGitlabConnection(),
-        allConnectionsChecksPromise = Q.all([ checkJiraConnectionPromise, checkGitlabConnectionPromise]);
+        allConnectionsChecksPromise = Q.all([ checkJiraConnectionPromise, checkGitlabConnectionPromise]),
+        branchName = 'feat-' + card;
     
     if (step === 'new') {
       allConnectionsChecksPromise.then(function () {
         helpers.checkJiraCard(card).then(function () {
           // connections established, JIRA card found -> let's go!
-          var branchName = 'feat-' + card;
           helpers.gitPullRebaseOrigin().then(function () {
 
             helpers.gitCreateAndSwitchBranch(branchName).then(function () {
@@ -95,10 +95,20 @@ module.exports = function (grunt) {
       allConnectionsChecksPromise.then(function () {
         helpers.checkJiraCard(card).then(function () {
           // connections established, JIRA card found -> let's go!
-          var branchName = 'feat-' + card;
-          helpers.assignMergeRequest(config.gitlab.mr.doneAssignee).then(function () {
 
-            console.log('ASSIGN');
+          helpers.gitCreateAndSwitchBranch(branchName).then(function () {
+            
+            helpers.assignMergeRequest(config.gitlab.mr.doneAssignee).then(function () {
+
+              helpers.gitPushOrigin().then(function () {
+
+              }, function (err) {
+                helpers.failTask(err, done);
+              });
+
+            }, function (err) {
+              helpers.failTask(err, done);
+            });
 
           }, function (err) {
             helpers.failTask(err, done);

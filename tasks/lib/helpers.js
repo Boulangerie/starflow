@@ -175,7 +175,7 @@ exports.init = function (config, grunt) {
    */
   var getAssignee = function (assignee) {
     var deferred = Q.defer();
-    client.get(config.gitlab.url + '/api/v3/users?state=opened&private_token=' + config.gitlab.token, function(data, response) {
+    client.get(config.gitlab.url + '/api/v3/users?per_page=1000&private_token=' + config.gitlab.token, function(data, response) {
       if (response.statusCode !== 200) {
         deferred.reject(new Error(data.message));
       }
@@ -350,8 +350,9 @@ exports.init = function (config, grunt) {
     var deferred = Q.defer();
     gitBranches().then(function (branches) {
       checkBranch(exports.branchName).then(function (branchExists) {
-        if (!branchExists) {;
-          exec('git push -u origin ' + exports.branchName, function (err, data) {
+        // if (!branchExists) {;
+          var option = (branchExists) ? '-u' : '';
+          exec('git push ' + option + ' origin ' + exports.branchName, function (err, data) {
             if (err) {
               deferred.reject(new Error(err));
             }
@@ -360,10 +361,10 @@ exports.init = function (config, grunt) {
               deferred.resolve(data);
             }
           });
-        }
-        else {
-          deferred.reject(new Error('The branch "' + exports.branchName + '" already exists on the remote repository.'));
-        }
+        // }
+        // else {
+        //   deferred.reject(new Error('The branch "' + exports.branchName + '" already exists on the remote repository.'));
+        // }
 
       }, function (err) {
         deferred.reject(new Error(err));
@@ -476,24 +477,33 @@ exports.init = function (config, grunt) {
   exports.assignMergeRequest = function (assignee) {
     var deferred = Q.defer();
     getMergeRequestId().then(function (id) {
-      var args = {
-        headers: { "Content-Type": "application/json" },
-        data: {
-          "assignee": user
-        }
-      };
-      client.put(config.gitlab.url + '/api/v3/projects/' + config.gitlab.taskId + '/merge_request/' + id + '?private_token=' + config.gitlab.token, args, function(data, response) {
-        if (response.statusCode !== 200) {
-          deferred.reject(new Error(data.message));
-        }
-        else {
-          grunt.log.success('Merge request "' + exports.jiraCard.fields.description + '" assigned to ' + assignee + '.');
-          deferred.resolve(data);
-        }
+      getAssignee(assignee).then(function (user) {
+        var args = {
+          headers: {
+            "Content-Type": "application/json"
+          },
+          data: {
+            "assignee_id": user.id
+          }
+        };
+        client.put(config.gitlab.url + '/api/v3/projects/' + config.gitlab.taskId + '/merge_request/' + id + '?private_token=' + config.gitlab.token, args, function(data, response) {
+          if (response.statusCode !== 200) {
+            deferred.reject(new Error(data.message));
+          }
+          else {
+            grunt.log.success('Merge request "' + exports.jiraCard.fields.description + '" assigned to ' + assignee + '.');
+            deferred.resolve(data);
+          }
+        });
+
+        }, function (err) {
+        deferred.reject(new Error(err));
       });
+
     }, function (err) {
       deferred.reject(new Error(err));
     });
+
     return deferred.promise;
   };
 
