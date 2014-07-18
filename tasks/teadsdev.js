@@ -34,12 +34,24 @@ module.exports = function (grunt) {
   config.gitlab.token = credentials.gitlab.token;
   config.jira.credentials = credentials.jira;
 
-  var helpers = require('./lib/helpers').init(config, grunt);
+  var helpers = require('./lib/helpers').init(config, grunt, Q);
 
   grunt.registerTask('teadsdev', 'Handle the workflow when creating and finishing a feature in a Teads project', function (step, card) {
 
+    if (grunt.option('test')) {
+      var done = this.async();
+      helpers.branchName = 'feat-MANTEST-1';
+
+      helpers.getMergeRequestId().then(function (data) {
+        console.log(data);
+      }, function (err) {
+        grunt.log.fail(err);
+      });
+      return;
+    }
+
     // indicates to Grunt that this task uses asynchronous calls
-    var done = this.async(),
+    var //done = this.async(),
         checkJiraConnectionPromise = helpers.checkJiraConnection(),
         checkGitlabConnectionPromise = helpers.checkGitlabConnection(),
         allConnectionsChecksPromise = Q.all([ checkJiraConnectionPromise, checkGitlabConnectionPromise]),
