@@ -99,6 +99,81 @@ exports.init = function (config, grunt) {
   };
 
   /**
+   * Uses the GitLab API to check if the branch "branchName" already exists on the remote repository or not
+   * @param  {String} branchName 
+   * @return {Boolean}            true if the branch exists, false otherwise
+   */
+  var checkBranch = function (branchName) {
+    var deferred = Q.defer();
+    client.get(config.gitlab.url + '/api/v3/projects/'+config.gitlab.taskId+'/repository/branches/'+branchName+'?private_token=' + config.gitlab.token, function(data, response) {
+      if (response.statusCode !== 200) {
+        if (response.statusCode === 404) {
+          deferred.resolve(false);
+        }
+        else {
+          deferred.reject(new Error(data.message));
+        }
+      }
+      else {
+        deferred.resolve(true);
+      }
+    });
+    return deferred.promise;
+  };
+
+  var assignMergeRequest = function (assignee) {
+    
+  };
+
+  /**
+   * Uses the GitLab API to get the id of the merge request
+   * @return {Promise} 
+   */
+  var getMergeRequestId = function () {
+    var deferred = Q.defer();
+    client.get(config.gitlab.url + '/api/v3/projects/'+config.gitlab.taskId+'/merge_requests?state=opened&private_token=' + config.gitlab.token, function(data, response) {
+      if (response.statusCode !== 200) {
+        deferred.reject(new Error(data.message));
+      }
+      else {
+        var id = null,
+            i = 0;
+        while (!id && i < data.length) {
+          if (data[i].source_branch === exports.branchName) {
+            id = data[i].id;
+          }
+          i++;
+        }
+        deferred.resolve(id);
+      }
+    });
+    return deferred.promise;
+  };
+
+  /**
+   * Uses the GitLab API to check if the merge request already exists or not
+   * @param  {Integer} mrId 
+   * @return {Promise}      
+   */
+  var checkMergeRequest = function (mrId) {
+    var deferred = Q.defer();
+    client.get(config.gitlab.url + '/api/v3/projects/'+config.gitlab.taskId+'/merge_request/' + mrId + '?private_token=' + config.gitlab.token, function(data, response) {
+      if (response.statusCode !== 200) {
+        if (response.statusCode === 404) {
+          deferred.resolve(false);
+        }
+        else {
+          deferred.reject(new Error(data.message));
+        }
+      }
+      else {
+        deferred.resolve(true);
+      }
+    });
+    return deferred.promise;
+  };
+
+  /**
    * Name of the branch where the feature/fix/... is developed
    * @type {String}
    */
@@ -250,11 +325,11 @@ exports.init = function (config, grunt) {
    * @param  {String} branchName 
    * @return {Promise}            
    */
-  exports.gitPushOrigin = function (branchName) {
+  exports.gitPushOrigin = function () {
     var deferred = Q.defer();
     gitBranches().then(function (branches) {
-      checkBranch(branchName).then(function (branchExists) {
-        if (!branchExists) {
+      checkBranch(exports.branchName).then(function (branchExists) {
+        if (!branchExists) {;
           exec('git push -u origin ' + exports.branchName, function (err, data) {
             if (err) {
               deferred.reject(new Error(err));
@@ -266,7 +341,7 @@ exports.init = function (config, grunt) {
           });
         }
         else {
-          deferred.reject(new Error('The branch "'+branchName+'" already exists on the remote repository.'));
+          deferred.reject(new Error('The branch "' + exports.branchName + '" already exists on the remote repository.'));
         }
 
       }, function (err) {
@@ -285,23 +360,38 @@ exports.init = function (config, grunt) {
    */
   exports.createMergeRequest = function () {
     var deferred = Q.defer();
-    var args = {
-      headers: { "Content-Type": "application/json" },
-      data: {
-        "id": config.gitlab.taskId,
-        "source_branch": exports.branchName,
-        "target_branch": config.gitlab.mr.refBranch,
-        "title": exports.jiraCard.fields.description
-      }
-    };
-    client.post(config.gitlab.url + '/api/v3/projects/' + config.gitlab.taskId + '/merge_requests?private_token=' + config.gitlab.token, args, function(data, response) {
-      if (response.statusCode !== 201) { // 201 = HTTP CREATED
-        deferred.reject(new Error('Creation of the merge request failed. Reason: ' + data.message));
-      }
-      else {
-        grunt.log.success('Merge request "' + args.data.title + '" successfully created.');
-        deferred.resolve(data);
-      }
+    getMergeRequestId().then(function (id) {
+      checkMergeRequest(id).then(function (mrExists) {
+        if (!mrExists) {
+          var args = {
+            headers: { "Content-Type": "application/json" },
+            data: {
+              "id": config.gitlab.taskId,
+              "source_branch": exports.branchName,
+              "target_branch": config.gitlab.mr.refBranch,
+              "title": exports.jiraCard.fields.description
+            }
+          };
+          client.post(config.gitlab.url + '/api/v3/projects/' + config.gitlab.taskId + '/merge_requests?private_token=' + config.gitlab.token, args, function(data, response) {
+            if (response.statusCode !== 201) { // 201 = HTTP CREATED
+              deferred.reject(new Error('Creation of the merge request failed. Reason: ' + data.message));
+            }
+            else {
+              grunt.log.success('Merge request "' + args.data.title + '" successfully created.');
+              deferred.resolve(data);
+            }
+          });
+        }
+        else { // mr already exists
+          deferred.reject(new Error('The merge request associated to the branch "' + exports.branchName + '" already exists on the remote repository.'));
+        }
+
+      }, function (err) {
+        deferred.reject(new Error(err));
+      });
+
+    }, function (err) {
+      deferred.reject(new Error(err));
     });
     return deferred.promise;
   };
@@ -355,37 +445,6 @@ exports.init = function (config, grunt) {
       }
     });
     return deferred.promise;
-  };
-
-  exports.assignMergeRequest = function (assignee) {
-    
-  };
-
-  /**
-   * Uses the GitLab API to check if the branch "branchName" already exists on the remote repository or not
-   * @param  {String} branchName 
-   * @return {Boolean}            true if the branch exists, false otherwise
-   */
-  exports.checkBranch = function (branchName) {
-    var deferred = Q.defer();
-    client.get(config.gitlab.url + '/api/v3/projects/'+config.gitlab.taskId+'/repository/branches/'+branchName+'?private_token=' + config.gitlab.token, function(data, response) {
-      if (response.statusCode !== 200) {
-        if (response.statusCode === 404) {
-          deferred.resolve(false);
-        }
-        else {
-          deferred.reject(new Error(data.message));
-        }
-      }
-      else {
-        deferred.resolve(true);
-      }
-    });
-    return deferred.promise;
-  };
-
-  exports.checkMergeRequest = function (mrId) {
-
   };
 
   exports.reset = function () {
