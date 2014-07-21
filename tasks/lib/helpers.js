@@ -45,7 +45,7 @@ exports.init = function (config, grunt, Q) {
   gitlabClient.registerMethod('getOneBranch', '${url}/api/v3/projects/${projectId}/repository/branches/${branch}', 'GET');
   gitlabClient.registerMethod('getAllUsers', '${url}/api/v3/users', 'GET');
   gitlabClient.registerMethod('getOneProject', '${url}/api/v3/projects/${projectId}', 'GET');
-  gitlabClient.registerMethod('postMergeRequest', '${url}/api/v3/projects/${projectId}/merge_request/${mrId}', 'POST');
+  gitlabClient.registerMethod('postMergeRequest', '${url}/api/v3/projects/${projectId}/merge_requests', 'POST');
   gitlabClient.registerMethod('putMergeRequest', '${url}/api/v3/projects/${projectId}/merge_request/${mrId}', 'PUT');
 
   /**
