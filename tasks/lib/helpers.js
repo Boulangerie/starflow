@@ -25,13 +25,17 @@ exports.init = function (config, grunt, Q) {
   var jiraClient = new Client(config.jira.credentials);
   var gitlabClient = new Client();
 
+  /**
+   * Arguments to pass to jira node-rest-client methods
+   * @type {object}
+   */
   var jiraArgs = {};
   jiraClient.registerMethod('getOneStatus', '${url}/rest/api/latest/status/${status}', 'GET');
   jiraClient.registerMethod('getOneIssue', '${url}/rest/api/latest/issue/${issue}', 'GET');
   jiraClient.registerMethod('getOneProject', '${url}/rest/api/latest/project/${projectId}', 'GET');
 
   /**
-   * Arguments to pass to node-rest-client methods
+   * Arguments to pass to gitlab node-rest-client methods
    * @type {object}
    */
   var gitlabArgs = {
@@ -39,7 +43,6 @@ exports.init = function (config, grunt, Q) {
       "PRIVATE-TOKEN": config.gitlab.token
     }
   };
-
   gitlabClient.registerMethod('getAllMergeRequests', '${url}/api/v3/projects/${projectId}/merge_requests', 'GET');
   gitlabClient.registerMethod('getOneMergeRequest', '${url}/api/v3/projects/${projectId}/merge_request/${mrId}', 'GET');
   gitlabClient.registerMethod('getOneBranch', '${url}/api/v3/projects/${projectId}/repository/branches/${branch}', 'GET');
@@ -112,7 +115,7 @@ exports.init = function (config, grunt, Q) {
   /**
    * Uses the GitLab API to check if the branch "branchName" already exists on the remote repository or not
    * @param  {string} branchName
-   * @return {boolean}            true if the branch exists, false otherwise
+   * @return {promise}            resolved true if the branch exists, false otherwise. Rejected if error
    */
   var checkBranch = function (branchName) {
     var deferred = Q.defer();
@@ -368,6 +371,7 @@ exports.init = function (config, grunt, Q) {
 
   exports.gitPullRebaseOrigin = function () {
     var deferred = Q.defer();
+
     gitBranches().then(function (branches) {
       if (branches.current !== 'master') {
         exec('git checkout master', function (err, data) {
@@ -392,6 +396,7 @@ exports.init = function (config, grunt, Q) {
     }, function (err) {
       deferred.reject(new Error(err));
     });
+
     return deferred.promise;
   };
 
@@ -403,7 +408,9 @@ exports.init = function (config, grunt, Q) {
   exports.gitCreateAndSwitchBranch = function (branchName) {
     exports.branchName = branchName;
     var deferred = Q.defer();
+
     gitBranches().then(function (branches) {
+      // option = '-b' if the branch doesn't exist yet, '' otherwise
       var option = (branches.current !== branchName && !_.contains(branches.others, branchName)) ? '-b' : '';
       exec('git checkout ' + option + ' ' + branchName, function (err, data) {
         if (err) {
@@ -413,13 +420,16 @@ exports.init = function (config, grunt, Q) {
           if (option === '-b') {
             grunt.log.success('New branch created: ' + branchName + '.');
           }
-          grunt.log.writeln('Switched to branch ' + branchName + '.');
+          if (branches.current !== branchName) {
+            grunt.log.writeln('Switched to branch ' + branchName + '.');
+          }
           deferred.resolve(data);
         }
       });
     }, function (err) {
       deferred.reject(new Error(err));
     });
+
     return deferred.promise;
   };
 
@@ -430,6 +440,7 @@ exports.init = function (config, grunt, Q) {
    */
   exports.gitPushOrigin = function () {
     var deferred = Q.defer();
+
     gitBranches().then(function (branches) {
       checkBranch(exports.branchName).then(function (branchExists) {
         // if (!branchExists) {;
@@ -455,6 +466,7 @@ exports.init = function (config, grunt, Q) {
     }, function (err) {
       deferred.reject(new Error(err));
     });
+
     return deferred.promise;
   };
 
@@ -464,6 +476,7 @@ exports.init = function (config, grunt, Q) {
    */
   exports.createMergeRequest = function () {
     var deferred = Q.defer();
+
     getMergeRequestId().then(function (id) {
       checkMergeRequest(id).then(function (mrExists) {
         if (!mrExists) {
@@ -505,6 +518,7 @@ exports.init = function (config, grunt, Q) {
     }, function (err) {
       deferred.reject(new Error(err));
     });
+
     return deferred.promise;
   };
 
@@ -606,15 +620,6 @@ exports.init = function (config, grunt, Q) {
       deferred.reject(new Error(err));
     });
     return deferred.promise;
-  };
-
-  exports.reset = function () {
-    // switch to master
-    // delete local feat branch
-    // close mr
-    // delete remote feat branch
-    // move card jira to TODO
-
   };
 
   return exports;
