@@ -269,7 +269,8 @@ exports.init = function (config, grunt, Q) {
    * @param  {function} done
    */
   exports.failTask = function (err, done) {
-    grunt.log.fail(err);
+//    grunt.log.fail(err);
+    throw err;
     done(false);
   };
 
@@ -494,7 +495,6 @@ exports.init = function (config, grunt, Q) {
           });
         }
         else { // mr already exists
-          grunt.log.debug('', data);
           deferred.reject(new Error('The merge request associated to the branch "' + exports.branchName + '" already exists on the remote repository.'));
         }
 

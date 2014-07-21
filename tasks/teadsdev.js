@@ -86,7 +86,6 @@ module.exports = function (grunt) {
             .catch(function (err) {
               grunt.log.debug('Error on createMergeRequest()');
               helpers.failTask(err, done);
-              done(false);
             })
             .then(function () {
               grunt.log.success('You can now start working on the feature! :)');
@@ -96,9 +95,9 @@ module.exports = function (grunt) {
         }
         else if (step === 'finish') {
 
-          helpers.gitPushOrigin()
+          helpers.gitCreateAndSwitchBranch(branchName)
             .catch(function (err) {
-              grunt.log.debug('Error on gitPushOrigin()');
+              grunt.log.debug('Error on gitCreateAndSwitchBranch(' + branchName + ')');
               helpers.failTask(err, done);
             })
             .then(function () {
