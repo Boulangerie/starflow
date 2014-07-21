@@ -91,13 +91,14 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(jiraArgs, {
       path: {
-        url: config.gitlab.url,
+        url: config.jira.url,
         status: status
       }
     });
 
     jiraClient.methods.getOneStatus(args, function (data, response) {
       if (response.statusCode !== 200) {
+        grunt.log.debug('', data);
         deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -130,6 +131,7 @@ exports.init = function (config, grunt, Q) {
           deferred.resolve(false);
         }
         else {
+          grunt.log.debug('', data);
           deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
         }
       }
@@ -160,6 +162,7 @@ exports.init = function (config, grunt, Q) {
 
     gitlabClient.methods.getAllMergeRequests(args, function (data, response) {
       if (response.statusCode !== 200) {
+        grunt.log.debug('', data);
         deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -200,6 +203,7 @@ exports.init = function (config, grunt, Q) {
           deferred.resolve(false);
         }
         else {
+          grunt.log.debug('', data);
           deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
         }
       }
@@ -228,6 +232,7 @@ exports.init = function (config, grunt, Q) {
 
     gitlabClient.methods.getAllUsers(args, function (data, response) {
       if (response.statusCode !== 200) {
+        grunt.log.debug('', data);
         deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -277,13 +282,14 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(jiraArgs, {
       path: {
-        url: config.gitlab.url,
+        url: config.jira.url,
         projectId: config.jira.managerTestId
       }
     });
 
     jiraClient.methods.getOneProject(args, function (data, response) {
       if (response.statusCode !== 200) {
+        grunt.log.debug('', data);
         deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -311,6 +317,7 @@ exports.init = function (config, grunt, Q) {
 
     gitlabClient.methods.getOneProject(args, function (data, response) {
       if (response.statusCode !== 200) {
+        grunt.log.debug('', data);
         deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -332,7 +339,7 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(jiraArgs, {
       path: {
-        url: config.gitlab.url,
+        url: config.jira.url,
         issue: cardname
       }
     });
@@ -340,9 +347,11 @@ exports.init = function (config, grunt, Q) {
     jiraClient.methods.getOneIssue(args, function (data, response) {
       if (response.statusCode !== 200) {
         if (response.statusCode === 404) {
+          grunt.log.debug('', data);
           deferred.reject(new Error('The following JIRA card could not be found: ' + cardname));
         }
         else {
+          grunt.log.debug('', data);
           deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
         }
       }
@@ -475,6 +484,7 @@ exports.init = function (config, grunt, Q) {
 
           gitlabClient.methods.postMergeRequest(args, function (data, response) {
             if (response.statusCode !== 201) { // 201 = HTTP CREATED
+              grunt.log.debug('', data);
               deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
             }
             else {
@@ -484,6 +494,7 @@ exports.init = function (config, grunt, Q) {
           });
         }
         else { // mr already exists
+          grunt.log.debug('', data);
           deferred.reject(new Error('The merge request associated to the branch "' + exports.branchName + '" already exists on the remote repository.'));
         }
 
@@ -577,7 +588,8 @@ exports.init = function (config, grunt, Q) {
         });
 
         gitlabClient.methods.putMergeRequest(args, function (data, response) {
-          if (response.statusCode !== 201) { // 201 = HTTP CREATED
+          if (response.statusCode !== 200) {
+            grunt.log.debug('', data);
             deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
           }
           else {

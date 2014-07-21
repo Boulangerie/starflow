@@ -38,24 +38,94 @@ module.exports = function (grunt) {
 
   grunt.registerTask('teadsdev', 'Handle the workflow when creating and finishing a feature in a Teads project', function (step, card) {
 
-    if (grunt.option('test')) {
-      var done = this.async();
-      helpers.branchName = 'feat-MANTEST-1';
-
-      helpers.getMergeRequestId().then(function (data) {
-        console.log(data);
-      }, function (err) {
-        grunt.log.fail(err);
-      });
-      return;
-    }
-
     // indicates to Grunt that this task uses asynchronous calls
-    var //done = this.async(),
+    var done = this.async(),
         checkJiraConnectionPromise = helpers.checkJiraConnection(),
         checkGitlabConnectionPromise = helpers.checkGitlabConnection(),
         allConnectionsChecksPromise = Q.all([ checkJiraConnectionPromise, checkGitlabConnectionPromise]),
         branchName = 'feat-' + card;
+
+
+    allConnectionsChecksPromise
+      .catch(function (err) {
+        grunt.log.debug('Error on allConnectionsChecksPromise');
+        helpers.failTask(err, done);
+      })
+      .then(function () {
+        return helpers.checkJiraCard(card);
+      })
+      .catch(function (err) {
+        grunt.log.debug('Error on checkJiraCard(' + card + ')');
+        helpers.failTask(err, done);
+      })
+      .then(function () {
+        if (step === 'new') {
+
+          helpers.gitPullRebaseOrigin()
+            .catch(function (err) {
+              grunt.log.debug('Error on gitPullRebaseOrigin()');
+              helpers.failTask(err, done);
+            })
+            .then(function () {
+              return helpers.gitCreateAndSwitchBranch(branchName);
+            })
+            .catch(function (err) {
+              grunt.log.debug('Error on gitCreateAndSwitchBranch(' + branchName + ')');
+              helpers.failTask(err, done);
+            })
+            .then(function () {
+              return helpers.gitPushOrigin();
+            })
+            .catch(function (err) {
+              grunt.log.debug('Error on gitPushOrigin()');
+              helpers.failTask(err, done);
+            })
+            .then(function () {
+              return helpers.createMergeRequest();
+            })
+            .catch(function (err) {
+              grunt.log.debug('Error on createMergeRequest()');
+              helpers.failTask(err, done);
+              done(false);
+            })
+            .then(function () {
+              grunt.log.success('You can now start working on the feature! :)');
+            })
+            .done();
+
+        }
+        else if (step === 'finish') {
+
+          helpers.gitPushOrigin()
+            .catch(function (err) {
+              grunt.log.debug('Error on gitPushOrigin()');
+              helpers.failTask(err, done);
+            })
+            .then(function () {
+              return helpers.assignMergeRequest(config.gitlab.mr.doneAssignee);
+            })
+            .catch(function (err) {
+              grunt.log.debug('Error on assignMergeRequest(' + config.gitlab.mr.doneAssignee + ')');
+              helpers.failTask(err, done);
+            })
+            .then(function () {
+              grunt.log.success('The feature is now in the Review process.');
+            })
+            .done();
+
+        }
+        else {
+          helpers.failTask(new Error('Task called with step "' + step + '", should be called with one of the following: new, finish.'), done);
+        }
+      })
+      .done();
+
+
+
+
+    /*return;
+
+
 
     if (step === 'new') {
       allConnectionsChecksPromise.then(function () {
@@ -134,7 +204,7 @@ module.exports = function (grunt) {
         helpers.failTask(err, done);
       });
 
-    }
+    }*/
 
   });
 
