@@ -12,8 +12,7 @@ module.exports = function (grunt) {
     gitlab: {
       url: 'https://git.teads.tv',
       project: 'manager',
-      managerId: 4,
-      taskId: 226,
+      managerId: 226, // 4
       mr: {
         doneAssignee: 'bruiz',
         refBranch: 'master'
@@ -22,8 +21,13 @@ module.exports = function (grunt) {
     jira: {
       url: 'https://jira.teads.tv',
       project: 'manager',
-      managerId: 10300,
-      managerTestId: 10605
+      managerId: 10605, // 10300
+      statuses: {
+        todo: 'Open',
+        inprogress: 'In Progress',
+        review: 'Reviews',
+        done: 'Resolved'
+      }
     }
   };
 
@@ -37,6 +41,26 @@ module.exports = function (grunt) {
   var helpers = require('./lib/helpers').init(config, grunt, Q);
 
   grunt.registerTask('teadsdev', 'Handle the workflow when creating and finishing a feature in a Teads project', function (step, card) {
+
+//    var done = this.async();
+//    helpers.checkJiraCard(card)
+//      .catch(function (err) {
+//        grunt.log.fail(err);
+//        done(false);
+//      })
+//      .then(function () {
+//        return helpers.moveJiraCard('Reviews');
+//      })
+//      .catch(function (err) {
+////        grunt.log.fail(err);
+//        done(false);
+//        throw err;
+//      })
+//      .then(function (data) {
+//        grunt.log.success(data);
+//      })
+//      .done();
+//    return;
 
     // indicates to Grunt that this task uses asynchronous calls
     var done = this.async(),
@@ -88,6 +112,13 @@ module.exports = function (grunt) {
               helpers.failTask(err, done);
             })
             .then(function () {
+              return helpers.moveJiraCard(config.jira.statuses.inprogress);
+            })
+            .catch(function (err) {
+              grunt.log.debug('Error on moveJiraCard(' + config.jira.statuses.inprogress + ')');
+              helpers.failTask(err, done);
+            })
+            .then(function () {
               grunt.log.success('You can now start working on the feature! :)');
             })
             .done();
@@ -105,6 +136,13 @@ module.exports = function (grunt) {
             })
             .catch(function (err) {
               grunt.log.debug('Error on assignMergeRequest(' + config.gitlab.mr.doneAssignee + ')');
+              helpers.failTask(err, done);
+            })
+            .then(function () {
+              return helpers.moveJiraCard(config.jira.statuses.review);
+            })
+            .catch(function (err) {
+              grunt.log.debug('Error on moveJiraCard(' + config.jira.statuses.review + ')');
               helpers.failTask(err, done);
             })
             .then(function () {

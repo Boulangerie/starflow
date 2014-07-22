@@ -29,9 +29,14 @@ exports.init = function (config, grunt, Q) {
    * Arguments to pass to jira node-rest-client methods
    * @type {object}
    */
-  var jiraArgs = {};
-  jiraClient.registerMethod('getOneStatus', '${url}/rest/api/latest/status/${status}', 'GET');
+  var jiraArgs = {
+    path: {
+      url: config.jira.url
+    }
+  };
+  jiraClient.registerMethod('getAllIssueTransitions', '${url}/rest/api/latest/issue/${issue}/transitions', 'GET');
   jiraClient.registerMethod('getOneIssue', '${url}/rest/api/latest/issue/${issue}', 'GET');
+  jiraClient.registerMethod('postIssueTransition', '${url}/rest/api/latest/issue/${issue}/transitions', 'POST');
   jiraClient.registerMethod('getOneProject', '${url}/rest/api/latest/project/${projectId}', 'GET');
 
   /**
@@ -41,6 +46,9 @@ exports.init = function (config, grunt, Q) {
   var gitlabArgs = {
     headers: {
       "PRIVATE-TOKEN": config.gitlab.token
+    },
+    path: {
+      url: config.gitlab.url
     }
   };
   gitlabClient.registerMethod('getAllMergeRequests', '${url}/api/v3/projects/${projectId}/merge_requests', 'GET');
@@ -87,25 +95,34 @@ exports.init = function (config, grunt, Q) {
   /**
    * Uses JIRA API to get the object status that has the name given in param
    * @param  {string} status
+   * @param  {string} issue  the JIRA card key (ex. MAN-123)
    * @return {promise}
    */
-  var getJiraStatus = function (status) {
+  var getJiraStatus = function (status, issue) {
     var deferred = Q.defer();
 
     var args = _.merge(jiraArgs, {
       path: {
-        url: config.jira.url,
-        status: status
+        issue: issue
       }
     });
 
-    jiraClient.methods.getOneStatus(args, function (data, response) {
+    jiraClient.methods.getAllIssueTransitions(args, function (data, response) {
       if (response.statusCode !== 200) {
         grunt.log.debug('', data);
         deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
-        deferred.resolve(data);
+        data = data.transitions;
+        var jiraStatus = null,
+          i = 0;
+        while (!jiraStatus && i < data.length) {
+          if (data[i].name === status) {
+            jiraStatus = data[i];
+          }
+          i++;
+        }
+        deferred.resolve(jiraStatus);
       }
     });
 
@@ -122,8 +139,7 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(gitlabArgs, {
       path: {
-        url: config.gitlab.url,
-        projectId: config.gitlab.taskId,
+        projectId: config.gitlab.managerId,
         branch: branchName
       }
     });
@@ -158,8 +174,7 @@ exports.init = function (config, grunt, Q) {
         state: 'opened'
       },
       path: {
-        url: config.gitlab.url,
-        projectId: config.gitlab.taskId
+        projectId: config.gitlab.managerId
       }
     });
 
@@ -194,8 +209,7 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(gitlabArgs, {
       path: {
-        url: config.gitlab.url,
-        projectId: config.gitlab.taskId,
+        projectId: config.gitlab.managerId,
         mrId: mrId
       }
     });
@@ -227,9 +241,6 @@ exports.init = function (config, grunt, Q) {
     var args = _.merge(gitlabArgs, {
       parameters: {
         per_page: 1000
-      },
-      path: {
-        url: config.gitlab.url
       }
     });
 
@@ -286,8 +297,7 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(jiraArgs, {
       path: {
-        url: config.jira.url,
-        projectId: config.jira.managerTestId
+        projectId: config.jira.managerId
       }
     });
 
@@ -314,8 +324,7 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(gitlabArgs, {
       path: {
-        url: config.gitlab.url,
-        projectId: config.gitlab.taskId
+        projectId: config.gitlab.managerId
       }
     });
 
@@ -343,7 +352,6 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(jiraArgs, {
       path: {
-        url: config.jira.url,
         issue: cardname
       }
     });
@@ -485,14 +493,13 @@ exports.init = function (config, grunt, Q) {
               "Content-Type": "application/json"
             },
             data: {
-              "id": config.gitlab.taskId,
+              "id": config.gitlab.managerId,
               "source_branch": exports.branchName,
               "target_branch": config.gitlab.mr.refBranch,
               "title": exports.jiraCard.fields.description
             },
             path: {
-              url: config.gitlab.url,
-              projectId: config.gitlab.taskId
+              projectId: config.gitlab.managerId
             }
           });
 
@@ -530,50 +537,37 @@ exports.init = function (config, grunt, Q) {
   exports.moveJiraCard = function (to) {
     var deferred = Q.defer();
 
-    // client.get(config.jira.url + '/rest/api/latest/issue/MANTEST-1', {headers: {"Authorization": "Basic " + jiraCredentialsStr}}, function(data, response) {
-    client.get(config.jira.url + '/rest/api/latest/status/Reviews', {headers: {"Authorization": "Basic " + jiraCredentialsStr}}, function(data, response) {
-      if (response.statusCode !== 200) {
-        var errMessage = response.statusCode + ' Connection to JIRA API could not be established.';
-        if (data.errorMessages) {
-          for (var i = 0; i < data.errorMessages.length; i++) {
-            errMessage += '\n  ' + data.errorMessages[i];
+    getJiraStatus(to, exports.jiraCard.key).then(function (status) {
+
+      var args = _.merge(jiraArgs, {
+        headers: {
+          "Content-Type": "application/json"
+        },
+        path: {
+          status: status,
+          issue: exports.jiraCard.key
+        },
+        data: {
+          transition: {
+            id: status.id
           }
         }
-        deferred.reject(new Error(errMessage));
-      }
-      else {
-        var args = {
-          headers: { "Content-Type": "application/json", "Authorization": "Basic " + jiraCredentialsStr },
-          data: {
-            "fields": {
-              "status": data
-            }
-          }
-        };
-        /**/
-        /* TODO */
-        /* SCREEN to expose properties of issues and edit them */
-        /**/
-        console.log(args);
-        client.put(config.jira.url + '/rest/api/latest/issue/MANTEST-1', args, function(data, response) {
-          if (response.statusCode !== 200) {
-            // console.log(response);
-            console.log('DATA', data);
-            var errMessage = response.statusCode + ' Connection to JIRA API could not be established.';
-            if (data.errorMessages) {
-              for (var i = 0; i < data.errorMessages.length; i++) {
-                errMessage += '\n  ' + data.errorMessages[i];
-              }
-            }
-            deferred.reject(new Error(errMessage));
-          }
-          else {
-            console.log('MOVED');
-            deferred.resolve(data);
-          }
-        });
-      }
+      });
+
+      jiraClient.methods.postIssueTransition(args, function (data, response) {
+        if (response.statusCode !== 204) {
+          grunt.log.debug('', data);
+          deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
+        }
+        else {
+          grunt.log.success('JIRA card ' + exports.jiraCard.key + ' moved to ' + status.name + '.');
+          deferred.resolve(data);
+        }
+      });
+    }, function (err) {
+      deferred.reject(new Error(err));
     });
+
     return deferred.promise;
   };
 
@@ -596,7 +590,7 @@ exports.init = function (config, grunt, Q) {
           },
           path: {
             url: config.gitlab.url,
-            projectId: config.gitlab.taskId,
+            projectId: config.gitlab.managerId,
             mrId: id
           }
         });
