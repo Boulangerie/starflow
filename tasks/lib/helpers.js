@@ -31,11 +31,12 @@ exports.init = function (config, grunt, Q) {
    */
   var jiraArgs = {
     path: {
-      url: config.jira.url
+      url: config.jira.host
     }
   };
   jiraClient.registerMethod('getAllIssueTransitions', '${url}/rest/api/latest/issue/${issue}/transitions', 'GET');
-  jiraClient.registerMethod('getOneIssue', '${url}/rest/api/latest/issue/${issue}', 'GET');
+//  jiraClient.registerMethod('getOneIssue', '${url}/rest/api/latest/issue/${issue}', 'GET');
+  jiraClient.registerMethod('getOneIssue', '${url}/rest/api/latest/search?jql=project=${project} and issue=${issue}', 'GET');
   jiraClient.registerMethod('postIssueTransition', '${url}/rest/api/latest/issue/${issue}/transitions', 'POST');
   jiraClient.registerMethod('getOneProject', '${url}/rest/api/latest/project/${projectId}', 'GET');
 
@@ -48,7 +49,7 @@ exports.init = function (config, grunt, Q) {
       "PRIVATE-TOKEN": config.gitlab.token
     },
     path: {
-      url: config.gitlab.url
+      url: config.gitlab.host
     }
   };
   gitlabClient.registerMethod('getAllMergeRequests', '${url}/api/v3/projects/${projectId}/merge_requests', 'GET');
@@ -352,25 +353,30 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(jiraArgs, {
       path: {
+        project: 'manager_test',
         issue: cardname
       }
     });
 
     jiraClient.methods.getOneIssue(args, function (data, response) {
       if (response.statusCode !== 200) {
-        if (response.statusCode === 404) {
+        grunt.log.debug('', data);
+        deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
+      }
+      else {
+        if (data.total === 1) {
+          grunt.log.success('JIRA card "' + cardname + '" was found.');
+          exports.jiraCard = data.issues[0];
+          deferred.resolve(data.issues[0]);
+        }
+        else if (data.total === 0) {
           grunt.log.debug('', data);
           deferred.reject(new Error('The following JIRA card could not be found: ' + cardname));
         }
         else {
           grunt.log.debug('', data);
-          deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
+          deferred.reject(new Error('More than 1 JIRA card has been found with the string "' + cardname + '".'));
         }
-      }
-      else {
-        grunt.log.success('JIRA card "' + cardname + '" was found.');
-        exports.jiraCard = data;
-        deferred.resolve(data);
       }
     });
 
@@ -589,7 +595,6 @@ exports.init = function (config, grunt, Q) {
             assignee_id: user.id
           },
           path: {
-            url: config.gitlab.url,
             projectId: config.gitlab.managerId,
             mrId: id
           }
