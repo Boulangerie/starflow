@@ -49,6 +49,14 @@ exports.init = function (config, grunt, Q, helpers) {
         return helpers.assignMergeRequest(args.assignee);
       }
 
+    },
+
+    get: {
+
+      project_id: function (args) {
+        return helpers.getGitlabProjectId(args.name);
+      }
+
     }
 
   };
@@ -71,6 +79,14 @@ exports.init = function (config, grunt, Q, helpers) {
 
       card: function (args) {
         return helpers.moveJiraCard(args.status);
+      }
+
+    },
+
+    get: {
+
+      project_id: function (args) {
+        return helpers.getJiraProjectId(args.name);
       }
 
     }

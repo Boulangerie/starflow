@@ -10,21 +10,18 @@ module.exports = function (grunt) {
       options: {
         gitlab: {
           host: 'https://git.teads.tv',
-          project: 'manager',
-          managerId: 226
+          project: 'SERVICE Manager' // id: 4
         },
         jira: {
           host: 'https://jira.teads.tv',
-          project: 'manager_test',
-          managerId: 10605
+          project: 10300 // name: Manager
         }
       },
       test: {
         steps: [
           'gitlab.check.connection',
           'jira.check.connection',
-          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
-          { 'git.checkout': { branch: 'master' } }
+          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } }
         ]
       },
       create: {
@@ -44,7 +41,7 @@ module.exports = function (grunt) {
         steps: [
           'gitlab.check.connection',
           'jira.check.connection',
-          'jira.check.card',
+          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
           { 'gitlab.assign.merge_request': { assignee: 'bruiz' } },
           { 'jira.move.card': { status: 'Reviews' } }
         ]
@@ -53,6 +50,9 @@ module.exports = function (grunt) {
 
   });
 
-  grunt.registerTask('create_feat', ['ttdev:create:feat']);
+  grunt.registerTask('new_feat', ['ttdev:create:feat']);
+  grunt.registerTask('end_feat', ['ttdev:finish:feat']);
+  grunt.registerTask('new_fix', ['ttdev:create:fix']);
+  grunt.registerTask('end_fix', ['ttdev:finish:fix']);
 
 };

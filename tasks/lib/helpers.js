@@ -15,11 +15,11 @@ exports.init = function (config, grunt, Q) {
 
   // object returned by the init function
   var exports = {};
+  var _ = require('lodash');
 
   // external libs
   var Client = require('node-rest-client').Client;
   var exec = require('child_process').exec;
-  var _ = require('lodash');
 
   // instances of Client used to make connections to JIRA and GitLab APIs
   var jiraClient = new Client(config.jira.credentials);
@@ -39,6 +39,7 @@ exports.init = function (config, grunt, Q) {
   jiraClient.registerMethod('getOneIssue', '${url}/rest/api/latest/search?jql=project=${project} and issue=${issue}', 'GET');
   jiraClient.registerMethod('postIssueTransition', '${url}/rest/api/latest/issue/${issue}/transitions', 'POST');
   jiraClient.registerMethod('getOneProject', '${url}/rest/api/latest/project/${projectId}', 'GET');
+  jiraClient.registerMethod('getAllProjects', '${url}/rest/api/latest/project', 'GET');
 
   /**
    * Arguments to pass to gitlab node-rest-client methods
@@ -57,6 +58,7 @@ exports.init = function (config, grunt, Q) {
   gitlabClient.registerMethod('getOneBranch', '${url}/api/v3/projects/${projectId}/repository/branches/${branch}', 'GET');
   gitlabClient.registerMethod('getAllUsers', '${url}/api/v3/users', 'GET');
   gitlabClient.registerMethod('getOneProject', '${url}/api/v3/projects/${projectId}', 'GET');
+  gitlabClient.registerMethod('getAllProjects', '${url}/api/v3/projects', 'GET');
   gitlabClient.registerMethod('postMergeRequest', '${url}/api/v3/projects/${projectId}/merge_requests', 'POST');
   gitlabClient.registerMethod('putMergeRequest', '${url}/api/v3/projects/${projectId}/merge_request/${mrId}', 'PUT');
 
@@ -123,7 +125,12 @@ exports.init = function (config, grunt, Q) {
           }
           i++;
         }
-        deferred.resolve(jiraStatus);
+        if (jiraStatus) {
+          deferred.resolve(jiraStatus);
+        }
+        else {
+          deferred.reject(new Error('JIRA status "' + status + '" could not be found.'));
+        }
       }
     });
 
@@ -140,7 +147,7 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(gitlabArgs, {
       path: {
-        projectId: config.gitlab.managerId,
+        projectId: config.gitlab.projectId,
         branch: branchName
       }
     });
@@ -175,7 +182,7 @@ exports.init = function (config, grunt, Q) {
         state: 'opened'
       },
       path: {
-        projectId: config.gitlab.managerId
+        projectId: config.gitlab.projectId
       }
     });
 
@@ -193,7 +200,12 @@ exports.init = function (config, grunt, Q) {
           }
           i++;
         }
-        deferred.resolve(id);
+        if (id) {
+          deferred.resolve(id);
+        }
+        else {
+          deferred.reject(new Error('Merge request for the project "' + config.gitlab.project + '" could not be found.'));
+        }
       }
     });
 
@@ -210,7 +222,7 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(gitlabArgs, {
       path: {
-        projectId: config.gitlab.managerId,
+        projectId: config.gitlab.projectId,
         mrId: mrId
       }
     });
@@ -229,6 +241,7 @@ exports.init = function (config, grunt, Q) {
         deferred.resolve(true);
       }
     });
+
     return deferred.promise;
   };
 
@@ -259,7 +272,12 @@ exports.init = function (config, grunt, Q) {
           }
           i++;
         }
-        deferred.resolve(user);
+        if (user) {
+          deferred.resolve(user);
+        }
+        else {
+          deferred.reject(new Error('User with the username "' + assignee + '" could not be found.'));
+        }
       }
     });
 
@@ -283,10 +301,85 @@ exports.init = function (config, grunt, Q) {
    * @param  {object}   err
    * @param  {function} done
    */
+  // TODO is it deprecated?? go check
   exports.failTask = function (err, done) {
 //    grunt.log.fail(err);
     throw err;
     done(false);
+  };
+
+  /**
+   * Gets the id of a Gitlab project with the given name
+   * @param name
+   * @returns {promise}
+   */
+  exports.getGitlabProjectId = function (name) {
+    var deferred = Q.defer();
+
+    var args = _.merge(gitlabArgs, {
+      parameters: {
+        per_page: 1000
+      }
+    });
+
+    gitlabClient.methods.getAllProjects(args, function (data, response) {
+      if (response.statusCode !== 200) {
+        grunt.log.debug('', data);
+        deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+      }
+      else {
+        var id = null,
+          i = 0;
+        while (!id && i < data.length) {
+          if (data[i].name === name) {
+            id = data[i].id;
+          }
+          i++;
+        }
+        if (id) {
+          deferred.resolve(id);
+        }
+        else {
+          deferred.reject(new Error('Gitlab project named "' + name + '" could not be found.'));
+        }
+      }
+    });
+
+    return deferred.promise;
+  };
+
+  /**
+   * Gets the id of a JIRA project with the given name
+   * @param name
+   * @returns {promise}
+   */
+  exports.getJiraProjectId = function (name) {
+    var deferred = Q.defer();
+
+    jiraClient.methods.getAllProjects(jiraArgs, function (data, response) {
+      if (response.statusCode !== 200) {
+        grunt.log.debug('', data);
+        deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+      }
+      else {
+        var id = null,
+          i = 0;
+        while (!id && i < data.length) {
+          if (data[i].name === name) {
+            id = data[i].id;
+          }
+          i++;
+        }
+        if (id) {
+          deferred.resolve(id);
+        }
+        else {
+          deferred.reject(new Error('JIRA project named "' + name + '" could not be found.'));
+        }
+      }
+    });
+
+    return deferred.promise;
   };
 
   /**
@@ -326,7 +419,7 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(jiraArgs, {
       path: {
-        projectId: config.jira.managerId
+        projectId: config.jira.projectId
       }
     });
 
@@ -353,7 +446,7 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(gitlabArgs, {
       path: {
-        projectId: config.gitlab.managerId
+        projectId: config.gitlab.projectId
       }
     });
 
@@ -548,13 +641,13 @@ exports.init = function (config, grunt, Q) {
               "Content-Type": "application/json"
             },
             data: {
-              "id": config.gitlab.managerId,
+              "id": config.gitlab.projectId,
               "source_branch": exports.branchName,
               "target_branch": refBranch,
               "title": exports.jiraCard.fields.description
             },
             path: {
-              projectId: config.gitlab.managerId
+              projectId: config.gitlab.projectId
             }
           });
 
@@ -644,7 +737,7 @@ exports.init = function (config, grunt, Q) {
             assignee_id: user.id
           },
           path: {
-            projectId: config.gitlab.managerId,
+            projectId: config.gitlab.projectId,
             mrId: id
           }
         });
