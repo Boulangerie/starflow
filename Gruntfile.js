@@ -23,34 +23,21 @@ module.exports = function (grunt) {
         steps: [
           'gitlab.check.connection',
           'jira.check.connection',
-          {
-            'jira.check.card': { card: '<%= grunt.option("card") %>' }
-          }
+          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
+          { 'git.checkout': { branch: 'master' } }
         ]
       },
       create: {
         steps: [
           'gitlab.check.connection',
           'jira.check.connection',
-          {
-            'jira.check.card': { card: '<%= grunt.option("card") %>' }
-          },
-          {
-            'git.checkout': { branch: 'master' }
-          },
-          {
-            'git.pull': { with_rebase: true }
-          },
-          {
-            'git.create.branch': { with_checkout: true }
-          },
-          'git.push',
-          {
-            'gitlab.create.merge_request': { ref_branch: 'master' }
-          },
-          {
-            'jira.edit.card': { status: 'In Progress' }
-          }
+          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
+          { 'git.checkout': { branch: 'master' } },
+          { 'git.pull': { with_rebase: true } },
+//          { 'git.create.branch': { with_checkout: true } },
+//          'git.push',
+//          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
+          { 'jira.move.card': { status: 'In Progress' } }
         ]
       },
       finish: {
@@ -58,12 +45,8 @@ module.exports = function (grunt) {
           'gitlab.check.connection',
           'jira.check.connection',
           'jira.check.card',
-          {
-            'gitlab.edit.merge_request': { assignee: 'bruiz' }
-          },
-          {
-            'jira.edit.card': { status: 'Reviews' }
-          }
+          { 'gitlab.assign.merge_request': { assignee: 'bruiz' } },
+          { 'jira.move.card': { status: 'Reviews' } }
         ]
       }
     }

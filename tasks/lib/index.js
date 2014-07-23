@@ -6,28 +6,20 @@ exports.init = function (config, grunt, Q, helpers) {
   exports.git = {
 
     checkout: function (args) {
-      var deferred = Q.defer();
-      deferred.reject(new Error('BOB'));
-      return deferred.promise;
+      return helpers.gitCheckout(args.branch);
     },
 
     pull: function (args) {
-      var deferred = Q.defer();
-      deferred.resolve(args);
-      return deferred.promise;
+      return helpers.gitPull(args.repo, args.branch, args.with_rebase);
     },
 
-    push: function () {
-      var deferred = Q.defer();
-      deferred.resolve(true);
-      return deferred.promise;
+    push: function (args) {
+      return helpers.gitPush(args.repo, args.branch);
     },
 
     create: {
       branch: function (args) {
-        var deferred = Q.defer();
-        deferred.resolve(args);
-        return deferred.promise;
+        return helpers.gitCreateBranch(args.branchName || helpers.branchName, args.with_checkout);
       }
     }
 
@@ -45,10 +37,16 @@ exports.init = function (config, grunt, Q, helpers) {
 
     create: {
 
-      merge_request: function () {
-        var deferred = Q.defer();
-        deferred.resolve(true);
-        return deferred.promise;
+      merge_request: function (args) {
+        return helpers.createMergeRequest(args.ref_branch);
+      }
+
+    },
+
+    assign: {
+
+      merge_request: function (args) {
+        return helpers.assignMergeRequest(args.assignee);
       }
 
     }
@@ -64,7 +62,7 @@ exports.init = function (config, grunt, Q, helpers) {
       },
 
       card: function (args) {
-        return helpers.checkJiraCard(args.card);
+        return helpers.checkJiraCard(helpers.jiraCard.key);
       }
 
     },
@@ -72,9 +70,7 @@ exports.init = function (config, grunt, Q, helpers) {
     edit: {
 
       card: function (args) {
-        var deferred = Q.defer();
-        deferred.resolve(args);
-        return deferred.promise;
+        return helpers.moveJiraCard(args.status);
       }
 
     }

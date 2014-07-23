@@ -35,7 +35,7 @@ module.exports = function (grunt) {
 
     type = typeMatches[(type || grunt.option('type') || config.issue_type || 'feat')];
     card =  card || grunt.option('card') || config.jira.card;
-    branchName = type + '-' + card;
+    helpers.branchName = type + '-' + card;
 
     if (!card) {
       done(false);
@@ -76,7 +76,8 @@ module.exports = function (grunt) {
         done(false);
       })
       .then(function () {
-        done();
+        grunt.log.success('END');
+        done(); // end grunt task
       })
       .done();
 

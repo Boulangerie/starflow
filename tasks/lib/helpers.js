@@ -290,6 +290,34 @@ exports.init = function (config, grunt, Q) {
   };
 
   /**
+   * Performs a git checkout branch command
+   * @param branch
+   * @returns {promise}
+   */
+  exports.gitCheckout = function (branch) {
+    var deferred = Q.defer();
+
+    gitBranches().then(function (branches) {
+      if (branches.current !== branch) {
+        exec('git checkout ' + branch, function (err) {
+          if (err) {
+            deferred.reject(new Error(err));
+          }
+          else {
+            grunt.log.writeln('Switched to branch ' + branch + '.');
+          }
+        });
+      }
+      deferred.resolve(branch);
+
+    }, function (err) {
+      deferred.reject(new Error(err));
+    });
+
+    return deferred.promise;
+  };
+
+  /**
    * Checks if the credentials provided by the user are correct to login to the JIRA API
    * @return {promise}
    */
@@ -383,22 +411,27 @@ exports.init = function (config, grunt, Q) {
     return deferred.promise;
   };
 
-  exports.gitPullRebaseOrigin = function () {
+  /**
+   * Performs a git pull command
+   * @param {string}  repo
+   * @param {string}  branch
+   * @param {boolean} withRebase
+   * @returns {promise}
+   */
+  exports.gitPull = function (repo, branch, withRebase) {
     var deferred = Q.defer();
+
+    // shuffle args if branch (and repo) is (are) not defined
+    repo = repo || 'origin';
+    branch = branch || 'master';
+    var option = withRebase ? '--rebase ' : '';
 
     gitBranches().then(function (branches) {
       if (branches.current !== 'master') {
-        exec('git checkout master', function (err, data) {
-          if (err) {
-            deferred.reject(new Error(err));
-          }
-          else {
-            grunt.log.writeln('Switched to branch master.');
-          }
-        });
+        exports.gitCheckout('master');
       }
       // current branch is master
-      exec('git pull --rebase origin master', function (err, data) {
+      exec('git pull ' + option + repo + ' ' + branch, function (err, data) {
         if (err) {
           deferred.reject(new Error(err));
         }
@@ -419,22 +452,34 @@ exports.init = function (config, grunt, Q) {
    * @param  {string} branchName
    * @return {promise}
    */
-  exports.gitCreateAndSwitchBranch = function (branchName) {
-    exports.branchName = branchName;
+  exports.gitCreateBranch = function (branchName, withCheckout) {
     var deferred = Q.defer();
+    var option = '',
+        cmd = '',
+        branchExists;
 
     gitBranches().then(function (branches) {
-      // option = '-b' if the branch doesn't exist yet, '' otherwise
-      var option = (branches.current !== branchName && !_.contains(branches.others, branchName)) ? '-b' : '';
-      exec('git checkout ' + option + ' ' + branchName, function (err, data) {
+      branchExists = (branches.current === branchName || _.contains(branches.others, branchName));
+      if (withCheckout) {
+        // option = '-b' if the branch doesn't exist yet, '' otherwise
+        option = branchExists ? '' : '-b ';
+        cmd = 'git checkout ' + option + branchName;
+      }
+      else {
+        if (!branchExists) {
+          cmd = 'git branch ' + branchName;
+        }
+      }
+
+      exec(cmd, function (err, data) {
         if (err) {
           deferred.reject(new Error(err));
         }
         else {
-          if (option === '-b') {
+          if (!branchExists) {
             grunt.log.success('New branch created: ' + branchName + '.');
           }
-          if (branches.current !== branchName) {
+          if (branches.current !== branchName && withCheckout) {
             grunt.log.writeln('Switched to branch ' + branchName + '.');
           }
           deferred.resolve(data);
@@ -452,14 +497,17 @@ exports.init = function (config, grunt, Q) {
    * @param  {string} branchName
    * @return {promise}
    */
-  exports.gitPushOrigin = function () {
+  exports.gitPush = function (repo, branch) {
     var deferred = Q.defer();
+
+    repo = repo || 'origin';
+    branch = branch || exports.branchName || '';
 
     gitBranches().then(function (branches) {
       checkBranch(exports.branchName).then(function (branchExists) {
         // if (!branchExists) {;
         var option = (branchExists) ? '-u' : '';
-        exec('git push ' + option + ' origin ' + exports.branchName, function (err, data) {
+        exec('git push ' + option + ' ' + repo + ' ' + branch, function (err, data) {
           if (err) {
             deferred.reject(new Error(err));
           }
@@ -486,9 +534,10 @@ exports.init = function (config, grunt, Q) {
 
   /**
    * Creates a merge request on the Gitlab project
+   * @param  {string} refBranch
    * @return {promise}
    */
-  exports.createMergeRequest = function () {
+  exports.createMergeRequest = function (refBranch) {
     var deferred = Q.defer();
 
     getMergeRequestId().then(function (id) {
@@ -501,7 +550,7 @@ exports.init = function (config, grunt, Q) {
             data: {
               "id": config.gitlab.managerId,
               "source_branch": exports.branchName,
-              "target_branch": config.gitlab.mr.refBranch,
+              "target_branch": refBranch,
               "title": exports.jiraCard.fields.description
             },
             path: {
