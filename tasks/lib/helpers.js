@@ -381,7 +381,7 @@ exports.init = function (config, grunt, Q) {
 
     var args = _.merge(jiraArgs, {
       path: {
-        project: 'manager_test',
+        project: config.jira.project,
         issue: cardname
       }
     });

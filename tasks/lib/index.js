@@ -62,12 +62,12 @@ exports.init = function (config, grunt, Q, helpers) {
       },
 
       card: function (args) {
-        return helpers.checkJiraCard(helpers.jiraCard.key);
+        return helpers.checkJiraCard(args.card);
       }
 
     },
 
-    edit: {
+    move: {
 
       card: function (args) {
         return helpers.moveJiraCard(args.status);

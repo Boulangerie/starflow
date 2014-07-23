@@ -15,7 +15,7 @@ module.exports = function (grunt) {
         },
         jira: {
           host: 'https://jira.teads.tv',
-          project: 'manager',
+          project: 'manager_test',
           managerId: 10605
         }
       },
@@ -34,9 +34,9 @@ module.exports = function (grunt) {
           { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
           { 'git.checkout': { branch: 'master' } },
           { 'git.pull': { with_rebase: true } },
-//          { 'git.create.branch': { with_checkout: true } },
-//          'git.push',
-//          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
+          { 'git.create.branch': { with_checkout: true } },
+          'git.push',
+          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
           { 'jira.move.card': { status: 'In Progress' } }
         ]
       },
