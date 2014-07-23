@@ -73,7 +73,7 @@ module.exports = function (grunt) {
     // card is mandatory
     if (!card) {
       done(false);
-      throw new Error('You must specify a JIRA card name (--c=CARD_NAME while running the task).');
+      throw new Error('You must specify a JIRA card name (--card=CARD_NAME while running the task).');
     }
 
     var runDsl = function (cmd, args) {

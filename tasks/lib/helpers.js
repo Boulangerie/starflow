@@ -492,7 +492,7 @@ exports.init = function (config, grunt, Q) {
         }
         else if (data.total === 0) {
           grunt.log.debug('', data);
-          deferred.reject(new Error('The following JIRA card could not be found: ' + cardname));
+          deferred.reject(new Error('The following JIRA card could not be found for the project "' + config.jira.project + '": ' + cardname));
         }
         else {
           grunt.log.debug('', data);
