@@ -11,6 +11,7 @@ module.exports = function (grunt) {
   // external libs
   var credentials = require('./credentials');
   var Q = require('q');
+  require('./lib/utils')();
 
   grunt.registerMultiTask('ttdev', 'Handle the workflow when creating and finishing a feature in a Teads project', function (type) {
 
@@ -31,7 +32,44 @@ module.exports = function (grunt) {
           test: 'test', tests: 'test'
         },
       steps = this.data.steps,
-      card;
+      usesJira = false, usesGitlab = false,
+      card, tmp = {};
+
+    // 1) convert string steps into object ones
+    // 2) sets the vars usesJira and usesGitlab to true if there is a step using JIRA or Gitlab
+    steps.forEach(function (step, idx) {
+      if (typeof step === 'string') {
+        // uses jira?
+        if (!usesJira && step.matchesJira()) {
+          usesJira = true;
+        }
+        // uses gitlab?
+        if (!usesGitlab && step.matchesGitlab()) {
+          usesGitlab = true;
+        }
+        // convert
+        tmp[step] = {};
+        steps[idx] = tmp;
+        tmp = {};
+      }
+    });
+
+    // Check if the config is available if the workflow uses JIRA and/or Gitlab
+    var withHost;
+    if (usesGitlab) {
+      withHost = config.gitlab.host && config.gitlab.host.match(/^http(?:s):\/\/(.+)?/);
+      if (!withHost || !config.gitlab.project) {
+        grunt.log.debug('config.gitlab', config.gitlab);
+        throw new Error('You must specify a host (starting with http(s)) and a project (name or id) in your Gitlab config.');
+      }
+    }
+    if (usesJira) {
+      withHost = config.jira.host && config.jira.host.match(/^http(?:s):\/\/(.+)?/);
+      if (!withHost || !config.jira.project) {
+        grunt.log.debug('config.gitlab', config.jira);
+        throw new Error('You must specify a host (starting with http(s)) and a project (name or id) in your JIRA config.');
+      }
+    }
 
     // upgrade config with user's credentials
     config.gitlab.token = credentials.gitlab.token;
@@ -40,69 +78,51 @@ module.exports = function (grunt) {
     // external libs
     var helpers = require('./lib/helpers').init(config, grunt, Q);
     var index = require('./lib/index').init(config, grunt, Q, helpers);
+    // check connections promises
     var checkGitlabPromise, checkJiraPromise;
 
-    // upgrade config with project id if "project" is a string
+    // upgrade config object with gitlab.projectId
     if (typeof config.gitlab.project === 'string') {
       checkGitlabPromise = index.gitlab.get.project_id({ name: config.gitlab.project }).then(function (id) {
         config.gitlab.projectId = id;
       });
     }
-    else {
-//      checkGitlabPromise = Q.fcall(function () { return true; });
+    else { // project is already an id
       config.gitlab.projectId = parseInt(config.gitlab.project);
     }
 
+    // upgrade config object with jira.projectId
     if (typeof config.jira.project === 'string') {
       checkJiraPromise = index.jira.get.project_id({ name: config.jira.project }).then(function (id) {
         config.jira.projectId = id;
       });
     }
-    else {
-//      checkJiraPromise = Q.fcall(function () { return true; });
+    else { // project is already an id
       config.jira.projectId = parseInt(config.jira.project);
     }
 
-    // issue type
+    // issue type (e.g. feat)
     type = typeMatches[(type || grunt.option('type') || config.issue_type || 'feat')];
-    // issue/card key
+    // issue/card key (e.g. MAN-123)
     card =  grunt.option('card') || config.jira.card;
+
     // set branchName as {type}-{card}
-    helpers.branchName = type + '-' + card;
+    var format = '%type%-%card%'; // maybe put it in config?
+    helpers.branchName = format.replace(/%type%/, type).replace(/%card%/, card);
 
     // card is mandatory
-    if (!card) {
+    if (usesJira && !card) {
       done(false);
-      throw new Error('You must specify a JIRA card name (--card=CARD_NAME while running the task).');
+      throw new Error('You must specify a JIRA card name (--card=CARD_NAME while running the ttdev task).');
     }
 
-    var runDsl = function (cmd, args) {
+    var parseAndRun = function (cmd, args) {
       var tmp = cmd.split('.');
       if (allowedCmds.indexOf(tmp[0]) === -1) {
         throw new Error('Command used: ' + tmp[0] + '. Allowed commands: git, gitlab, jira.');
       }
       grunt.log.debug(cmd + '(' + JSON.stringify(args) + ')');
       return eval('index.' + cmd)(args);
-    };
-
-    // TODO external lib
-    var checkConfigFor = function (cmd) {
-      var withHost;
-
-      if (cmd.match(/^gitlab/)) {
-        withHost = config.gitlab.host && config.gitlab.host.match(/^http(?:s):\/\/(.+)?/);
-        if (!withHost || !config.gitlab.project) {
-          grunt.log.debug('config.gitlab', config.gitlab);
-          throw new Error('You must specify a host (starting with http(s)) and a project (name or id) in your Gitlab config.');
-        }
-      }
-      else if (cmd.match(/^jira/)) {
-        withHost = config.jira.host && config.jira.host.match(/^http(?:s):\/\/(.+)?/);
-        if (!withHost || !config.jira.project) {
-          grunt.log.debug('config.gitlab', config.jira);
-          throw new Error('You must specify a host (starting with http(s)) and a project (name or id) in your JIRA config.');
-        }
-      }
     };
 
     Q.all([checkGitlabPromise, checkJiraPromise])
@@ -116,15 +136,10 @@ module.exports = function (grunt) {
                 command = Object.keys(step)[0];
                 params = step[Object.keys(step)[0]];
               }
-              else if (typeof step === 'string') {
-                command = step;
-                params = {};
-              }
               else {
                 throw new Error('Step type is ' + (typeof step) + '. Allowed types: object, string.');
               }
-              checkConfigFor(command);
-              return runDsl(command, params);
+              return parseAndRun(command, params);
 
             });
           }, Q.fcall(function () { return true; })
