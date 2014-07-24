@@ -70,7 +70,23 @@ The `grunt-teads-dev` task accepts 1 argument:
     - `refactor|refacto`: for refactor procedures. Parsed to `refactor`.
 
  It follows the git commit conventions described in this document: [Git Commit Message Conventions](https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit).
-    
+
+### Authentication
+In order to use the Gitlab or JIRA APIs, the task needs your credentials. For that, you need to create a `credentials.js` file in the `tasks` folder of the task:
+```
+// in the tasks/ directory, next to 'ttdev.js' file, create a 'credentials.js' file with this content:
+module.exports = {
+  gitlab: {
+    token: 'GITLAB_PRIVATE_TOKEN'
+  },
+  jira: {
+    user: 'JIRA_USERNAME',
+    password: 'JIRA_PASSWORD'
+  }
+};
+```
+Make sure to **add this file** to the `.gitignore` file of your project.
+
 ### Options
 #### Shared options
 The targets can share configuration, for that you just need to put it in the `options` property of the `ttdev` task:
@@ -143,29 +159,52 @@ You can convert a "string" command into an "object" one:
 ```
 
 
-#### Example of workflow
+### Usage examples
 ```
-      // somewhere in the Gruntfile
-      ttdev: {
-        options: {
-          // shared info
+module.exports = function (grunt) {
+  grunt.loadNpmTasks('grunt-teads-dev');
+  var initConfig = {
+    pkg: grunt.file.readJSON('package.json'),
+    
+    ttdev: {
+      options: {
+        gitlab: {
+          host: 'https://gitlab.domain.com',
+          project: 'My Gitlab Project' // name of the Gitlab project
         },
-        create: { // target 'create'
-          steps: [ // steps of the workflow "create new issue"
-            'gitlab.check.connection',
-            'jira.check.connection',
-            { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
-            { 'git.checkout': { branch: 'master' } },
-            { 'git.pull': { with_rebase: true } },
-            { 'git.create.branch': { with_checkout: true } }, // branch name is built by the task ({type}-{card})
-            'git.push',
-            { 'gitlab.create.merge_request': { ref_branch: 'master' } },
-            { 'jira.move.card': { status: 'In Progress' } }
-          ]
+        jira: {
+          host: 'https://jira.domain.com',
+          project: 'My JIRA Project' // name of the JIRA project
         }
+      },
+      create: { // target 'create'
+        steps: [ // steps of the workflow "create new issue"
+          'gitlab.check.connection',
+          'jira.check.connection',
+          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
+          { 'git.checkout': { branch: 'master' } },
+          { 'git.pull': { with_rebase: true } },
+          { 'git.create.branch': { with_checkout: true } }, // branch name is built by the task ({type}-{card})
+          'git.push',
+          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
+          { 'jira.move.card': { status: 'In Progress' } }
+        ]
+      },
+      finish: { // target 'finish'
+        steps: [
+          'gitlab.check.connection',
+          'jira.check.connection',
+          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
+          { 'gitlab.assign.merge_request': { assignee: 'test' } },
+          { 'jira.move.card': { status: 'Review' } }
+        ]
       }
+    }
+  };
+  grunt.initConfig(initConfig);
+  
+  grunt.registerTask('new_feat', ['ttdev:create:feature']);
+  grunt.registerTask('end_feat', ['ttdev:finish:feature']);
+};
 ```
-
-# To be continued...
-
 
