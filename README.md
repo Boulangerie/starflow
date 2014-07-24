@@ -12,7 +12,9 @@ grunt.loadNpmTasks 'grunt-teads-dev'
 ```
 Finally, run `npm install` in the terminal.
 
-## Documentation
+## Ttdev task
+*Run this task with the `grunt ttdev` command.*
+Task targets and options may be specified according to the grunt [Configuration tasks](http://gruntjs.com/configuring-tasks) guide.
 ### Usage
 The `grunt-teads-dev` task is a multitask that can be run in a tasks sequence or in the terminal. If you are using JIRA platform, it is **mandatory** to provide the JIRA issue/card as a parameter when you run the task in the terminal. Passing in the card can be achieved by appending ` --card=JIRA_CARD` to the `grunt TASK` command.
 #### Examples
@@ -25,9 +27,9 @@ module.exports = function (grunt) {
     
     ttdev: {
       options: {
-        // shared config with sub-tasks
+        // shared config with targets
       },
-      // sub-tasks
+      // targets
       create: {
         steps: [
           { 'jira.check.card': { card: '<%= grunt.option("card") %>' } }
@@ -71,14 +73,14 @@ The `grunt-teads-dev` task accepts 1 argument:
     
 ### Options
 #### Shared options
-The sub-tasks can share configuration, for that you just need to put it in the `options` property of the `ttdev` task:
+The targets can share configuration, for that you just need to put it in the `options` property of the `ttdev` task:
 ```
       // somewhere in the Gruntfile
       ttdev: {
         options: {
           mySharedData: 'shared'
         },
-        // sub-tasks config...
+        // targets config...
       }
 ```
 If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare the `host` and the name or ID of the `project` you will be working on:
@@ -95,16 +97,16 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
             project: 12345 // id of the JIRA project
           }
         },
-        // sub-tasks config...
+        // targets config...
       }
 ```
 
-#### Sub-task specific information
+#### Target specific information
 The goal of the `grunt-teads-dev` is to let you define the workflow(s) you will use to work on an issue.
 
 > A **workflow** is a series of steps the developper has to go through in order to work on an issue/feature.
 
-A workflow is defined in the `steps` property of a sub-task. `steps` is an array where each element can be:
+A workflow is defined in the `steps` property of a target. `steps` is an array where each element can be:
 
 - A **string**: a command without any parameter. Example:
 
@@ -148,7 +150,7 @@ You can convert a "string" command into an "object" one:
         options: {
           // shared info
         },
-        create: { // sub-task 'create'
+        create: { // target 'create'
           steps: [ // steps of the workflow "create new issue"
             'gitlab.check.connection',
             'jira.check.connection',
