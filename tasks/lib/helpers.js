@@ -38,7 +38,8 @@ exports.init = function (config, grunt, Q) {
 //  jiraClient.registerMethod('getOneIssue', '${url}/rest/api/latest/issue/${issue}', 'GET');
   jiraClient.registerMethod('getOneIssue', '${url}/rest/api/latest/search?jql=project=${project} and issue=${issue}', 'GET');
   jiraClient.registerMethod('postIssueTransition', '${url}/rest/api/latest/issue/${issue}/transitions', 'POST');
-  jiraClient.registerMethod('getOneProject', '${url}/rest/api/latest/project/${projectId}', 'GET');
+//  jiraClient.registerMethod('getOneProject', '${url}/rest/api/latest/project/${projectId}', 'GET');
+  jiraClient.registerMethod('getSession', '${url}/rest/auth/latest/session', 'GET');
   jiraClient.registerMethod('getAllProjects', '${url}/rest/api/latest/project', 'GET');
 
   /**
@@ -112,7 +113,7 @@ exports.init = function (config, grunt, Q) {
 
     jiraClient.methods.getAllIssueTransitions(args, function (data, response) {
       if (response.statusCode !== 200) {
-        grunt.log.debug('', data);
+        grunt.log.debug(response.client._httpMessage.path + '\n', data);
         deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -158,7 +159,7 @@ exports.init = function (config, grunt, Q) {
           deferred.resolve(false);
         }
         else {
-          grunt.log.debug('', data);
+          grunt.log.debug(response.client._httpMessage.path + '\n', data);
           deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
         }
       }
@@ -188,7 +189,7 @@ exports.init = function (config, grunt, Q) {
 
     gitlabClient.methods.getAllMergeRequests(args, function (data, response) {
       if (response.statusCode !== 200) {
-        grunt.log.debug('', data);
+        grunt.log.debug(response.client._httpMessage.path + '\n', data);
         deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -233,7 +234,7 @@ exports.init = function (config, grunt, Q) {
           deferred.resolve(false);
         }
         else {
-          grunt.log.debug('', data);
+          grunt.log.debug(response.client._httpMessage.path + '\n', data);
           deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
         }
       }
@@ -260,7 +261,7 @@ exports.init = function (config, grunt, Q) {
 
     gitlabClient.methods.getAllUsers(args, function (data, response) {
       if (response.statusCode !== 200) {
-        grunt.log.debug('', data);
+        grunt.log.debug(response.client._httpMessage.path + '\n', data);
         deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -324,7 +325,7 @@ exports.init = function (config, grunt, Q) {
 
     gitlabClient.methods.getAllProjects(args, function (data, response) {
       if (response.statusCode !== 200) {
-        grunt.log.debug('', data);
+        grunt.log.debug(response.client._httpMessage.path + '\n', data);
         deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -358,7 +359,7 @@ exports.init = function (config, grunt, Q) {
 
     jiraClient.methods.getAllProjects(jiraArgs, function (data, response) {
       if (response.statusCode !== 200) {
-        grunt.log.debug('', data);
+        grunt.log.debug(response.client._httpMessage.path + '\n', data);
         deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -423,9 +424,9 @@ exports.init = function (config, grunt, Q) {
       }
     });
 
-    jiraClient.methods.getOneProject(args, function (data, response) {
+    jiraClient.methods.getSession(args, function (data, response) {
       if (response.statusCode !== 200) {
-        grunt.log.debug('', data);
+        grunt.log.debug(response.client._httpMessage.path + '\n', data);
         deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -452,7 +453,7 @@ exports.init = function (config, grunt, Q) {
 
     gitlabClient.methods.getOneProject(args, function (data, response) {
       if (response.statusCode !== 200) {
-        grunt.log.debug('', data);
+        grunt.log.debug(response.client._httpMessage.path + '\n', data);
         deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -481,7 +482,7 @@ exports.init = function (config, grunt, Q) {
 
     jiraClient.methods.getOneIssue(args, function (data, response) {
       if (response.statusCode !== 200) {
-        grunt.log.debug('', data);
+        grunt.log.debug(response.client._httpMessage.path + '\n', data);
         deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
       }
       else {
@@ -491,11 +492,11 @@ exports.init = function (config, grunt, Q) {
           deferred.resolve(data.issues[0]);
         }
         else if (data.total === 0) {
-          grunt.log.debug('', data);
+          grunt.log.debug(response.client._httpMessage.path + '\n', data);
           deferred.reject(new Error('The following JIRA card could not be found for the project "' + config.jira.project + '": ' + cardname));
         }
         else {
-          grunt.log.debug('', data);
+          grunt.log.debug(response.client._httpMessage.path + '\n', data);
           deferred.reject(new Error('More than 1 JIRA card has been found with the string "' + cardname + '".'));
         }
       }
@@ -653,7 +654,7 @@ exports.init = function (config, grunt, Q) {
 
           gitlabClient.methods.postMergeRequest(args, function (data, response) {
             if (response.statusCode !== 201) { // 201 = HTTP CREATED
-              grunt.log.debug('', data);
+              grunt.log.debug(response.client._httpMessage.path + '\n', data);
               deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
             }
             else {
@@ -704,7 +705,7 @@ exports.init = function (config, grunt, Q) {
 
       jiraClient.methods.postIssueTransition(args, function (data, response) {
         if (response.statusCode !== 204) {
-          grunt.log.debug('', data);
+          grunt.log.debug(response.client._httpMessage.path + '\n', data);
           deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
         }
         else {
@@ -744,7 +745,7 @@ exports.init = function (config, grunt, Q) {
 
         gitlabClient.methods.putMergeRequest(args, function (data, response) {
           if (response.statusCode !== 200) {
-            grunt.log.debug('', data);
+            grunt.log.debug(response.client._httpMessage.path + '\n', data);
             deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
           }
           else {
