@@ -8,6 +8,7 @@ module.exports = function (grunt) {
 
     ttdev: {
       options: {
+        credentials_file: __dirname + '/tasks/credentials.js',
         gitlab: {
           host: 'https://git.teads.tv',
           project: 'SERVICE Manager' // id: 4

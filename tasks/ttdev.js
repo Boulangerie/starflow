@@ -9,7 +9,6 @@
 module.exports = function (grunt) {
 
   // external libs
-  var credentials = require('./credentials');
   var Q = require('q');
 
   grunt.registerMultiTask('ttdev', 'Handle the workflow when creating and finishing a feature in a Teads project', function (type) {
@@ -29,7 +28,8 @@ module.exports = function (grunt) {
         steps = this.data.steps, // list of the workflow's steps
         usesJira = false, // true if the workflow uses JIRA, false otherwise
         usesGitlab = false, // true if the workflow uses Gitlab, false otherwise
-        card; // JIRA card/issue
+        card, // JIRA card/issue
+        credentials = require(config.credentials_file);
 
     // upgrade config object with user's credentials
     config.gitlab.token = credentials.gitlab.token;

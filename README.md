@@ -99,11 +99,12 @@ The targets can share configuration, for that you just need to put it in the `op
         // targets config...
       }
 ```
-If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare the `host` and the name or ID of the `project` you will be working on:
+If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare the path to the file where your credentials are, the `host` and the name (or ID) of the `project` you will be working on:
 ```
       // somewhere in the Gruntfile
       ttdev: {
         options: {
+          credentials_path: __dirname + '/path/to/credentials.js',
           gitlab: {
             host: 'https://gitlab.domain.com',
             project: 'My Gitlab Project' // name of the Gitlab project
@@ -168,6 +169,7 @@ module.exports = function (grunt) {
     
     ttdev: {
       options: {
+        credentials_path: __dirname + '/path/to/credentials.js',
         gitlab: {
           host: 'https://gitlab.domain.com',
           project: 'My Gitlab Project' // name of the Gitlab project
@@ -207,3 +209,4 @@ module.exports = function (grunt) {
   grunt.registerTask('end_feat', ['ttdev:finish:feature']);
 };
 ```
+
