@@ -20,7 +20,7 @@ module.exports = function (grunt) {
       },
       test: {
         steps: [
-//          { 'jira.move.card': { status: 'In Progress' } }
+          { 'jira.move.card': { status: 'In Progress' } }
         ]
       },
       create: {
@@ -37,6 +37,11 @@ module.exports = function (grunt) {
         steps: [
           { 'gitlab.assign.merge_request': { assignee: 'bruiz' } },
           { 'jira.move.card': { status: 'Reviews' } }
+        ]
+      },
+      accept: {
+        steps: [
+          'gitlab.accept.merge_request'
         ]
       }
     }

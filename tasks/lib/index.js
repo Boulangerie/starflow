@@ -109,6 +109,14 @@ exports.init = function (config, grunt, Q, helpers) {
 
     },
 
+    accept: {
+
+      merge_request: function () {
+        return helpers.acceptMergeRequest().catch(function (err) { grunt.log.fail('[Gitlab Error]'); throw err; });
+      }
+
+    },
+
     get: {
 
       project_id: function (args) {

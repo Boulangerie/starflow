@@ -80,6 +80,7 @@ exports.init = function (config, grunt, Q) {
   gitlabClient.registerMethod('getAllProjects', '${url}/api/v3/projects', 'GET');
   gitlabClient.registerMethod('postMergeRequest', '${url}/api/v3/projects/${projectId}/merge_requests', 'POST');
   gitlabClient.registerMethod('putMergeRequest', '${url}/api/v3/projects/${projectId}/merge_request/${mrId}', 'PUT');
+  gitlabClient.registerMethod('putAcceptMergeRequest', '${url}/api/v3/projects/${projectId}/merge_request/${mrId}/merge', 'PUT');
 
   /**
    * Gets the branches of the current git project
@@ -774,6 +775,42 @@ exports.init = function (config, grunt, Q) {
 
       }, function (err) {
         deferred.reject(new Error(err));
+      });
+
+    }, function (err) {
+      deferred.reject(new Error(err));
+    });
+    return deferred.promise;
+  };
+
+  /**
+   * Accepts a merge request
+   * @returns {promise}
+   */
+  exports.acceptMergeRequest = function () {
+    var deferred = Q.defer();
+
+    getMergeRequestId().then(function (id) {
+
+      var args = _.merge(gitlabArgs, {
+        headers: {
+          "Content-Type": "application/json"
+        },
+        path: {
+          projectId: config.gitlab.projectId,
+          mrId: id
+        }
+      });
+
+      gitlabClient.methods.putAcceptMergeRequest(args, function (data, response) {
+        if (response.statusCode !== 200) {
+          grunt.log.fail('URL -> ' + response.client._httpMessage.path + '\n', data);
+          deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+        }
+        else {
+          grunt.log.success('Merge request "' + exports.jiraCard.fields.description + '" assigned to ' + assignee + '.');
+          deferred.resolve(data);
+        }
       });
 
     }, function (err) {
