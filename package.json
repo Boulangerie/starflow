@@ -2,14 +2,10 @@
   "name": "grunt-teads-dev",
   "version": "0.1.0",
   "description": "Automate your workflows simply by describing them in a config file",
-  "main": "Gruntfile.js",
   "devDependencies": {
     "lodash": "^2.4.1",
     "node-rest-client": "^1.0.0",
     "q": "^1.0.1"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
