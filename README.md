@@ -104,7 +104,7 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
       // somewhere in the Gruntfile
       ttdev: {
         options: {
-          credentials_path: __dirname + '/path/to/credentials.js',
+          credentials_file: __dirname + '/path/to/credentials.js',
           gitlab: {
             host: 'https://gitlab.domain.com',
             project: 'My Gitlab Project' // name of the Gitlab project
@@ -117,6 +117,27 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
         // targets config...
       }
 ```
+
+##### List of shared options
+- **credentials_file** ( *string* ): the full name of the file used to store the user's credentials. The value of `__dirname` is the full path to the `Gruntfile.js`. So, `__dirname + '/path/to/credentials.js'` is evaluated as `/path/to/Gruntfile/path/to/credentials.js`
+- **gitlab** ( *object* ): config object for accessing Gitlab API.
+
+ ```
+ {
+      host: 'http://host.com',
+      project: 'SERVICE Manager' // could be the ID instead of the name
+ }
+ ```
+
+- **jira** ( *object* ): config object for accessing JIRA API.
+
+ ```
+ {
+      host: 'http://host.com',
+      project: 'Manager' // could be the ID instead of the name
+ }
+ ```
+
 
 #### Target specific information
 The goal of the `grunt-teads-dev` is to let you define the workflow(s) you will use to work on an issue.
