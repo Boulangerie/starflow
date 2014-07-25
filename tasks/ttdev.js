@@ -26,8 +26,6 @@ module.exports = function (grunt) {
           test: 'test', tests: 'test'
         },
         steps = this.data.steps, // list of the workflow's steps
-        usesJira = false, // true if the workflow uses JIRA, false otherwise
-        usesGitlab = false, // true if the workflow uses Gitlab, false otherwise
         card, // JIRA card/issue
         credentials = require(config.credentials_file);
 
@@ -94,32 +92,6 @@ module.exports = function (grunt) {
     }
 
     ///////////////////////////////////////////////////
-    // Get the ID of the Gitlab and/or JIRA projects //
-    ///////////////////////////////////////////////////
-
-    // check connections promises
-    var checkGitlabProjectPromise, checkJiraProjectPromise;
-    // upgrade config object with gitlab.projectId
-    if (typeof config.gitlab.project === 'string') {
-      checkGitlabProjectPromise = index.gitlab.get.project_id({ name: config.gitlab.project }).then(function (id) {
-        config.gitlab.projectId = id;
-      });
-    }
-    else { // project is already an id
-      config.gitlab.projectId = parseInt(config.gitlab.project);
-    }
-
-    // upgrade config object with jira.projectId
-    if (typeof config.jira.project === 'string') {
-      checkJiraProjectPromise = index.jira.get.project_id({ name: config.jira.project }).then(function (id) {
-        config.jira.projectId = id;
-      });
-    }
-    else { // project is already an id
-      config.jira.projectId = parseInt(config.jira.project);
-    }
-
-    ///////////////////////////////////////////////////
     // Set up type, card, branch name and check if   //
     // JIRA card is provided if JIRA is used         //
     ///////////////////////////////////////////////////
@@ -134,7 +106,7 @@ module.exports = function (grunt) {
     helpers.branchName = format.replace(/%type%/, type).replace(/%card%/, card);
 
     // card is mandatory
-    if (usesJira && !card) {
+    if (utils.usesJira && !card) {
       done(false); // fail grunt task
       throw new Error('You must specify a JIRA card name (--card=CARD_NAME while running the ttdev task).');
     }
@@ -146,6 +118,37 @@ module.exports = function (grunt) {
     // wait to be sure the API(s) are reachable with user's credentials
     Q.all([checkGitlabConnectionPromise, checkJiraConnectionPromise])
       .then(function () {
+
+        ///////////////////////////////////////////////////
+        // Get the ID of the Gitlab and/or JIRA projects //
+        ///////////////////////////////////////////////////
+
+        // check connections promises
+        var checkGitlabProjectPromise, checkJiraProjectPromise;
+        if (utils.usesGitlab) {
+          // upgrade config object with gitlab.projectId
+          if (typeof config.gitlab.project === 'string') {
+            checkGitlabProjectPromise = index.gitlab.get.project_id({ name: config.gitlab.project }).then(function (id) {
+              config.gitlab.projectId = id;
+            });
+          }
+          else { // project is already an id
+            config.gitlab.projectId = parseInt(config.gitlab.project);
+          }
+        }
+
+        if (utils.usesJira) {
+          // upgrade config object with jira.projectId
+          if (typeof config.jira.project === 'string') {
+            checkJiraProjectPromise = index.jira.get.project_id({ name: config.jira.project }).then(function (id) {
+              config.jira.projectId = id;
+            });
+          }
+          else { // project is already an id
+            config.jira.projectId = parseInt(config.jira.project);
+          }
+        }
+
         // wait to have the projectID of Gitlab and/or Jira before running the steps
         Q.all([checkGitlabProjectPromise, checkJiraProjectPromise])
           .then(function () {
