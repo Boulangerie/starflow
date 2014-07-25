@@ -15,11 +15,29 @@ exports.init = function (config, grunt, Q) {
 
   // object returned by the init function
   var exports = {};
-  var _ = require('lodash');
 
   // external libs
   var Client = require('node-rest-client').Client;
   var exec = require('child_process').exec;
+  var _ = require('lodash');
+
+  var gruntMock = {
+    log: {
+      debug: function (msg) {
+        console.log('[DEBUG]', msg);
+      },
+      success: function (msg) {
+        console.log('[SUCCESS]', msg);
+      },
+      fail: function (msg) {
+        console.log('[FAIL]', msg);
+      },
+      writeln: function (msg) {
+        console.log('[MSG]', msg);
+      }
+    }
+  };
+  grunt = grunt || gruntMock;
 
   // instances of Client used to make connections to JIRA and GitLab APIs
   var jiraClient = new Client(config.jira.credentials);

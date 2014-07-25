@@ -3,6 +3,60 @@
 exports.init = function (config, grunt, Q, helpers) {
   var exports = {};
 
+  exports.utils = function (grunt, index) {
+    // Overload String object
+    String.prototype.matchesJira = function () {
+      return this.toString().match(/jira/i);
+    };
+
+    String.prototype.matchesGitlab = function () {
+      return this.toString().match(/gitlab/i);
+    };
+
+    return {
+      parseAndRun: function (cmd, args, allowedCmds) {
+        var tmp = cmd.split('.');
+        if (allowedCmds.indexOf(tmp[0]) === -1) {
+          throw new Error('Command used: ' + tmp[0] + '. Allowed commands: git, gitlab, jira.');
+        }
+        grunt.log.debug(cmd + '(' + JSON.stringify(args) + ')');
+        return eval('index.' + cmd)(args);
+      },
+
+      convertStep: function (step, to) {
+        if (to.match(/object/i)) {
+          if (typeof step === 'string') {
+            var tmp = {};
+            tmp[step] = {};
+            step = tmp;
+          }
+        }
+        else if (to.match(/string/i)) {
+          if (typeof step === 'object') {
+            step = Object.keys(step)[0];
+          }
+        }
+        return step;
+      },
+
+      usesJira: false,
+
+      usesGitlab: false,
+
+      checkIfWorkflowUses: function (step) {
+        if (step.matchesJira()) {
+          this.usesJira = true;
+        }
+        else if (step.matchesGitlab()) {
+          this.usesGitlab = true;
+        }
+        else {
+          return false;
+        }
+      }
+    };
+  };
+
   exports.git = {
 
     checkout: function (args) {

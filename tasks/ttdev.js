@@ -11,18 +11,13 @@ module.exports = function (grunt) {
   // external libs
   var credentials = require('./credentials');
   var Q = require('q');
-  require('./lib/utils')();
 
   grunt.registerMultiTask('ttdev', 'Handle the workflow when creating and finishing a feature in a Teads project', function (type) {
 
-    // indicates to Grunt that this task uses asynchronous calls
-    var done = this.async(),
-        // get the options from the Gruntfile config
-        config = this.options(),
-        // allowed commands pass in the steps config
-        allowedCmds = ['git', 'gitlab', 'jira'],
-        // issue types allowed
-        typeMatches = {
+    var done = this.async(), // indicates to Grunt that this task uses asynchronous calls
+        config = this.options(), // get the options from the Gruntfile config
+        allowedCmds = ['git', 'gitlab', 'jira'], // allowed commands pass in the steps config
+        typeMatches = { // issue types allowed
           feat: 'feat', feature: 'feat', improvement: 'feat',
           fix: 'fix', bug: 'fix',
           chore: 'chore', task: 'chore',
@@ -31,12 +26,25 @@ module.exports = function (grunt) {
           docs: 'docs', doc: 'docs', documentation: 'docs',
           test: 'test', tests: 'test'
         },
-      steps = this.data.steps,
-      usesJira = false, usesGitlab = false,
-      card, tmp = {};
+        steps = this.data.steps, // list of the workflow's steps
+        usesJira = false, // true if the workflow uses JIRA, false otherwise
+        usesGitlab = false, // true if the workflow uses Gitlab, false otherwise
+        card; // JIRA card/issue
 
-    // 1) convert string steps into object ones
-    // 2) sets the vars usesJira and usesGitlab to true if there is a step using JIRA or Gitlab
+    // upgrade config object with user's credentials
+    config.gitlab.token = credentials.gitlab.token;
+    config.jira.credentials = credentials.jira;
+
+    // internal libs
+    var helpers = require('./lib/helpers').init(config, grunt, Q);
+    var index = require('./lib/index').init(config, grunt, Q, helpers);
+    var utils = index.utils(grunt, index);
+
+    ///////////////////////////////////////////////////////
+    // 1) Convert string steps into object ones          //
+    // 2) Checks if the workflow uses Gitlab and/or JIRA //
+    ///////////////////////////////////////////////////////
+
     steps.forEach(function (step, idx) {
       if (typeof step === 'string') {
         // uses jira?
@@ -47,23 +55,26 @@ module.exports = function (grunt) {
         if (!usesGitlab && step.matchesGitlab()) {
           usesGitlab = true;
         }
+        utils.checkIfWorkflowUses(step);
         // convert
-        tmp[step] = {};
-        steps[idx] = tmp;
-        tmp = {};
+        steps[idx] = utils.convertStep(step, 'object');
       }
     });
 
-    // Check if the config is available if the workflow uses JIRA and/or Gitlab
+    ////////////////////////////////////////////////////
+    // Check if the host and project are provided if  //
+    // the workflow uses Gitlab and/or JIRA platforms //
+    ////////////////////////////////////////////////////
+
     var withHost;
-    if (usesGitlab) {
+    if (utils.usesGitlab) {
       withHost = config.gitlab.host && config.gitlab.host.match(/^http(?:s):\/\/(.+)?/);
       if (!withHost || !config.gitlab.project) {
         grunt.log.debug('config.gitlab', config.gitlab);
         throw new Error('You must specify a host (starting with http(s)) and a project (name or id) in your Gitlab config.');
       }
     }
-    if (usesJira) {
+    if (utils.usesJira) {
       withHost = config.jira.host && config.jira.host.match(/^http(?:s):\/\/(.+)?/);
       if (!withHost || !config.jira.project) {
         grunt.log.debug('config.gitlab', config.jira);
@@ -71,16 +82,12 @@ module.exports = function (grunt) {
       }
     }
 
-    // upgrade config with user's credentials
-    config.gitlab.token = credentials.gitlab.token;
-    config.jira.credentials = credentials.jira;
+    ///////////////////////////////////////////////////
+    // Get the ID of the Gitlab and/or JIRA projects //
+    ///////////////////////////////////////////////////
 
-    // external libs
-    var helpers = require('./lib/helpers').init(config, grunt, Q);
-    var index = require('./lib/index').init(config, grunt, Q, helpers);
     // check connections promises
     var checkGitlabPromise, checkJiraPromise;
-
     // upgrade config object with gitlab.projectId
     if (typeof config.gitlab.project === 'string') {
       checkGitlabPromise = index.gitlab.get.project_id({ name: config.gitlab.project }).then(function (id) {
@@ -101,6 +108,11 @@ module.exports = function (grunt) {
       config.jira.projectId = parseInt(config.jira.project);
     }
 
+    ///////////////////////////////////////////////////
+    // Set up type, card, branch name and check if   //
+    // JIRA card is provided if JIRA is used         //
+    ///////////////////////////////////////////////////
+
     // issue type (e.g. feat)
     type = typeMatches[(type || grunt.option('type') || config.issue_type || 'feat')];
     // issue/card key (e.g. MAN-123)
@@ -112,19 +124,15 @@ module.exports = function (grunt) {
 
     // card is mandatory
     if (usesJira && !card) {
-      done(false);
+      done(false); // fail grunt task
       throw new Error('You must specify a JIRA card name (--card=CARD_NAME while running the ttdev task).');
     }
 
-    var parseAndRun = function (cmd, args) {
-      var tmp = cmd.split('.');
-      if (allowedCmds.indexOf(tmp[0]) === -1) {
-        throw new Error('Command used: ' + tmp[0] + '. Allowed commands: git, gitlab, jira.');
-      }
-      grunt.log.debug(cmd + '(' + JSON.stringify(args) + ')');
-      return eval('index.' + cmd)(args);
-    };
+    ////////////////////////////////////////////////////////
+    // Run each step of the workflow of te current target //
+    ////////////////////////////////////////////////////////
 
+    // wait to have the projectID of Gitlab and/or Jira before running the steps
     Q.all([checkGitlabPromise, checkJiraPromise])
       .then(function () {
 
@@ -139,13 +147,13 @@ module.exports = function (grunt) {
               else {
                 throw new Error('Step type is ' + (typeof step) + '. Allowed types: object, string.');
               }
-              return parseAndRun(command, params);
+              return utils.parseAndRun(command, params, allowedCmds);
 
             });
           }, Q.fcall(function () { return true; })
         ).catch(function (err) {
             throw err;
-            done(false);
+            done(false); // fail grunt task
           })
           .then(function () {
             grunt.log.success('SUCCESS');
