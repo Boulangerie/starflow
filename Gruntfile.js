@@ -20,12 +20,11 @@ module.exports = function (grunt) {
       },
       test: {
         steps: [
-          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } }
+//          { 'jira.move.card': { status: 'In Progress' } }
         ]
       },
       create: {
         steps: [
-          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
           { 'git.checkout': { branch: 'master' } },
           { 'git.pull': { with_rebase: true } },
           { 'git.create.branch': { with_checkout: true } },
@@ -36,7 +35,6 @@ module.exports = function (grunt) {
       },
       finish: {
         steps: [
-          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
           { 'gitlab.assign.merge_request': { assignee: 'bruiz' } },
           { 'jira.move.card': { status: 'Reviews' } }
         ]

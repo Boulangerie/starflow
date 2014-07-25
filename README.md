@@ -32,12 +32,11 @@ module.exports = function (grunt) {
       // targets
       create: {
         steps: [
-          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } }
+          { 'jira.move.card': { status: 'In Progress' } }
         ]
       },
       finish: {
         steps: [
-          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
           { 'jira.move.card': { status: 'Reviews' } }
         ]
       }
@@ -163,7 +162,6 @@ A workflow is defined in the `steps` property of a target. `steps` is an array w
 |-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
 | gitlab.create.merge_request | **ref_branch**: the branch you wish to merge your working branch with (e.g. `master`)                                                                                                                 | Creates a new merge request on the project given in the `options` of `ttdev` between the branches `{type}-{card}` and `ref_branch` |
 | gitlab.assign.merge_request | **assignee**: the username of the user you wish to assign the merge request of the issue related to the card passed in the task (via `--card=MY_CARD`)                                                | Assigns a user to the merge request related to the JIRA card                                                                       |
-| jira.check.card             | **card**: the issue key / card name you will work on (e.g. `MAN-123`)                                                                                                                                 | Checks if the card name given as argument exists on JIRA or not                                                                    |
 | jira.move.card              | **status**: new status name of the JIRA issue (e.g. for the Manager project, `In Progress`, `Review`...)                                                                                              | Moves a card from a column to another                                                                                              |
 | git.checkout                | **branch**: name of the branch where to switch on                                                                                                                                                     | Performs a `git checkout branch` command                                                                                           |
 | git.create.branch           | **with_checkout**: true if you wish to switch to the created branch, false otherwise                                                                                                                  | Performs a `git branch {type}-{card}` if with_checkout is false, `git checkout -b {type}-{card}` otherwise                         |
@@ -173,9 +171,9 @@ A workflow is defined in the `steps` property of a target. `steps` is an array w
 
 You can convert a "string" command into an "object" one:
 ```
-'git.check.connection'
+'git.pull'
 // same as
-{ 'git.check.connection': {} }
+{ 'git.pull': {} }
 ```
 
 
@@ -200,7 +198,6 @@ module.exports = function (grunt) {
       },
       create: { // target 'create'
         steps: [ // steps of the workflow "create new issue"
-          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
           { 'git.checkout': { branch: 'master' } },
           { 'git.pull': { with_rebase: true } },
           { 'git.create.branch': { with_checkout: true } }, // branch name is built by the task ({type}-{card})
@@ -211,7 +208,6 @@ module.exports = function (grunt) {
       },
       finish: { // target 'finish'
         steps: [
-          { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
           { 'gitlab.assign.merge_request': { assignee: 'test' } },
           { 'jira.move.card': { status: 'Review' } }
         ]

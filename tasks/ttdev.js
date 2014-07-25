@@ -106,9 +106,19 @@ module.exports = function (grunt) {
     helpers.branchName = format.replace(/%type%/, type).replace(/%card%/, card);
 
     // card is mandatory
-    if (utils.usesJira && !card) {
-      done(false); // fail grunt task
-      throw new Error('You must specify a JIRA card name (--card=CARD_NAME while running the ttdev task).');
+    var checkJiraCardPromise;
+    if (utils.usesJira) {
+      if (!card) {
+        done(false); // fail grunt task
+        throw new Error('You must specify a JIRA card name (--card=CARD_NAME while running the ttdev task).');
+      }
+      else {
+        checkJiraCardPromise = index.jira.check.card({ card: card })
+          .catch(function (err) {
+            throw err;
+            done(false); // fail grunt task
+          });
+      }
     }
 
     ////////////////////////////////////////////////////////
@@ -116,14 +126,13 @@ module.exports = function (grunt) {
     ////////////////////////////////////////////////////////
 
     // wait to be sure the API(s) are reachable with user's credentials
-    Q.all([checkGitlabConnectionPromise, checkJiraConnectionPromise])
+    Q.all([checkGitlabConnectionPromise, checkJiraConnectionPromise, checkJiraCardPromise])
       .then(function () {
 
         ///////////////////////////////////////////////////
         // Get the ID of the Gitlab and/or JIRA projects //
         ///////////////////////////////////////////////////
 
-        // check connections promises
         var checkGitlabProjectPromise, checkJiraProjectPromise;
         if (utils.usesGitlab) {
           // upgrade config object with gitlab.projectId
