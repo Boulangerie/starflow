@@ -76,7 +76,8 @@ exports.init = function (config, grunt, Q) {
   gitlabClient.registerMethod('getOneMergeRequest', '${url}/api/v3/projects/${projectId}/merge_request/${mrId}', 'GET');
   gitlabClient.registerMethod('getOneBranch', '${url}/api/v3/projects/${projectId}/repository/branches/${branch}', 'GET');
   gitlabClient.registerMethod('getAllUsers', '${url}/api/v3/users', 'GET');
-  gitlabClient.registerMethod('getOneProject', '${url}/api/v3/projects/${projectId}', 'GET');
+//  gitlabClient.registerMethod('getOneProject', '${url}/api/v3/projects/${projectId}', 'GET');
+  gitlabClient.registerMethod('getCurrentUser', '${url}/api/v3/user', 'GET');
   gitlabClient.registerMethod('getAllProjects', '${url}/api/v3/projects', 'GET');
   gitlabClient.registerMethod('postMergeRequest', '${url}/api/v3/projects/${projectId}/merge_requests', 'POST');
   gitlabClient.registerMethod('putMergeRequest', '${url}/api/v3/projects/${projectId}/merge_request/${mrId}', 'PUT');
@@ -317,18 +318,6 @@ exports.init = function (config, grunt, Q) {
   exports.jiraCard = null;
 
   /**
-   * Displays the error and triggers the end of the grunt task
-   * @param  {object}   err
-   * @param  {function} done
-   */
-  // TODO is it deprecated?? go check
-  exports.failTask = function (err, done) {
-//    grunt.log.fail(err);
-    throw err;
-    done(false);
-  };
-
-  /**
    * Gets the id of a Gitlab project with the given name
    * @param name
    * @returns {promise}
@@ -464,13 +453,9 @@ exports.init = function (config, grunt, Q) {
   exports.checkGitlabConnection = function () {
     var deferred = Q.defer();
 
-    var args = _.merge(gitlabArgs, {
-      path: {
-        projectId: config.gitlab.projectId
-      }
-    });
+    var args = _.merge(gitlabArgs, {});
 
-    gitlabClient.methods.getOneProject(args, function (data, response) {
+    gitlabClient.methods.getCurrentUser(args, function (data, response) {
       if (response.statusCode !== 200) {
         grunt.log.debug(response.client._httpMessage.path + '\n', data);
         deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));

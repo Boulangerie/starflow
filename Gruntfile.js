@@ -11,7 +11,7 @@ module.exports = function (grunt) {
         credentials_file: __dirname + '/tasks/credentials.js',
         gitlab: {
           host: 'https://git.teads.tv',
-          project: 'SERVICE Manager' // id: 4
+          project: 'GRUNT Teads Dev' // id: 4
         },
         jira: {
           host: 'https://jira.teads.tv',
@@ -20,7 +20,7 @@ module.exports = function (grunt) {
       },
       test: {
         steps: [
-          { 'jira.move.card': { status: 'In Progress' } }
+//          { 'jira.move.card': { status: 'In Progress' } }
         ]
       },
       create: {
@@ -30,13 +30,13 @@ module.exports = function (grunt) {
           { 'git.create.branch': { with_checkout: true } },
           'git.push',
           { 'gitlab.create.merge_request': { ref_branch: 'master' } },
-          { 'jira.move.card': { status: 'In Progress' } }
+//          { 'jira.move.card': { status: 'In Progress' } }
         ]
       },
       finish: {
         steps: [
           { 'gitlab.assign.merge_request': { assignee: 'bruiz' } },
-          { 'jira.move.card': { status: 'Reviews' } }
+//          { 'jira.move.card': { status: 'Reviews' } }
         ]
       },
       accept: {
