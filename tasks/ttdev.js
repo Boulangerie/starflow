@@ -44,11 +44,13 @@ module.exports = function (grunt) {
     ///////////////////////////////////////////////////////
 
     steps.forEach(function (step, idx) {
+      grunt.log.debug('utils.checkIfWorkflowUses(' + JSON.stringify(step) + ')');
       utils.checkIfWorkflowUses(step);
       if (typeof step === 'string') {
         steps[idx] = utils.convertStep(step, 'object');
       }
     });
+    grunt.log.debug('usesJIRA = ' + utils.usesJira, '\nusesGitlab = ' + utils.usesGitlab);
 
     ////////////////////////////////////////////////////
     // Check if the host and project are provided if  //
