@@ -46,17 +46,8 @@ module.exports = function (grunt) {
     ///////////////////////////////////////////////////////
 
     steps.forEach(function (step, idx) {
+      utils.checkIfWorkflowUses(step);
       if (typeof step === 'string') {
-        // uses jira?
-        if (!usesJira && step.matchesJira()) {
-          usesJira = true;
-        }
-        // uses gitlab?
-        if (!usesGitlab && step.matchesGitlab()) {
-          usesGitlab = true;
-        }
-        utils.checkIfWorkflowUses(step);
-        // convert
         steps[idx] = utils.convertStep(step, 'object');
       }
     });
@@ -66,20 +57,40 @@ module.exports = function (grunt) {
     // the workflow uses Gitlab and/or JIRA platforms //
     ////////////////////////////////////////////////////
 
-    var withHost;
+    var withHost, checkGitlabConnectionPromise, checkJiraConnectionPromise;
     if (utils.usesGitlab) {
-      withHost = config.gitlab.host && config.gitlab.host.match(/^http(?:s):\/\/(.+)?/);
-      if (!withHost || !config.gitlab.project) {
-        grunt.log.debug('config.gitlab', config.gitlab);
-        throw new Error('You must specify a host (starting with http(s)) and a project (name or id) in your Gitlab config.');
-      }
+
+      // check Gitlab connection if workflow uses Gitlab
+      checkGitlabConnectionPromise = utils.parseAndRun('gitlab.check.connection', {}, allowedCmds)
+        .catch(function (err) {
+          throw err;
+          done(false); // fail grunt task
+        })
+        .then(function () {
+          withHost = config.gitlab.host && config.gitlab.host.match(/^http(?:s):\/\/(.+)?/);
+          if (!withHost || !config.gitlab.project) {
+            grunt.log.debug('config.gitlab', config.gitlab);
+            throw new Error('You must specify a host (starting with http(s)) and a project (name or id) in your Gitlab config.');
+          }
+        });
     }
+
     if (utils.usesJira) {
-      withHost = config.jira.host && config.jira.host.match(/^http(?:s):\/\/(.+)?/);
-      if (!withHost || !config.jira.project) {
-        grunt.log.debug('config.gitlab', config.jira);
-        throw new Error('You must specify a host (starting with http(s)) and a project (name or id) in your JIRA config.');
-      }
+
+      // check JIRA connection if workflow uses JIRA
+      checkJiraConnectionPromise = utils.parseAndRun('jira.check.connection', {}, allowedCmds)
+        .catch(function (err) {
+          throw err;
+          done(false); // fail grunt task
+        })
+        .then(function () {
+          withHost = config.jira.host && config.jira.host.match(/^http(?:s):\/\/(.+)?/);
+          if (!withHost || !config.jira.project) {
+            grunt.log.debug('config.gitlab', config.jira);
+            throw new Error('You must specify a host (starting with http(s)) and a project (name or id) in your JIRA config.');
+          }
+        });
+
     }
 
     ///////////////////////////////////////////////////
@@ -87,10 +98,10 @@ module.exports = function (grunt) {
     ///////////////////////////////////////////////////
 
     // check connections promises
-    var checkGitlabPromise, checkJiraPromise;
+    var checkGitlabProjectPromise, checkJiraProjectPromise;
     // upgrade config object with gitlab.projectId
     if (typeof config.gitlab.project === 'string') {
-      checkGitlabPromise = index.gitlab.get.project_id({ name: config.gitlab.project }).then(function (id) {
+      checkGitlabProjectPromise = index.gitlab.get.project_id({ name: config.gitlab.project }).then(function (id) {
         config.gitlab.projectId = id;
       });
     }
@@ -100,7 +111,7 @@ module.exports = function (grunt) {
 
     // upgrade config object with jira.projectId
     if (typeof config.jira.project === 'string') {
-      checkJiraPromise = index.jira.get.project_id({ name: config.jira.project }).then(function (id) {
+      checkJiraProjectPromise = index.jira.get.project_id({ name: config.jira.project }).then(function (id) {
         config.jira.projectId = id;
       });
     }
@@ -132,32 +143,40 @@ module.exports = function (grunt) {
     // Run each step of the workflow of te current target //
     ////////////////////////////////////////////////////////
 
-    // wait to have the projectID of Gitlab and/or Jira before running the steps
-    Q.all([checkGitlabPromise, checkJiraPromise])
+    // wait to be sure the API(s) are reachable with user's credentials
+    Q.all([checkGitlabConnectionPromise, checkJiraConnectionPromise])
       .then(function () {
-
-        var command, params;
-        steps.reduce(function (sequence, step) {
-            return sequence.then(function () {
-
-              if (typeof step === 'object') {
-                command = Object.keys(step)[0];
-                params = step[Object.keys(step)[0]];
-              }
-              else {
-                throw new Error('Step type is ' + (typeof step) + '. Allowed types: object, string.');
-              }
-              return utils.parseAndRun(command, params, allowedCmds);
-
-            });
-          }, Q.fcall(function () { return true; })
-        ).catch(function (err) {
-            throw err;
-            done(false); // fail grunt task
-          })
+        // wait to have the projectID of Gitlab and/or Jira before running the steps
+        Q.all([checkGitlabProjectPromise, checkJiraProjectPromise])
           .then(function () {
-            grunt.log.success('SUCCESS');
-            done(); // end grunt task
+
+            var command, params;
+            steps.reduce(function (sequence, step) {
+                return sequence.then(function () {
+
+                  if (typeof step === 'object') {
+                    command = Object.keys(step)[0];
+                    params = step[Object.keys(step)[0]];
+                  }
+                  else {
+                    throw new Error('Step type is ' + (typeof step) + '. Allowed types: object, string.');
+                  }
+                  return utils.parseAndRun(command, params, allowedCmds);
+
+                });
+              }, Q.fcall(function () {
+                return true;
+              })
+            ).catch(function (err) {
+                throw err;
+                done(false); // fail grunt task
+              })
+              .then(function () {
+                grunt.log.success('SUCCESS');
+                done(); // end grunt task
+              })
+              .done();
+
           })
           .done();
 

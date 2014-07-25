@@ -20,15 +20,11 @@ module.exports = function (grunt) {
       },
       test: {
         steps: [
-          'gitlab.check.connection',
-          'jira.check.connection',
           { 'jira.check.card': { card: '<%= grunt.option("card") %>' } }
         ]
       },
       create: {
         steps: [
-          'gitlab.check.connection',
-          'jira.check.connection',
           { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
           { 'git.checkout': { branch: 'master' } },
           { 'git.pull': { with_rebase: true } },
@@ -40,8 +36,6 @@ module.exports = function (grunt) {
       },
       finish: {
         steps: [
-          'gitlab.check.connection',
-          'jira.check.connection',
           { 'jira.check.card': { card: '<%= grunt.option("card") %>' } },
           { 'gitlab.assign.merge_request': { assignee: 'bruiz' } },
           { 'jira.move.card': { status: 'Reviews' } }

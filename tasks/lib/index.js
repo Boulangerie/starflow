@@ -44,6 +44,10 @@ exports.init = function (config, grunt, Q, helpers) {
       usesGitlab: false,
 
       checkIfWorkflowUses: function (step) {
+        if (typeof step === 'object') {
+          step = this.convertStep(step, 'string');
+        }
+
         if (step.matchesJira()) {
           this.usesJira = true;
         }
