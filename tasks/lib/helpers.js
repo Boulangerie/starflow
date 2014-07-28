@@ -312,6 +312,12 @@ exports.init = function (config, grunt, Q) {
   exports.branchName = null;
 
   /**
+   * Name of the current branch in the local git repo
+   * @type {string}
+   */
+  exports.currentBranch = null;
+
+  /**
    * Object containing information from the JIRA Card
    * @type {object}
    */
@@ -400,12 +406,16 @@ exports.init = function (config, grunt, Q) {
     var deferred = Q.defer();
 
     gitBranches().then(function (branches) {
+
+      exports.currentBranch = branches.current;
+
       if (branches.current !== branch) {
         exec('git checkout ' + branch, function (err) {
           if (err) {
             deferred.reject(new Error(err));
           }
           else {
+            exports.currentBranch = branches.current;
             grunt.log.writeln('Switched to branch ' + branch + '.');
           }
         });
@@ -414,6 +424,47 @@ exports.init = function (config, grunt, Q) {
 
     }, function (err) {
       deferred.reject(new Error(err));
+    });
+
+    return deferred.promise;
+  };
+
+  /**
+   * Performs a git merge <from> <to> command
+   * @param from
+   * @param to
+   * @returns {promise}
+   */
+  exports.gitMerge = function (from, to) {
+    var deferred = Q.defer();
+
+      exec('git merge ' + from + ' ' + to, function (err) {
+        if (err) {
+          deferred.reject(new Error(err));
+        }
+        else {
+          grunt.log.writeln('Merge branch ' + from + ' to ' + to + '.');
+        }
+      });
+
+    return deferred.promise;
+  };
+
+  /**
+   * Performs a git cherry-pick <commit> command
+   * @param commit
+   * @returns {promise}
+   */
+  exports.gitCherryPick = function (commit) {
+    var deferred = Q.defer();
+
+    exec('git cherry-pick ' + commit, function (err) {
+      if (err) {
+        deferred.reject(new Error(err));
+      }
+      else {
+        grunt.log.writeln('Commit ' + commit + ' moved to ' + exports.currentBranch + '.');
+      }
     });
 
     return deferred.promise;
@@ -794,7 +845,7 @@ exports.init = function (config, grunt, Q) {
           deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
         }
         else {
-          grunt.log.success('Merge request "' + exports.jiraCard.fields.description + '" assigned to ' + assignee + '.');
+          grunt.log.success('Merge request "' + exports.jiraCard.fields.description + '" has been accepted!');
           deferred.resolve(data);
         }
       });
