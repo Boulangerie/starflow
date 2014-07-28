@@ -36,7 +36,9 @@ module.exports = function (grunt) {
       },
       accept: {
         steps: [
-          'gitlab.accept.merge_request'
+          'gitlab.accept.merge_request',
+          { 'git.checkout': { branch: 'master' } },
+          { 'git.pull': { with_rebase: true } }
         ]
       },
       deploy: {
