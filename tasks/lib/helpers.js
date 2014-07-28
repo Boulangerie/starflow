@@ -459,6 +459,7 @@ exports.init = function (config, grunt, Q) {
     var deferred = Q.defer();
 
     exec('rm -f .git/index.lock', function (err) {
+
       if (err) {
         deferred.reject(new Error(err));
       }
