@@ -26,12 +26,14 @@ module.exports = function (grunt) {
           test: 'test', tests: 'test'
         },
         steps = this.data.steps, // list of the workflow's steps
-        card, // JIRA card/issue
-        credentials = require(config.credentials_file);
+        card; // JIRA card/issue
 
     // upgrade config object with user's credentials
-    config.gitlab.token = credentials.gitlab.token;
-    config.jira.credentials = credentials.jira;
+    config.gitlab.token = process.env.GITLAB_PRIVATE_TOKEN;
+    config.jira.credentials = {
+      user: process.env.JIRA_USERNAME,
+      password: process.env.JIRA_PASSWORD
+    };
 
     // internal libs
     var helpers = require('./lib/helpers').init(config, grunt, Q);

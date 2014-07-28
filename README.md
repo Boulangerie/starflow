@@ -2,6 +2,7 @@
 > Automate your workflows simply by describing them in a config file.
 
 ## Install
+
 Add the following line in the `devDependencies` property of the `package.json` file:
 ```
 "grunt-teads-dev": "git+ssh://git@git.teads.tv:front-dev/grunt-teads-dev.git"
@@ -13,12 +14,18 @@ grunt.loadNpmTasks 'grunt-teads-dev'
 Finally, run `npm install` in the terminal.
 
 ## TTdev task
+
 *Run this task with the `grunt ttdev` command.*
+
 Task targets and options may be specified according to the grunt [Configuration tasks](http://gruntjs.com/configuring-tasks) guide.
+
 ### Usage
+
 The `grunt-teads-dev` task is a multitask that can be run in a tasks sequence or in the terminal. If you are using JIRA platform, it is **mandatory** to provide the JIRA issue/card as a parameter when you run the task in the terminal. Passing in the card can be achieved by appending ` --card=JIRA_CARD` to the `grunt TASK` command.
+
 #### Examples
 Suppose we have the following `Gruntfile.js` file:
+
 ```
 module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-teads-dev');
@@ -46,13 +53,17 @@ module.exports = function (grunt) {
   grunt.registerTask('new_feat', ['ttdev:create:feature']);
 };
 ```
+
 Now, you can run the task in several ways, but you have to pass in the JIRA card/issue as a paramater if your workflow uses a JIRA card. In a terminal:
+
 ```
 grunt new_feat --card=MAN-123
 ```
+
 ```
 grunt ttdev:create:feature --card=MAN-123
 ```
+
 ```
 grunt ttdev:create --type=feature --card=MAN-123
 ```
@@ -71,23 +82,20 @@ The `grunt-teads-dev` task accepts 1 argument:
  It follows the git commit conventions described in this document: [Git Commit Message Conventions](https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit).
 
 ### Authentication
-In order to use the Gitlab or JIRA APIs, the task needs your credentials. For that, you need to create a `credentials.js` file in the `tasks` folder of the task:
+
+In order to use the Gitlab or JIRA APIs, the task needs your credentials. For that, you need to add environment variables in your `~/.bash_profile` file:
+
 ```
-// in the tasks/ directory, next to 'ttdev.js' file, create a 'credentials.js' file with this content:
-module.exports = {
-  gitlab: {
-    token: 'GITLAB_PRIVATE_TOKEN'
-  },
-  jira: {
-    user: 'JIRA_USERNAME',
-    password: 'JIRA_PASSWORD'
-  }
-};
+// at the end of the file
+export GITLAB_PRIVATE_TOKEN="token"
+export JIRA_USERNAME="username"
+export JIRA_PASSWORD="password"
 ```
-Make sure to **add this file** to the `.gitignore` file of your project.
 
 ### Options
+
 #### Shared options
+
 The targets can share configuration, for that you just need to put it in the `options` property of the `ttdev` task:
 ```
       // somewhere in the Gruntfile
@@ -103,7 +111,6 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
       // somewhere in the Gruntfile
       ttdev: {
         options: {
-          credentials_file: __dirname + '/path/to/credentials.js',
           gitlab: {
             host: 'https://gitlab.domain.com',
             project: 'My Gitlab Project' // name of the Gitlab project
@@ -118,7 +125,6 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
 ```
 
 ##### List of shared options
-- **credentials_file** ( *string* ): the full name of the file used to store the user's credentials. The value of `__dirname` is the full path to the `Gruntfile.js`. So, `__dirname + '/path/to/credentials.js'` is evaluated as `/path/to/Gruntfile/path/to/credentials.js`.
 
 - **gitlab** ( *object* ): config object for accessing Gitlab API.
 
@@ -140,6 +146,7 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
 
 
 #### Target specific information
+
 The goal of the `grunt-teads-dev` is to let you define the workflow(s) you will use to work on an issue.
 
 > A **workflow** is a series of steps the developper has to go through in order to work on an issue/feature.
@@ -159,6 +166,7 @@ A workflow is defined in the `steps` property of a target. `steps` is an array w
  ```
 
 #### Available commands
+
 | Command                     | Parameters                                                                                                                                                                                            | Description                                                                                                                        |
 |-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
 | gitlab.create.merge_request | **ref_branch**: the branch you wish to merge your working branch with (e.g. `master`)                                                                                                                 | Creates a new merge request on the project given in the `options` of `ttdev` between the branches `{type}-{card}` and `ref_branch` |
@@ -172,15 +180,9 @@ A workflow is defined in the `steps` property of a target. `steps` is an array w
 | git.cherrypick              | **commit**: commit SHA1 string                                                                                                                                                                        | Performs a `git cherry-pick <commit> -m 1` command                                                                                 |
 
 
-You can convert a "string" command into an "object" one:
-```
-'git.pull'
-// same as
-{ 'git.pull': {} }
-```
-
 
 ### Usage examples
+
 ```
 module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-teads-dev');
@@ -189,7 +191,6 @@ module.exports = function (grunt) {
     
     ttdev: {
       options: {
-        credentials_path: __dirname + '/path/to/credentials.js',
         gitlab: {
           host: 'https://gitlab.domain.com',
           project: 'My Gitlab Project' // name of the Gitlab project
