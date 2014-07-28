@@ -42,9 +42,9 @@ module.exports = function (grunt) {
       deploy: {
         steps: [
           { 'git.checkout': { branch: 'prod' } },
-//          { 'git.cherrypick': { commit: '<%= grunt.option("commit") %>' } },
+          { 'git.cherrypick': { commit: '<%= grunt.option("commit") %>' } },
           { 'git.pull': { branch: 'prod' } },
-          { 'git.push': { branch: 'prod' } },
+//          { 'git.push': { branch: 'prod' } },
           { 'git.checkout': { branch: 'master' } },
           { 'git.merge': { from: 'prod', to: 'master' } }
         ]
