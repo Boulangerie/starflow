@@ -438,14 +438,14 @@ exports.init = function (config, grunt, Q) {
   exports.gitMerge = function (from, to) {
     var deferred = Q.defer();
 
-      exec('git merge ' + from + ' ' + to, function (err) {
-        if (err) {
-          deferred.reject(new Error(err));
-        }
-        else {
-          grunt.log.writeln('Merge branch ' + from + ' to ' + to + '.');
-        }
-      });
+    exec('git merge ' + from + ' ' + to, function (err) {
+      if (err) {
+        deferred.reject(new Error(err));
+      }
+      else {
+        grunt.log.writeln('Merge branch ' + from + ' to ' + to + '.');
+      }
+    });
 
     return deferred.promise;
   };
@@ -458,13 +458,22 @@ exports.init = function (config, grunt, Q) {
   exports.gitCherryPick = function (commit) {
     var deferred = Q.defer();
 
-    exec('git cherry-pick ' + commit + ' --allow-empty', function (err) {
+    exec('rm -f .git/index.lock', function (err) {
+
       if (err) {
         deferred.reject(new Error(err));
       }
       else {
-        grunt.log.writeln('Commit ' + commit + ' moved to ' + exports.currentBranch + '.');
+        exec('git cherry-pick ' + commit, function (err) {
+          if (err) {
+            deferred.reject(new Error(err));
+          }
+          else {
+            grunt.log.writeln('Commit ' + commit + ' moved to ' + exports.currentBranch + '.');
+          }
+        });
       }
+
     });
 
     return deferred.promise;
@@ -576,8 +585,8 @@ exports.init = function (config, grunt, Q) {
     var option = withRebase ? '--rebase ' : '';
 
     gitBranches().then(function (branches) {
-      if (branches.current !== branch) {
-        exports.gitCheckout(branch);
+      if (branches.current !== 'master') {
+        exports.gitCheckout('master');
       }
       // current branch is master
       exec('git pull ' + option + repo + ' ' + branch, function (err, data) {
@@ -585,7 +594,7 @@ exports.init = function (config, grunt, Q) {
           deferred.reject(new Error(err));
         }
         else {
-          grunt.log.writeln('Local ' + branch + ' is now up-to-date.');
+          grunt.log.writeln('Local master is now up-to-date.');
           deferred.resolve(data);
         }
       });
@@ -604,8 +613,8 @@ exports.init = function (config, grunt, Q) {
   exports.gitCreateBranch = function (branchName, withCheckout) {
     var deferred = Q.defer();
     var option = '',
-        cmd = '',
-        branchExists;
+      cmd = '',
+      branchExists;
 
     gitBranches().then(function (branches) {
       branchExists = (branches.current === branchName || _.contains(branches.others, branchName));
@@ -692,31 +701,31 @@ exports.init = function (config, grunt, Q) {
 //    getMergeRequestId().then(function (id) {
 //      checkMergeRequest(id).then(function (mrExists) {
 //        if (!mrExists) {
-          var args = _.merge(gitlabArgs, {
-            headers: {
-              "Content-Type": "application/json"
-            },
-            data: {
-              "id": config.gitlab.projectId,
-              "source_branch": exports.branchName,
-              "target_branch": refBranch,
-              "title": exports.jiraCard.fields.description
-            },
-            path: {
-              projectId: config.gitlab.projectId
-            }
-          });
+    var args = _.merge(gitlabArgs, {
+      headers: {
+        "Content-Type": "application/json"
+      },
+      data: {
+        "id": config.gitlab.projectId,
+        "source_branch": exports.branchName,
+        "target_branch": refBranch,
+        "title": exports.jiraCard.fields.description
+      },
+      path: {
+        projectId: config.gitlab.projectId
+      }
+    });
 
-          gitlabClient.methods.postMergeRequest(args, function (data, response) {
-            if (response.statusCode !== 201) { // 201 = HTTP CREATED
-              grunt.log.debug(response.client._httpMessage.path + '\n', data);
-              deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
-            }
-            else {
-              grunt.log.success('Merge request "' + args.data.title + '" successfully created.');
-              deferred.resolve(data);
-            }
-          });
+    gitlabClient.methods.postMergeRequest(args, function (data, response) {
+      if (response.statusCode !== 201) { // 201 = HTTP CREATED
+        grunt.log.debug(response.client._httpMessage.path + '\n', data);
+        deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+      }
+      else {
+        grunt.log.success('Merge request "' + args.data.title + '" successfully created.');
+        deferred.resolve(data);
+      }
+    });
 //        }
 //        else { // mr already exists
 //          deferred.reject(new Error('The merge request associated to the branch "' + exports.branchName + '" already exists on the remote repository.'));
