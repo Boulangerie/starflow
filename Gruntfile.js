@@ -54,7 +54,5 @@ module.exports = function (grunt) {
 
   grunt.registerTask('new_feat', ['ttdev:create:feat']);
   grunt.registerTask('end_feat', ['ttdev:finish:feat']);
-  grunt.registerTask('new_fix', ['ttdev:create:fix']);
-  grunt.registerTask('end_fix', ['ttdev:finish:fix']);
 
 };
