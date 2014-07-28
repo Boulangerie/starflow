@@ -784,10 +784,9 @@ exports.init = function (config, grunt, Q) {
         path: {
           projectId: config.gitlab.projectId,
           mrId: id
-        }
+        },
+        data: {}
       });
-
-      console.log(id);
 
       gitlabClient.methods.putAcceptMergeRequest(args, function (data, response) {
         if (response.statusCode !== 200) {
