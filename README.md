@@ -118,7 +118,8 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
 ```
 
 ##### List of shared options
-- **credentials_file** ( *string* ): the full name of the file used to store the user's credentials. The value of `__dirname` is the full path to the `Gruntfile.js`. So, `__dirname + '/path/to/credentials.js'` is evaluated as `/path/to/Gruntfile/path/to/credentials.js`
+- **credentials_file** ( *string* ): the full name of the file used to store the user's credentials. The value of `__dirname` is the full path to the `Gruntfile.js`. So, `__dirname + '/path/to/credentials.js'` is evaluated as `/path/to/Gruntfile/path/to/credentials.js`.
+
 - **gitlab** ( *object* ): config object for accessing Gitlab API.
 
  ```
@@ -220,4 +221,14 @@ module.exports = function (grunt) {
   grunt.registerTask('end_feat', ['ttdev:finish:feature']);
 };
 ```
+
+## Trello board
+
+If you find a bug or have any suggestions to improve this Grunt plugin, please use the following trello board: [grunt-dev-workflow board](https://trello.com/b/LPtqQ0bT/grunt-dev-workflow).
+
+## Release History
+
+| Date       | Tag    | Description   |
+|------------|--------|---------------|
+| 2014-07-28 | v0.1.0 | First release |
 
