@@ -48,14 +48,12 @@ exports.init = function (config, grunt, Q, helpers) {
           step = this.convertStep(step, 'string');
         }
 
-        if (step.matchesJira()) {
+        if (!this.usesJira && (step.matchesJira() || (step.matchesGitlab() && (step === 'gitlab.create.merge_request' || step === 'gitlab.assign.merge_request')))) {
           this.usesJira = true;
         }
-        else if (step.matchesGitlab()) {
+
+        if (!this.usesGitlab && step.matchesGitlab()) {
           this.usesGitlab = true;
-        }
-        else {
-          return false;
         }
       }
     };

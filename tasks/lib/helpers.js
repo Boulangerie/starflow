@@ -638,9 +638,9 @@ exports.init = function (config, grunt, Q) {
   exports.createMergeRequest = function (refBranch) {
     var deferred = Q.defer();
 
-    getMergeRequestId().then(function (id) {
-      checkMergeRequest(id).then(function (mrExists) {
-        if (!mrExists) {
+//    getMergeRequestId().then(function (id) {
+//      checkMergeRequest(id).then(function (mrExists) {
+//        if (!mrExists) {
           var args = _.merge(gitlabArgs, {
             headers: {
               "Content-Type": "application/json"
@@ -666,18 +666,18 @@ exports.init = function (config, grunt, Q) {
               deferred.resolve(data);
             }
           });
-        }
-        else { // mr already exists
-          deferred.reject(new Error('The merge request associated to the branch "' + exports.branchName + '" already exists on the remote repository.'));
-        }
+//        }
+//        else { // mr already exists
+//          deferred.reject(new Error('The merge request associated to the branch "' + exports.branchName + '" already exists on the remote repository.'));
+//        }
 
-      }, function (err) {
-        deferred.reject(new Error(err));
-      });
+//      }, function (err) {
+//        deferred.reject(new Error(err));
+//      });
 
-    }, function (err) {
-      deferred.reject(new Error(err));
-    });
+//    }, function (err) {
+//      deferred.reject(new Error(err));
+//    });
 
     return deferred.promise;
   };
