@@ -443,7 +443,7 @@ exports.init = function (config, grunt, Q) {
         deferred.reject(new Error(err));
       }
       else {
-        grunt.resolve(true);
+        deferred.resolve(true);
         grunt.log.writeln('Merge branch ' + from + ' to ' + to + '.');
       }
     });
@@ -684,7 +684,7 @@ exports.init = function (config, grunt, Q) {
             deferred.reject(new Error(err));
           }
           else {
-            grunt.log.success('Branch ' + exports.branchName + ' was pushed to remote repository.');
+            grunt.log.success('Branch ' + branch + ' was pushed to remote repository.');
             deferred.resolve(data);
           }
         });
