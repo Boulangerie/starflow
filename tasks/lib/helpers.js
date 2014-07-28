@@ -576,8 +576,8 @@ exports.init = function (config, grunt, Q) {
     var option = withRebase ? '--rebase ' : '';
 
     gitBranches().then(function (branches) {
-      if (branches.current !== 'master') {
-        exports.gitCheckout('master');
+      if (branches.current !== branch) {
+        exports.gitCheckout(branch);
       }
       // current branch is master
       exec('git pull ' + option + repo + ' ' + branch, function (err, data) {
@@ -585,7 +585,7 @@ exports.init = function (config, grunt, Q) {
           deferred.reject(new Error(err));
         }
         else {
-          grunt.log.writeln('Local master is now up-to-date.');
+          grunt.log.writeln('Local ' + branch + ' is now up-to-date.');
           deferred.resolve(data);
         }
       });
