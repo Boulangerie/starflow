@@ -464,7 +464,7 @@ exports.init = function (config, grunt, Q) {
         deferred.reject(new Error(err));
       }
       else {
-        exec('git cherry-pick ' + commit + ' --allow-empty', function (err) {
+        exec('git cherry-pick ' + commit, function (err) {
           if (err) {
             deferred.reject(new Error(err));
           }
