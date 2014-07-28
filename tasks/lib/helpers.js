@@ -787,6 +787,8 @@ exports.init = function (config, grunt, Q) {
         }
       });
 
+      console.log(id);
+
       gitlabClient.methods.putAcceptMergeRequest(args, function (data, response) {
         if (response.statusCode !== 200) {
           grunt.log.fail('URL -> ' + response.client._httpMessage.path + '\n', data);
