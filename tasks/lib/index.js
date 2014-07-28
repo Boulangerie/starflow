@@ -78,6 +78,14 @@ exports.init = function (config, grunt, Q, helpers) {
       branch: function (args) {
         return helpers.gitCreateBranch(args.branchName || helpers.branchName, args.with_checkout).catch(function (err) { grunt.log.fail('[Git Error]'); throw err; });
       }
+    },
+
+    merge: function (args) {
+      return helpers.gitMerge(args.from, args.to).catch(function (err) { grunt.log.fail('[Git Error]'); throw err; });
+    },
+
+    cherrypick: function (args) {
+      return helpers.gitCherryPick(args.commit).catch(function (err) { grunt.log.fail('[Git Error]'); throw err; });
     }
 
   };

@@ -18,11 +18,6 @@ module.exports = function (grunt) {
           project: 10300 // name: Manager
         }
       },
-      test: {
-        steps: [
-//          { 'jira.move.card': { status: 'In Progress' } }
-        ]
-      },
       create: {
         steps: [
           { 'git.checkout': { branch: 'master' } },
@@ -42,6 +37,15 @@ module.exports = function (grunt) {
       accept: {
         steps: [
           'gitlab.accept.merge_request'
+        ]
+      },
+      deploy: {
+        steps: [
+          { 'git.checkout': { branch: 'prod' } },
+          { 'git.cherrypick': { commit: '<%= grunt.option("commit") %>' } },
+          { 'git.push': { branch: 'prod' } },
+          { 'git.checkout': { branch: 'master' } },
+          { 'git.merge': { from: 'prod', to: 'master' } }
         ]
       }
     }
