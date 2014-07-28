@@ -63,29 +63,29 @@ exports.init = function (config, grunt, Q, helpers) {
   exports.git = {
 
     checkout: function (args) {
-      return helpers.gitCheckout(args.branch).catch(function (err) { grunt.log.fail('[Git Error]'); throw err; });
+      return helpers.gitCheckout(args.branch).catch(function (err) { grunt.log.fail('[Git Error (checkout)]'); throw err; });
     },
 
     pull: function (args) {
-      return helpers.gitPull(args.repo, args.branch, args.with_rebase).catch(function (err) { grunt.log.fail('[Git Error]'); throw err; });
+      return helpers.gitPull(args.repo, args.branch, args.with_rebase).catch(function (err) { grunt.log.fail('[Git Error (pull)]'); throw err; });
     },
 
     push: function (args) {
-      return helpers.gitPush(args.repo, args.branch).catch(function (err) { grunt.log.fail('[Git Error]'); throw err; });
+      return helpers.gitPush(args.repo, args.branch).catch(function (err) { grunt.log.fail('[Git Error (push)]'); throw err; });
     },
 
     create: {
       branch: function (args) {
-        return helpers.gitCreateBranch(args.branchName || helpers.branchName, args.with_checkout).catch(function (err) { grunt.log.fail('[Git Error]'); throw err; });
+        return helpers.gitCreateBranch(args.branchName || helpers.branchName, args.with_checkout).catch(function (err) { grunt.log.fail('[Git Error (create.branch)]'); throw err; });
       }
     },
 
     merge: function (args) {
-      return helpers.gitMerge(args.from, args.to).catch(function (err) { grunt.log.fail('[Git Error]'); throw err; });
+      return helpers.gitMerge(args.from, args.to).catch(function (err) { grunt.log.fail('[Git Error (merge)]'); throw err; });
     },
 
     cherrypick: function (args) {
-      return helpers.gitCherryPick(args.commit).catch(function (err) { grunt.log.fail('[Git Error]'); throw err; });
+      return helpers.gitCherryPick(args.commit).catch(function (err) { grunt.log.fail('[Git Error (cherrypick)]'); throw err; });
     }
 
   };
@@ -95,7 +95,7 @@ exports.init = function (config, grunt, Q, helpers) {
     check: {
 
       connection: function () {
-        return helpers.checkGitlabConnection().catch(function (err) { grunt.log.fail('[Gitlab Error]'); throw err; });
+        return helpers.checkGitlabConnection().catch(function (err) { grunt.log.fail('[Gitlab Error (check.connection)]'); throw err; });
       }
 
     },
@@ -103,7 +103,7 @@ exports.init = function (config, grunt, Q, helpers) {
     create: {
 
       merge_request: function (args) {
-        return helpers.createMergeRequest(args.ref_branch).catch(function (err) { grunt.log.fail('[Gitlab Error]'); throw err; });
+        return helpers.createMergeRequest(args.ref_branch).catch(function (err) { grunt.log.fail('[Gitlab Error (create.merge_request)]'); throw err; });
       }
 
     },
@@ -111,7 +111,7 @@ exports.init = function (config, grunt, Q, helpers) {
     assign: {
 
       merge_request: function (args) {
-        return helpers.assignMergeRequest(args.assignee).catch(function (err) { grunt.log.fail('[Gitlab Error]'); throw err; });
+        return helpers.assignMergeRequest(args.assignee).catch(function (err) { grunt.log.fail('[Gitlab Error (assign.merge_request)]'); throw err; });
       }
 
     },
@@ -119,7 +119,7 @@ exports.init = function (config, grunt, Q, helpers) {
     accept: {
 
       merge_request: function () {
-        return helpers.acceptMergeRequest().catch(function (err) { grunt.log.fail('[Gitlab Error]'); throw err; });
+        return helpers.acceptMergeRequest().catch(function (err) { grunt.log.fail('[Gitlab Error (accept.merge_request)]'); throw err; });
       }
 
     },
@@ -127,7 +127,7 @@ exports.init = function (config, grunt, Q, helpers) {
     get: {
 
       project_id: function (args) {
-        return helpers.getGitlabProjectId(args.name).catch(function (err) { grunt.log.fail('[Gitlab Error]'); throw err; });
+        return helpers.getGitlabProjectId(args.name).catch(function (err) { grunt.log.fail('[Gitlab Error (get.project_id)]'); throw err; });
       }
 
     }
@@ -139,11 +139,11 @@ exports.init = function (config, grunt, Q, helpers) {
     check: {
 
       connection: function () {
-        return helpers.checkJiraConnection().catch(function (err) { grunt.log.fail('[JIRA Error]'); throw err; });
+        return helpers.checkJiraConnection().catch(function (err) { grunt.log.fail('[JIRA Error (check.connection)]'); throw err; });
       },
 
       card: function (args) {
-        return helpers.checkJiraCard(args.card).catch(function (err) { grunt.log.fail('[JIRA Error]'); throw err; });
+        return helpers.checkJiraCard(args.card).catch(function (err) { grunt.log.fail('[JIRA Error (check.card)]'); throw err; });
       }
 
     },
@@ -151,7 +151,7 @@ exports.init = function (config, grunt, Q, helpers) {
     move: {
 
       card: function (args) {
-        return helpers.moveJiraCard(args.status).catch(function (err) { grunt.log.fail('[JIRA Error]'); throw err; });
+        return helpers.moveJiraCard(args.status).catch(function (err) { grunt.log.fail('[JIRA Error (move.card)]'); throw err; });
       }
 
     },
@@ -159,7 +159,7 @@ exports.init = function (config, grunt, Q, helpers) {
     get: {
 
       project_id: function (args) {
-        return helpers.getJiraProjectId(args.name).catch(function (err) { grunt.log.fail('[JIRA Error]'); throw err; });
+        return helpers.getJiraProjectId(args.name).catch(function (err) { grunt.log.fail('[JIRA Error (get.project_id)]'); throw err; });
       }
 
     }

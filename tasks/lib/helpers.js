@@ -443,6 +443,7 @@ exports.init = function (config, grunt, Q) {
         deferred.reject(new Error(err));
       }
       else {
+        grunt.resolve(true);
         grunt.log.writeln('Merge branch ' + from + ' to ' + to + '.');
       }
     });
@@ -466,9 +467,22 @@ exports.init = function (config, grunt, Q) {
       else {
         exec('git cherry-pick ' + commit, function (err) {
           if (err) {
-            deferred.reject(new Error(err));
+            if (!err.toString().match(/git commit --allow-empty/)) {
+              deferred.reject(new Error(err));
+            }
+            else {
+              exec('git reset', function (err) {
+                if (err) {
+                  deferred.reject(new Error(err));
+                }
+                else {
+                  deferred.resolve(true);
+                }
+              });
+            }
           }
           else {
+            deferred.resolve(true);
             grunt.log.writeln('Commit ' + commit + ' moved to ' + exports.currentBranch + '.');
           }
         });
