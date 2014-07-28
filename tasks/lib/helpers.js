@@ -459,36 +459,41 @@ exports.init = function (config, grunt, Q) {
   exports.gitCherryPick = function (commit) {
     var deferred = Q.defer();
 
-    exec('rm -f .git/index.lock', function (err) {
+    if (!commit) {
+      deferred.reject(new Error('You must specify a Commit SHA1 string as parameter (grunt ttdev(...) --commit=COMMIT_SHA1).'));
+    }
+    else {
+      exec('rm -f .git/index.lock', function (err) {
 
-      if (err) {
-        deferred.reject(new Error(err));
-      }
-      else {
-        exec('git cherry-pick ' + commit + ' -m 1', function (err) {
-          if (err) {
-            if (!err.toString().match(/git commit --allow-empty/)) {
-              deferred.reject(new Error(err));
+        if (err) {
+          deferred.reject(new Error(err));
+        }
+        else {
+          exec('git cherry-pick ' + commit + ' -m 1', function (err) {
+            if (err) {
+              if (!err.toString().match(/git commit --allow-empty/)) {
+                deferred.reject(new Error(err));
+              }
+              else {
+                exec('git reset', function (err) {
+                  if (err) {
+                    deferred.reject(new Error(err));
+                  }
+                  else {
+                    deferred.resolve(true);
+                  }
+                });
+              }
             }
             else {
-              exec('git reset', function (err) {
-                if (err) {
-                  deferred.reject(new Error(err));
-                }
-                else {
-                  deferred.resolve(true);
-                }
-              });
+              deferred.resolve(true);
+              grunt.log.writeln('Commit ' + commit + ' moved to ' + exports.currentBranch + '.');
             }
-          }
-          else {
-            deferred.resolve(true);
-            grunt.log.writeln('Commit ' + commit + ' moved to ' + exports.currentBranch + '.');
-          }
-        });
-      }
+          });
+        }
 
-    });
+      });
+    }
 
     return deferred.promise;
   };
