@@ -1,5 +1,5 @@
 {
-  "name": "grunt-teads-dev",
+  "name": "grunt-dev-workflow",
   "version": "0.1.0",
   "description": "Automate your workflows simply by describing them in a config file",
   "dependencies": {
