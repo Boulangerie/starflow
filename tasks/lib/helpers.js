@@ -416,11 +416,11 @@ exports.init = function (config, grunt, Q) {
           }
           else {
             exports.currentBranch = branches.current;
+            deferred.resolve(branch);
             grunt.log.writeln('Switched to branch ' + branch + '.');
           }
         });
       }
-      deferred.resolve(branch);
 
     }, function (err) {
       deferred.reject(new Error(err));

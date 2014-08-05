@@ -1,15 +1,15 @@
-# grunt-teads-dev v0.1.0
-> Automate your workflows simply by describing them in a config file.
+# grunt-dev-workflow v0.1.0
+> Automate your dev workflows simply by describing them in a config file.
 
 ## Install
 
 Add the following line in the `devDependencies` property of the `package.json` file:
 ```
-"grunt-teads-dev": "git+ssh://git@git.teads.tv:front-dev/grunt-teads-dev.git"
+"grunt-dev-workflow": "git+ssh://git@git.teads.tv:front-dev/grunt-dev-workflow.git"
 ```
 Add this line to the Gruntfile:
 ```
-grunt.loadNpmTasks 'grunt-teads-dev'
+grunt.loadNpmTasks 'grunt-dev-workflow'
 ```
 Finally, run `npm install` in the terminal.
 
@@ -21,14 +21,14 @@ Task targets and options may be specified according to the grunt [Configuration 
 
 ### Usage
 
-The `grunt-teads-dev` task is a multitask that can be run in a tasks sequence or in the terminal. If you are using JIRA platform, it is **mandatory** to provide the JIRA issue/card as a parameter when you run the task in the terminal. Passing in the card can be achieved by appending ` --card=JIRA_CARD` to the `grunt TASK` command.
+The `grunt-dev-workflow` task is a multitask that can be run in a tasks sequence or in the terminal. If you are using JIRA platform, it is **mandatory** to provide the JIRA issue/card as a parameter when you run the task in the terminal. Passing in the card can be achieved by appending ` --card=JIRA_CARD` to the `grunt TASK` command.
 
 #### Examples
 Suppose we have the following `Gruntfile.js` file:
 
 ```
 module.exports = function (grunt) {
-  grunt.loadNpmTasks('grunt-teads-dev');
+  grunt.loadNpmTasks('grunt-dev-workflow');
   var initConfig = {
     pkg: grunt.file.readJSON('package.json'),
     
@@ -54,7 +54,7 @@ module.exports = function (grunt) {
 };
 ```
 
-Now, you can run the task in several ways, but you have to pass in the JIRA card/issue as a paramater if your workflow uses a JIRA card. In a terminal:
+Now, you can run the task in several ways, but you have to pass in the JIRA card/issue as a parameter if your workflow uses a JIRA card. In a terminal:
 
 ```
 grunt new_feat --card=MAN-123
@@ -68,7 +68,7 @@ grunt ttdev:create:feature --card=MAN-123
 grunt ttdev:create --type=feature --card=MAN-123
 ```
 
-The `grunt-teads-dev` task accepts 1 argument:
+The `grunt-dev-workflow` task accepts 1 argument:
 
 - **type** ( *optional* ): the type of issue you are dealing with. **Default** value is `feat`. Values can be:
     - `feat|feature|improvement`: for a feature or an improvement. Parsed to `feat` value.
@@ -147,7 +147,7 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
 
 #### Target specific information
 
-The goal of the `grunt-teads-dev` is to let you define the workflow(s) you will use to work on an issue.
+The goal of the `grunt-dev-workflow` is to let you define the workflow(s) you will use to work on an issue.
 
 > A **workflow** is a series of steps the developper has to go through in order to work on an issue/feature.
 
@@ -185,7 +185,7 @@ A workflow is defined in the `steps` property of a target. `steps` is an array w
 
 ```
 module.exports = function (grunt) {
-  grunt.loadNpmTasks('grunt-teads-dev');
+  grunt.loadNpmTasks('grunt-dev-workflow');
   var initConfig = {
     pkg: grunt.file.readJSON('package.json'),
     
