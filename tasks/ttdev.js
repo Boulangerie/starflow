@@ -170,12 +170,13 @@ module.exports = function (grunt) {
             steps.reduce(function (sequence, step) {
                 return sequence.then(function () {
 
+                  // at this point, every "string" command has been parsed to "object" command
                   if (typeof step === 'object') {
                     command = Object.keys(step)[0];
                     params = step[Object.keys(step)[0]];
                   }
                   else {
-                    throw new Error('Step type is ' + (typeof step) + '. Allowed types: object, string.');
+                    throw new Error('Step type is ' + (typeof step) + '. Should be "object".');
                   }
                   return utils.parseAndRun(command, params, allowedCmds);
 
