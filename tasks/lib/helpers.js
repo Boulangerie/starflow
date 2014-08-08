@@ -119,17 +119,17 @@ exports.init = function (config, grunt, Q) {
   /**
    * Uses JIRA API to get the object status that has the name given in param
    * @param  {string} status
-   * @param  {string} issue  the JIRA card key (ex. MAN-123)
+   * @param  {object} issueTypeName  the issue type name (Bug, Task, Feature...) of the JIRA card
    * @return {promise}
    */
   var getJiraStatus = function (status, issue) {
     var deferred = Q.defer();
 
-    var args = _.merge(jiraArgs, {
+    var args = _.merge({
       path: {
-        issue: issue
+        issue: issue.key
       }
-    });
+    }, jiraArgs);
 
     jiraClient.methods.getAllIssueTransitions(args, function (data, response) {
       if (response.statusCode !== 200) {
@@ -141,7 +141,8 @@ exports.init = function (config, grunt, Q) {
         var jiraStatus = null,
           i = 0;
         while (!jiraStatus && i < data.length) {
-          if (data[i].name === status) {
+          console.log(data[i].name, '===', status);
+          if (data[i].to.name === status) {
             jiraStatus = data[i];
           }
           i++;
@@ -166,12 +167,12 @@ exports.init = function (config, grunt, Q) {
   var checkBranch = function (branchName) {
     var deferred = Q.defer();
 
-    var args = _.merge(gitlabArgs, {
+    var args = _.merge({
       path: {
         projectId: config.gitlab.projectId,
         branch: branchName
       }
-    });
+    }, gitlabArgs);
 
     gitlabClient.methods.getOneBranch(args, function (data, response) {
       if (response.statusCode !== 200) {
@@ -198,14 +199,14 @@ exports.init = function (config, grunt, Q) {
   var getMergeRequestId = function () {
     var deferred = Q.defer();
 
-    var args = _.merge(gitlabArgs, {
+    var args = _.merge({
       parameters: {
         state: 'opened'
       },
       path: {
         projectId: config.gitlab.projectId
       }
-    });
+    }, gitlabArgs);
 
     gitlabClient.methods.getAllMergeRequests(args, function (data, response) {
       if (response.statusCode !== 200) {
@@ -241,12 +242,12 @@ exports.init = function (config, grunt, Q) {
   var checkMergeRequest = function (mrId) {
     var deferred = Q.defer();
 
-    var args = _.merge(gitlabArgs, {
+    var args = _.merge({
       path: {
         projectId: config.gitlab.projectId,
         mrId: mrId
       }
-    });
+    }, gitlabArgs);
 
     gitlabClient.methods.getOneMergeRequest(args, function (data, response) {
       if (response.statusCode !== 200) {
@@ -273,11 +274,11 @@ exports.init = function (config, grunt, Q) {
   var getAssignee = function (assignee) {
     var deferred = Q.defer();
 
-    var args = _.merge(gitlabArgs, {
+    var args = _.merge({
       parameters: {
         per_page: 1000
       }
-    });
+    }, gitlabArgs);
 
     gitlabClient.methods.getAllUsers(args, function (data, response) {
       if (response.statusCode !== 200) {
@@ -331,11 +332,11 @@ exports.init = function (config, grunt, Q) {
   exports.getGitlabProjectId = function (name) {
     var deferred = Q.defer();
 
-    var args = _.merge(gitlabArgs, {
+    var args = _.merge({
       parameters: {
         per_page: 1000
       }
-    });
+    }, gitlabArgs);
 
     gitlabClient.methods.getAllProjects(args, function (data, response) {
       if (response.statusCode !== 200) {
@@ -505,11 +506,11 @@ exports.init = function (config, grunt, Q) {
   exports.checkJiraConnection = function () {
     var deferred = Q.defer();
 
-    var args = _.merge(jiraArgs, {
+    var args = _.merge({
       path: {
         projectId: config.jira.projectId
       }
-    });
+    }, jiraArgs);
 
     jiraClient.methods.getSession(args, function (data, response) {
       if (response.statusCode !== 200) {
@@ -532,9 +533,7 @@ exports.init = function (config, grunt, Q) {
   exports.checkGitlabConnection = function () {
     var deferred = Q.defer();
 
-    var args = _.merge(gitlabArgs, {});
-
-    gitlabClient.methods.getCurrentUser(args, function (data, response) {
+    gitlabClient.methods.getCurrentUser(gitlabArgs, function (data, response) {
       if (response.statusCode !== 200) {
         grunt.log.debug(response.client._httpMessage.path + '\n', data);
         deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
@@ -556,12 +555,12 @@ exports.init = function (config, grunt, Q) {
   exports.checkJiraCard = function (cardname) {
     var deferred = Q.defer();
 
-    var args = _.merge(jiraArgs, {
+    var args = _.merge({
       path: {
         project: config.jira.project,
         issue: cardname
       }
-    });
+    }, jiraArgs);
 
     jiraClient.methods.getOneIssue(args, function (data, response) {
       if (response.statusCode !== 200) {
@@ -720,7 +719,7 @@ exports.init = function (config, grunt, Q) {
 //    getMergeRequestId().then(function (id) {
 //      checkMergeRequest(id).then(function (mrExists) {
 //        if (!mrExists) {
-    var args = _.merge(gitlabArgs, {
+    var args = _.merge({
       headers: {
         "Content-Type": "application/json"
       },
@@ -733,7 +732,7 @@ exports.init = function (config, grunt, Q) {
       path: {
         projectId: config.gitlab.projectId
       }
-    });
+    }, gitlabArgs);
 
     gitlabClient.methods.postMergeRequest(args, function (data, response) {
       if (response.statusCode !== 201) { // 201 = HTTP CREATED
@@ -745,18 +744,6 @@ exports.init = function (config, grunt, Q) {
         deferred.resolve(data);
       }
     });
-//        }
-//        else { // mr already exists
-//          deferred.reject(new Error('The merge request associated to the branch "' + exports.branchName + '" already exists on the remote repository.'));
-//        }
-
-//      }, function (err) {
-//        deferred.reject(new Error(err));
-//      });
-
-//    }, function (err) {
-//      deferred.reject(new Error(err));
-//    });
 
     return deferred.promise;
   };
@@ -769,9 +756,9 @@ exports.init = function (config, grunt, Q) {
   exports.moveJiraCard = function (to) {
     var deferred = Q.defer();
 
-    getJiraStatus(to, exports.jiraCard.key).then(function (status) {
+    getJiraStatus(to, exports.jiraCard).then(function (status) {
 
-      var args = _.merge(jiraArgs, {
+      var args = _.merge({
         headers: {
           "Content-Type": "application/json"
         },
@@ -784,7 +771,7 @@ exports.init = function (config, grunt, Q) {
             id: status.id
           }
         }
-      });
+      }, jiraArgs);
 
       jiraClient.methods.postIssueTransition(args, function (data, response) {
         if (response.statusCode !== 204) {
@@ -813,7 +800,8 @@ exports.init = function (config, grunt, Q) {
 
     getMergeRequestId().then(function (id) {
       getAssignee(assignee).then(function (user) {
-        var args = _.merge(gitlabArgs, {
+
+        var args = _.merge({
           headers: {
             "Content-Type": "application/json"
           },
@@ -824,7 +812,7 @@ exports.init = function (config, grunt, Q) {
             projectId: config.gitlab.projectId,
             mrId: id
           }
-        });
+        }, gitlabArgs);
 
         gitlabClient.methods.putMergeRequest(args, function (data, response) {
           if (response.statusCode !== 200) {
@@ -856,7 +844,7 @@ exports.init = function (config, grunt, Q) {
 
     getMergeRequestId().then(function (id) {
 
-      var args = _.merge(gitlabArgs, {
+      var args = _.merge({
         headers: {
           "Content-Type": "application/json"
         },
@@ -865,7 +853,7 @@ exports.init = function (config, grunt, Q) {
           mrId: id
         },
         data: {}
-      });
+      }, gitlabArgs);
 
       gitlabClient.methods.putAcceptMergeRequest(args, function (data, response) {
         if (response.statusCode !== 200) {
