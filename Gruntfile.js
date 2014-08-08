@@ -10,7 +10,7 @@ module.exports = function (grunt) {
       options: {
         gitlab: {
           host: 'https://git.teads.tv',
-          project: 'GRUNT Teads Dev' // id: 4
+          project: 'GRUNT Dev Workflow' // id: 4
         },
         jira: {
           host: 'https://jira.teads.tv',
@@ -19,7 +19,7 @@ module.exports = function (grunt) {
       },
       test: {
         steps: [
-
+          { 'jira.move.card': { status: 'In Progress' } }
         ]
       },
       create: {
