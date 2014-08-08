@@ -1,4 +1,4 @@
-# grunt-dev-workflow v0.1.0
+# grunt-dev-workflow v0.1.1
 > Automate your dev workflows simply by describing them in a config file.
 
 ## Install
@@ -91,6 +91,11 @@ export GITLAB_PRIVATE_TOKEN="token"
 export JIRA_USERNAME="username"
 export JIRA_PASSWORD="password"
 ```
+
+> **Note:**
+> If your password contains `$` characters, make sure to escape it in the `~/.bash_profile` file.
+> *Example:*
+> `export JIRA_PASSWORD="test\$bob"`
 
 ### Options
 
@@ -231,7 +236,8 @@ If you find a bug or have any suggestions to improve this Grunt plugin, please u
 
 ## Release History
 
-| Date       | Tag    | Description   |
-|------------|--------|---------------|
-| 2014-07-28 | v0.1.0 | First release |
+| Date       | Tag    | Description                                           |
+|------------|--------|-------------------------------------------------------|
+| 2014-08-08 | v0.1.1 | Fix JIRA issue transitions from one column to another |
+| 2014-07-28 | v0.1.0 | First release                                         |
 
