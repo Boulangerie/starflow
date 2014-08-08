@@ -53,9 +53,11 @@ exports.init = function (config, grunt, Q) {
     }
   };
   jiraClient.registerMethod('getAllIssueTransitions', '${url}/rest/api/latest/issue/${issue}/transitions', 'GET');
+  jiraClient.registerMethod('getAllProjectStatuses', '${url}/rest/api/latest/project/${project}/statuses', 'GET');
 //  jiraClient.registerMethod('getOneIssue', '${url}/rest/api/latest/issue/${issue}', 'GET');
   jiraClient.registerMethod('getOneIssue', '${url}/rest/api/latest/search?jql=project=${project} and issue=${issue}', 'GET');
   jiraClient.registerMethod('postIssueTransition', '${url}/rest/api/latest/issue/${issue}/transitions', 'POST');
+  jiraClient.registerMethod('putIssue', '${url}/rest/api/latest/issue/${issue}', 'PUT');
 //  jiraClient.registerMethod('getOneProject', '${url}/rest/api/latest/project/${projectId}', 'GET');
   jiraClient.registerMethod('getSession', '${url}/rest/auth/latest/session', 'GET');
   jiraClient.registerMethod('getAllProjects', '${url}/rest/api/latest/project', 'GET');
@@ -141,7 +143,6 @@ exports.init = function (config, grunt, Q) {
         var jiraStatus = null,
           i = 0;
         while (!jiraStatus && i < data.length) {
-          console.log(data[i].name, '===', status);
           if (data[i].to.name === status) {
             jiraStatus = data[i];
           }
@@ -151,8 +152,49 @@ exports.init = function (config, grunt, Q) {
           deferred.resolve(jiraStatus);
         }
         else {
-          deferred.reject(new Error('JIRA status "' + status + '" could not be found.'));
+          getJiraStatusesByIssuetype().then(function (res) {
+            var availableStatuses = '',
+                issuetypes = Object.keys(res);
+
+            for (var i = 0; i < issuetypes.length; i++) {
+              availableStatuses += '  - [' + issuetypes[i] + '] ' + res[issuetypes[i]].join(', ') + '\n';
+            }
+            deferred.reject(new Error('JIRA status "' + status + '" could not be found (case sensitive).\nUse --debug flag to see the list of available statuses.'));
+            grunt.log.debug('Available JIRA statuses:\n  - [issue type] list of available statuses\n\n' + availableStatuses);
+          }, function (err) {
+            deferred.reject(err);
+          });
         }
+      }
+    });
+
+    return deferred.promise;
+  };
+
+  /**
+   * Use the JIRA API to get a map where each key (issuetype) has an (array of statuses) as a value
+   * @return {promise}
+   */
+  var getJiraStatusesByIssuetype = function () {
+    var deferred = Q.defer();
+
+    var args = _.merge({
+      path: {
+        project: config.jira.projectId
+      }
+    }, jiraArgs);
+
+    jiraClient.methods.getAllProjectStatuses(args, function (data, response) {
+      if (response.statusCode !== 200) {
+        grunt.log.debug(response.client._httpMessage.path + '\n', data);
+        deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
+      }
+      else {
+        var map = {};
+        for (var i = 0; i < data.length; i++) {
+          map[data[i].name] = data[i].statuses.map(function (status) { return status.name; } );
+        }
+        deferred.resolve(map);
       }
     });
 
@@ -548,7 +590,7 @@ exports.init = function (config, grunt, Q) {
   };
 
   /**
-   * Checks if the JIRA card with the key "cardname" exists or no
+   * Checks if the JIRA card with the key "cardname" exists or no. In addition, assign card to the user
    * @param  {string} cardname
    * @return {promise}
    */
@@ -571,7 +613,35 @@ exports.init = function (config, grunt, Q) {
         if (data.total === 1) {
           grunt.log.success('JIRA card "' + cardname + '" was found.');
           exports.jiraCard = data.issues[0];
-          deferred.resolve(data.issues[0]);
+
+          // assign card to user if not already assigned to him
+          var args2 = _.merge({
+            headers: {
+              "Content-Type": "application/json"
+            },
+            path: {
+              issue: cardname
+            },
+            data: {
+              fields: {
+                assignee: {
+                  name: config.jira.credentials.user
+                }
+              }
+            }
+          }, jiraArgs);
+          jiraClient.methods.putIssue(args2, function (data2, response2) {
+            if (response2.statusCode !== 204) {
+              grunt.log.debug(response2.client._httpMessage.path + '\n', data2);
+              deferred.reject(new Error(data2.errorMessages || 'Error ' + response2.statusCode + ' (no message given)'));
+            }
+            else {
+              grunt.log.writeln('JIRA card "' + cardname + '" assigned to ' + config.jira.credentials.user + '.');
+              deferred.resolve(data.issues[0]);
+            }
+          });
+          // end assign card to user if not already assigned to him
+
         }
         else if (data.total === 0) {
           grunt.log.debug(response.client._httpMessage.path + '\n', data);
@@ -779,7 +849,7 @@ exports.init = function (config, grunt, Q) {
           deferred.reject(new Error(data.errorMessages || 'Error ' + response.statusCode + ' (no message given)'));
         }
         else {
-          grunt.log.success('JIRA card ' + exports.jiraCard.key + ' moved to ' + status.name + '.');
+          grunt.log.success('JIRA card ' + exports.jiraCard.key + ' moved to ' + status.to.name + '.');
           deferred.resolve(data);
         }
       });
