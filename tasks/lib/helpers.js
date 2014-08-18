@@ -355,6 +355,12 @@ exports.init = function (config, grunt, Q) {
   exports.branchName = null;
 
   /**
+   * Type of dev (feature, fix...)
+   * @type {string}
+   */
+  exports.typeDev = null;
+
+  /**
    * Name of the current branch in the local git repo
    * @type {string}
    */
@@ -633,17 +639,20 @@ exports.init = function (config, grunt, Q) {
               }
             }
           }, jiraArgs);
-          jiraClient.methods.putIssue(args2, function (data2, response2) {
-            if (response2.statusCode !== 204) {
-              grunt.log.debug(response2.client._httpMessage.path + '\n', data2);
-              deferred.reject(new Error(data2.errorMessages || 'Error ' + response2.statusCode + ' (no message given)'));
-            }
-            else {
-              grunt.log.writeln('JIRA card "' + cardname + '" assigned to ' + config.jira.credentials.user + '.');
-              deferred.resolve(data.issues[0]);
-            }
-          });
-          // end assign card to user if not already assigned to him
+
+          if (!exports.jiraCard.fields.assignee || (exports.jiraCard.fields.assignee && exports.jiraCard.fields.assignee.name !== config.jira.credentials.user)) {
+            jiraClient.methods.putIssue(args2, function (data2, response2) {
+              if (response2.statusCode !== 204) {
+                grunt.log.debug(response2.client._httpMessage.path + '\n', data2);
+                deferred.reject(new Error(data2.errorMessages || 'Error ' + response2.statusCode + ' (no message given)'));
+              }
+              else {
+                grunt.log.writeln('JIRA card "' + cardname + '" assigned to ' + config.jira.credentials.user + '.');
+                deferred.resolve(data.issues[0]);
+              }
+            });
+            // end assign card to user if not already assigned to him
+          }
 
         }
         else if (data.total === 0) {
@@ -792,6 +801,9 @@ exports.init = function (config, grunt, Q) {
 //    getMergeRequestId().then(function (id) {
 //      checkMergeRequest(id).then(function (mrExists) {
 //        if (!mrExists) {
+
+    var mrTitle = exports.typeDev + '(' + exports.jiraCard.key + '): ' + exports.jiraCard.fields.summary;
+
     var args = _.merge({
       headers: {
         "Content-Type": "application/json"
@@ -800,7 +812,7 @@ exports.init = function (config, grunt, Q) {
         "id": config.gitlab.projectId,
         "source_branch": exports.branchName,
         "target_branch": refBranch,
-        "title": exports.jiraCard.fields.description
+        "title": mrTitle
       },
       path: {
         projectId: config.gitlab.projectId

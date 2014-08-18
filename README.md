@@ -1,4 +1,4 @@
-# grunt-dev-workflow v0.1.1
+# grunt-dev-workflow v0.1.2
 > Automate your dev workflows simply by describing them in a config file.
 
 ## Install
@@ -236,8 +236,14 @@ If you find a bug or have any suggestions to improve this Grunt plugin, please u
 
 ## Release History
 
-| Date       | Tag    | Description                                           |
-|------------|--------|-------------------------------------------------------|
-| 2014-08-08 | v0.1.1 | Fix JIRA issue transitions from one column to another |
-| 2014-07-28 | v0.1.0 | First release                                         |
+- **v0.1.2** - *2014-08-18*
 
+ - Fix `git checkout branch` process when running the command on the same branch
+ - Fix assigning a JIRA issue to the developer (was assigning at each JIRA card check)
+ - Changed the merge request title. Its pattern is: `type(JIRA issue): JIRA issue summary`
+
+- **v0.1.1** - *2014-08-18*
+ - Fix JIRA issue transitions from one column to another
+
+- **v0.1.0** - *2014-07-28*
+ - First release

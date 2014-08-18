@@ -108,6 +108,7 @@ module.exports = function (grunt) {
     // set branchName as {type}-{card}
     var format = '%type%-%card%'; // maybe put it in config?
     helpers.branchName = format.replace(/%type%/, type).replace(/%card%/, card);
+    helpers.typeDev = type;
 
     // card is mandatory
     var checkJiraCardPromise;
