@@ -464,6 +464,9 @@ exports.init = function (config, grunt, Q) {
           }
         });
       }
+      else { // current branch is the branch we wanted to checkout to
+        deferred.resolve(branch);
+      }
 
     }, function (err) {
       deferred.reject(new Error(err));
