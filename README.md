@@ -234,16 +234,15 @@ module.exports = function (grunt) {
 
 #### User story
 
-There is an unassigned JIRA issue called **MAN-123** with the summary "Do something" on the project **Manager**.
+There is an unassigned JIRA issue called **MAN-123** with the summary "Do something" on the **Manager** project.
 
 Bob is a Frontend developer and he wants to develop the *feature* reported on the **MAN-123** JIRA issue. He needs to run the following task in the terminal: `grunt new_feat --card=MAN-123`.
 
 This command will do several things according to the configuration from above:
 
-1. Check if the user can access JIRA and Gitlab APIs
+1. Check if Bob can access JIRA and Gitlab APIs with its credentials from `~/.bash_profile`
 
-2. Check if the JIRA issue **MAN-123** exists. If it does, the `ttdev` task checks if the issue is assigned to the developer. If it isn't, the task assigns the issue to the developer. It doesn't do anything special
-otherwise
+2. Check if the JIRA issue **MAN-123** exists. If it does, the `ttdev` task checks if the issue is assigned to Bob. If it isn't, the task assigns the issue to Bob. It doesn't do anything special otherwise
 
 3. Perform several git commands:
 
@@ -256,19 +255,19 @@ otherwise
 
 5. Move JIRA issue from *[To Do]* column to *[Work In Progress]* column
 
-The developer can now work on the feature on the branch *feat*-**MAN-123**. When he is done developing, he can run this command in the terminal: `grunt end_feat --card=MAN-123`.
+Bob can now work on the feature on the branch *feat*-**MAN-123**. When he is done developing, he can run this command in the terminal: `grunt end_feat --card=MAN-123`.
 
 This will do the following:
 
-1. Check if the user can access JIRA and Gitlab APIs
+1. Check if Bob can access JIRA and Gitlab APIs
 
-2. Check if the JIRA issue **MAN-123** exists. At this point it does and it's already assigned to the developer
+2. Check if the JIRA issue **MAN-123** exists. At this point it does and it's already assigned to Bob
 
 3. Assign **test** to the Merge Request previously created
 
 4. Move JIRA issue from *[Work In Progress]* column to *[Reviews]* column.
 
-The developer has finished the feature development, he can switch to another JIRA issue!
+Bob has finished the feature development, he can switch on another JIRA issue!
 
 ## Trello board
 
