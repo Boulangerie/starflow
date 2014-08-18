@@ -653,6 +653,9 @@ exports.init = function (config, grunt, Q) {
             });
             // end assign card to user if not already assigned to him
           }
+          else { // the issue has already been assigned to the developer
+            deferred.resolve(data.issues[0]);
+          }
 
         }
         else if (data.total === 0) {
