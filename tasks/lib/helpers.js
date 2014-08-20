@@ -908,7 +908,7 @@ exports.init = function (config, grunt, Q) {
             deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
           }
           else {
-            grunt.log.success('Merge request "' + exports.jiraCard.fields.description + '" assigned to ' + assignee + '.');
+            grunt.log.success('Merge request "' + exports.jiraCard.fields.summary + '" assigned to ' + assignee + '.');
             deferred.resolve(data);
           }
         });

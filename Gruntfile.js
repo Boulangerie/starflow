@@ -9,26 +9,24 @@ module.exports = function (grunt) {
     ttdev: {
       options: {
         gitlab: {
-          host: 'https://git.teads.tv',
+          host: 'https://git.teads.FAKE',
           project: 'GRUNT Dev Workflow' // id: 4
         },
         jira: {
-          host: 'https://jira.teads.tv',
-          project: 10300 // name: Manager
+          host: 'https://jira.ebuzzing.FAKE',
+          project: 'Manager' // name: Manager
         }
       },
       test: {
-        steps: [
-          { 'jira.move.card': { status: 'In Progress' } }
-        ]
+        steps: []
       },
       create: {
         steps: [
           { 'git.checkout': { branch: 'master' } },
           { 'git.pull': { with_rebase: true } },
           { 'git.create.branch': { with_checkout: true } },
-          'git.push',
-          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
+//          'git.push',
+//          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
 //          { 'jira.move.card': { status: 'In Progress' } }
         ]
       },

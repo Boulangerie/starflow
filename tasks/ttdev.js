@@ -26,7 +26,7 @@ module.exports = function (grunt) {
           test: 'test', tests: 'test'
         },
         steps = this.data.steps, // list of the workflow's steps
-        card; // JIRA card/issue
+        issue; // JIRA card/issue
 
     // upgrade config object with user's credentials
     config.gitlab.token = process.env.GITLAB_PRIVATE_TOKEN;
@@ -35,7 +35,56 @@ module.exports = function (grunt) {
       password: process.env.JIRA_PASSWORD
     };
 
-    // internal libs
+    // dependencies
+    var Q = require('q');
+    var LogService = require('./lib/LogService').init(grunt);
+    var Util = require('./lib/Util');
+    Util.config = config;
+
+    // issue type (e.g. feat)
+    type = typeMatches[(type || grunt.option('type') || config.issue_type || 'feat')];
+    // issue/card key (e.g. MAN-123)
+    issue =  grunt.option('card') || config.jira.card;
+
+    // check what commands the steps are using
+    for (var i = 0; i < steps.length; i++) {
+      Util.checkRelatedCommand(Object.keys(steps[i])[0]);
+      Util.registerPromiseForStep(steps[i]);
+    }
+
+    var Index = require('./lib/Index');
+
+    // check Jira issue
+    // TODO
+
+    var whenGitReady = Index.git.init();
+    Index.git.workingBranch = type + '-' + card;
+
+    whenGitReady
+      .then(function () {
+
+        Util.promisesToHandle.reduce(function (sequence, step) {
+          return sequence.then(function () {
+            return step();
+          });
+        }, Q.fcall(function () {
+          return true;
+        }))
+          .catch(function (err) {
+            done(false);
+            throw err;
+          })
+          .then(function () {
+            LogService.success('SUCCESS');
+            done();
+          })
+          .done();
+
+      })
+      .done();
+
+    return;
+
     var helpers = require('./lib/helpers').init(config, grunt, Q);
     var index = require('./lib/index').init(config, grunt, Q, helpers);
     var utils = index.utils(grunt, index);

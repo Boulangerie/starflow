@@ -248,14 +248,14 @@ This command will do several things according to the configuration from above:
 
  - `git checkout master`
  - `git pull --rebase` to update the master branch
- - `git checkout -b feat-MAN-123` to create and switch on the branch *feat*-**MAN-123**
+ - `git checkout -b feat-MAN-123` to create and switch on the branch `feat-MAN-123`
  - `git push origin feat-MAN-123` to add the branch on the remote repository
 
 4. Create a new unassigned Merge Request on Gitlab with the following title: `feat(MAN-123): Do something`
 
 5. Move JIRA issue from *[To Do]* column to *[Work In Progress]* column
 
-Bob can now work on the feature on the branch *feat*-**MAN-123**. When he is done developing, he can run this command in the terminal: `grunt end_feat --card=MAN-123`.
+Bob can now work on the feature on the branch `feat-MAN-123`. When he is done developing, he can run this command in the terminal: `grunt end_feat --card=MAN-123`.
 
 This will do the following:
 
