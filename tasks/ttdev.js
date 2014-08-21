@@ -71,6 +71,33 @@ module.exports = function (grunt) {
       }
     }
 
+
+    /*
+     * start RESET
+     */
+    if (grunt.option('reset')) {
+      var exec = require('child_process').exec;
+
+      exec('git checkout refactor-architecture', function (err) {
+        LogService('git checkout refactor-architecture');
+        if (err) {
+          grunt.fail.fatal(err);
+        }
+        exec('git branch -D ' + branchName, function (err) {
+          LogService('git branch -D ' + branchName);
+          if (err) {
+            grunt.fail.fatal(err);
+          }
+        });
+      });
+
+      done();
+    }
+    /*
+     * end RESET
+     */
+
+
     // TMP TMP TMP
     Util.config.jira.projectId = 11205;
 
