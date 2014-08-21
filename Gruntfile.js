@@ -22,8 +22,8 @@ module.exports = function (grunt) {
       },
       create: {
         steps: [
-          { 'git.checkout': { branch: 'master' } },
-          { 'git.pull': { with_rebase: true } },
+//          { 'git.checkout': { branch: 'master' } },
+//          { 'git.pull': { with_rebase: true } },
           { 'git.create.branch': { with_checkout: true } },
 //          'git.push',
 //          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
