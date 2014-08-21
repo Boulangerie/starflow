@@ -66,7 +66,7 @@ Util.prototype.registerPromiseForStep = function (step) {
     step = o;
   }
 
-  self.promisesToHandle.push(Index.get(step));
+  self.promisesToHandle.push(function () { return Index.get(step); });
 };
 
 module.exports = new Util();

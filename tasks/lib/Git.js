@@ -133,6 +133,10 @@ Git.prototype.createBranch = function (branch, withCheckout) {
 
   LogService.debug('START Git.createBranch(' + branch + ', ' + withCheckout + ')');
 
+  if (!_.isString(branch)) {
+    deferred.reject(new Error('A branch name is mandatory to create a new branch.\nIf your workflow uses Jira, you must pass in the issue key (--card=MY-CARD).\nElse, pass in the branch name (--branch=MY-WORKING-BRANCH)'));
+  }
+
   if (withCheckout) {
     var option = branchExists ? '' : '-b';
     gitCmd = 'git checkout ' + option + branch;
@@ -205,26 +209,38 @@ Git.prototype.pull = function (repository, branch, withRebase) {
       deferred = Q.defer(),
       option = withRebase ? '--rebase ' : '';
 
-  LogService.debug('START Git.pull(' + repository + ', ' + branch + ', ' + withRebase + ')');
-
   // shuffle args if branch (and repo) is (are) not defined
   repository = repository || 'origin';
   branch = branch || 'master';
 
-  self
+  LogService.debug('START Git.pull(' + repository + ', ' + branch + ', ' + withRebase + ')');
+
+  /*self
     .checkout(branch)
     .then(function () {
-      exec('git pull ' + option + repository + ' ' + branch, function (err, data) {
-        if (err) {
-          deferred.reject(new Error(err));
-        }
-        else {
-          LogService.message('Local branch ' + branch + ' is now up-to-date.');
-          deferred.resolve(data);
-        }
-        LogService.debug('END   Git.pull(' + repository + ', ' + branch + ', ' + withRebase + ')');
-      });
-    });
+   exec('git pull ' + option + repository + ' ' + branch, function (err, data) {
+   if (err) {
+   deferred.reject(new Error(err));
+   }
+   else {
+   LogService.message('Local branch ' + branch + ' is now up-to-date.');
+   deferred.resolve(data);
+   }
+   LogService.debug('END   Git.pull(' + repository + ', ' + branch + ', ' + withRebase + ')');
+   });
+    });*/
+
+  exec('git pull ' + option + repository + ' ' + branch, function (err, data) {
+    if (err) {
+      deferred.reject(new Error(err));
+    }
+    else {
+      LogService.message('Local branch ' + branch + ' is now up-to-date.');
+      deferred.resolve(data);
+    }
+    LogService.debug('END   Git.pull(' + repository + ', ' + branch + ', ' + withRebase + ')');
+  });
+
 
   return deferred.promise;
 };

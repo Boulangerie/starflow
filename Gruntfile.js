@@ -13,8 +13,8 @@ module.exports = function (grunt) {
           project: 'GRUNT Dev Workflow' // id: 4
         },
         jira: {
-          host: 'https://jira.ebuzzing.FAKE',
-          project: 'Manager' // name: Manager
+          host: 'https://jira.ebuzzing.com',
+          project: 'Manager' // name: Manager #11205
         }
       },
       test: {
@@ -27,7 +27,7 @@ module.exports = function (grunt) {
           { 'git.create.branch': { with_checkout: true } },
 //          'git.push',
 //          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
-//          { 'jira.move.card': { status: 'In Progress' } }
+          { 'jira.move.card': { status: 'In Progress' } }
         ]
       },
       finish: {

@@ -14,19 +14,21 @@ module.exports = function (grunt) {
   grunt.registerMultiTask('ttdev', 'Handle the workflow when creating and finishing a feature in a Teads project', function (type) {
 
     var done = this.async(), // indicates to Grunt that this task uses asynchronous calls
-        config = this.options(), // get the options from the Gruntfile config
-        allowedCmds = ['git', 'gitlab', 'jira'], // allowed commands pass in the steps config
-        typeMatches = { // issue types allowed
-          feat: 'feat', feature: 'feat', improvement: 'feat',
-          fix: 'fix', bug: 'fix',
-          chore: 'chore', task: 'chore',
-          style: 'style',
-          refactor: 'refactor', refacto: 'refactor',
-          docs: 'docs', doc: 'docs', documentation: 'docs',
-          test: 'test', tests: 'test'
-        },
-        steps = this.data.steps, // list of the workflow's steps
-        issue; // JIRA card/issue
+      config = this.options(), // get the options from the Gruntfile config
+      allowedCmds = ['git', 'gitlab', 'jira'], // allowed commands pass in the steps config
+      typeMatches = { // issue types allowed
+        feat: 'feat', feature: 'feat', improvement: 'feat',
+        fix: 'fix', bug: 'fix',
+        chore: 'chore', task: 'chore',
+        style: 'style',
+        refactor: 'refactor', refacto: 'refactor',
+        docs: 'docs', doc: 'docs', documentation: 'docs',
+        test: 'test', tests: 'test'
+      },
+      steps = this.data.steps, // list of the workflow's steps
+      type = typeMatches[(type || grunt.option('type') || config.issue_type || 'feat')],
+      branch = grunt.option('branch'),
+      card = grunt.option('card') || config.jira.card; // JIRA card/issue
 
     // upgrade config object with user's credentials
     config.gitlab.token = process.env.GITLAB_PRIVATE_TOKEN;
@@ -37,48 +39,85 @@ module.exports = function (grunt) {
 
     // dependencies
     var Q = require('q');
+    var _ = require('lodash');
     var LogService = require('./lib/LogService').init(grunt);
     var Util = require('./lib/Util');
     Util.config = config;
 
-    // issue type (e.g. feat)
-    type = typeMatches[(type || grunt.option('type') || config.issue_type || 'feat')];
-    // issue/card key (e.g. MAN-123)
-    issue =  grunt.option('card') || config.jira.card;
-
     // check what commands the steps are using
     for (var i = 0; i < steps.length; i++) {
       Util.checkRelatedCommand(Object.keys(steps[i])[0]);
-      Util.registerPromiseForStep(steps[i]);
     }
 
+    var branchName;
+
+    if (Util.isUsed.jira) {
+      if (!_.isUndefined(card)) {
+        Util.config.jira.issueKey = card;
+        branchName = type + '-' + card;
+      }
+      else {
+        grunt.fail.fatal('The Jira issue/card key is mandatory because your workflow uses Jira (run the command with --card=MY-CARD)');
+        done(false);
+      }
+    }
+    else {
+      if (!_.isUndefined(branch)) {
+        branchName = branch;
+      }
+      else {
+        grunt.fail.fatal('Your workflow does not use Jira. You must specify a branch name (run the command with --branch=MY-WORKING-BRANCH)');
+        done(false);
+      }
+    }
+
+    // TMP TMP TMP
+    Util.config.jira.projectId = 11205;
+
     var Index = require('./lib/Index');
+    var whenGitReady = (Util.isUsed.git) ? Index.git.init() : true;
 
-    // check Jira issue
-    // TODO
+    Index.git.workingBranch = branchName;
 
-    var whenGitReady = Index.git.init();
-    Index.git.workingBranch = type + '-' + card;
+    // register all the promises in the Util.promisesToHandle array
+    for (var i = 0; i < steps.length; i++) {
+      Util.registerPromiseForStep(steps[i]);
+    }
 
     whenGitReady
       .then(function () {
 
-        Util.promisesToHandle.reduce(function (sequence, step) {
-          return sequence.then(function () {
-            return step();
-          });
-        }, Q.fcall(function () {
-          return true;
-        }))
-          .catch(function (err) {
-            done(false);
-            throw err;
-          })
-          .then(function () {
-            LogService.success('SUCCESS');
-            done();
-          })
-          .done();
+        function runPromisesSequence() {
+          // stopping assertion
+          if (Util.promisesToHandle.length > 0) {
+
+            if (Util.promisesToHandle.length > 1) {
+              // pop the first promiseWrapper function of the array Util.promisesToHandle
+              // and call it immediately to 'execute the promise'
+              return Util.promisesToHandle.shift()()
+                .then(runPromisesSequence)
+                .catch(function (err) {
+                  grunt.fail.fatal(err);
+                  done(false);
+                });
+            }
+            else { // length === 1
+              // pop the first promiseWrapper function of the array Util.promisesToHandle
+              // and call it immediately to 'execute the promise'
+              return Util.promisesToHandle.shift()()
+                .then(runPromisesSequence)
+                .catch(function (err) {
+                  grunt.fail.fatal(err);
+                  done(false);
+                })
+                .then(function () {
+                  LogService.success('Task execution complete!');
+                });
+            }
+          }
+        }
+
+        runPromisesSequence();
 
       })
       .done();

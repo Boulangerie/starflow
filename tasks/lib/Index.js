@@ -1,26 +1,31 @@
 var Index = function () {
-  var Util = require('./Util');
+  var self = this,
+      Util = require('./Util');
 
   if (Util.isUsed.git) {
     var Git = require('./Git');
-    this.git = new Git();
+    self.git = new Git();
   }
 
   if (Util.isUsed.gitlab) {
     var Git = require('./Gitlab');
-    this.gitlab = new Gitlab();
+    self.gitlab = new Gitlab();
 
     Util.promisesToHandle.unshift(function () {
-      this.gitlab.checkConnection()
+      return self.gitlab.checkConnection();
     });
   }
 
   if (Util.isUsed.jira) {
     var Jira = require('./Jira');
-    this.jira = new Jira();
+    self.jira = new Jira();
 
     Util.promisesToHandle.unshift(function () {
-      this.jira.checkConnection()
+      return self.jira.checkIssue();
+    });
+
+    Util.promisesToHandle.unshift(function () {
+      return self.jira.checkConnection();
     });
   }
 
@@ -39,25 +44,28 @@ Index.prototype.get = function (step) {
 
   switch (key) {
     case 'git.checkout':
-      return function () { fn.call(self.git, step[key].branchName); };
+      return fn.call(self.git, step[key].branchName);
       break;
     case 'git.create.branch':
-      return function () { fn.call(self.git, self.git.workingBranch, step[key].with_checkout); };
+      return fn.call(self.git, self.git.workingBranch, step[key].with_checkout);
       break;
     case 'git.pull':
-      return function () { fn.call(self.git, step[key].repo, step[key].branch, step[key].with_rebase); };
+      return fn.call(self.git, step[key].repo, step[key].branch, step[key].with_rebase);
       break;
     case 'git.push':
-      return function () { fn.call(self.git, step[key].repo, step[key].branch) };
+      return fn.call(self.git, step[key].repo, step[key].branch);
       break;
     case 'git.merge':
-      return function () { fn.call(self.git, step[key].from, step[key].to); };
+      return fn.call(self.git, step[key].from, step[key].to);
       break;
     case 'git.cherrypick':
-      return function () { fn.call(self.git, step[key].commit); };
+      return fn.call(self.git, step[key].commit);
+      break;
+    case 'jira.move.card':
+      return fn.call(self.jira, step[key].status);
       break;
     default:
-        return function () { console.log('DEFAULT'); }; // TODO tmp
+        return console.log('DEFAULT'); // TODO tmp
   }
 };
 
@@ -77,6 +85,12 @@ Index.prototype.getMethodFor = function (key) {
       case 'Git':
         return self.git[config.method];
         break;
+      case 'Gitlab':
+        return self.gitlab[config.method];
+        break;
+      case 'Jira':
+        return self.jira[config.method];
+        break;
       default:
         throw new Error('The class ' + config.class + ' is undefined');
     }
@@ -92,7 +106,8 @@ Index.prototype.DSL_MAP = {
   "git.pull": { "class": "Git", "method": "pull" },
   "git.push": { "class": "Git", "method": "push" },
   "git.merge": { "class": "Git", "method": "merge" },
-  "git.cherrypick": { "class": "Git", "method": "cherryPick" }
+  "git.cherrypick": { "class": "Git", "method": "cherryPick" },
+  "jira.move.card": { "class": "Jira", "method": "changeStatus" }
 };
 
 module.exports = new Index();

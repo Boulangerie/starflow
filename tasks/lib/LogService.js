@@ -64,7 +64,7 @@ LogService.prototype.error = function (message) {
 LogService.prototype.debug = function () {
   var self = this;
 
-  self.gruntRef.log.debug(arguments);
+  self.gruntRef.log.debug.apply(self, arguments);
 };
 
 /**
