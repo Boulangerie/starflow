@@ -25,6 +25,50 @@ var Gitlab = function () {
 Gitlab.prototype.constructor = Gitlab;
 
 /**
+ * Get the ID of the project which name is in the config (Gruntfile)
+ * @returns {promise|Q.promise}
+ */
+Gitlab.prototype.setProjectId = function () {
+  var self = this,
+    Q = require('q'),
+    Util = require('./Util'),
+    LogService = require('./LogService'),
+    projectName = Util.config.gitlab.project,
+    deferred = Q.defer();
+
+  LogService.debug('START Gitlab.setProjectId()');
+
+  self.apiClient.methods.getAllProjects(self.apiConfig, function (data, response) {
+    if (response.statusCode !== 200) {
+      LogService.debug(response.client._httpMessage.path + '\n', data);
+      deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+    }
+    else {
+      var id = null,
+        i = 0;
+      while (!id && i < data.length) {
+        if (data[i].name === projectName) {
+          id = data[i].id;
+        }
+        i++;
+      }
+
+      if (id) {
+        LogService.success('The ID for the Gitlab project "' + Util.config.gitlab.project + '" was found: ' + id);
+        deferred.resolve(id);
+      }
+      else {
+        deferred.reject(new Error('Gitlab project named "' + projectName + '" could not be found.'));
+      }
+
+      LogService.debug('END   Gitlab.setProjectId()');
+    }
+  });
+
+  return deferred.promise;
+};
+
+/**
  * Check if the user can connect to the Gitlab API with its credentials
  * @returns {promise|Q.promise}
  */
@@ -47,6 +91,295 @@ Gitlab.prototype.checkConnection = function () {
     }
 
     LogService.debug('END   Gitlab.checkConnection()');
+  });
+
+  return deferred.promise;
+};
+
+/**
+ * Check if the working branch already exists on the remote repository
+ * @param branch {string}
+ * @returns {promise|Q.promise}
+ */
+Gitlab.prototype.branchExistsOnRemote = function (branch) {
+  var self = this,
+      Q = require('q'),
+      Util = require('./Util'),
+      Index = require('./Index'),
+      LogService = require('./LogService'),
+      deferred = Q.defer();
+
+  LogService.debug('START Gitlab.branchExistsOnRemote(' + branch + ')');
+
+  var args = _.merge({
+    path: {
+      projectId: Util.config.gitlab.projectId,
+      branch: branch
+    }
+  }, self.apiConfig);
+
+  self.apiClient.methods.getOneBranch(args, function (data, response) {
+    if (response.statusCode !== 200) {
+      if (response.statusCode === 404) {
+        deferred.resolve(false);
+      }
+      else {
+        LogService.debug(response.client._httpMessage.path + '\n', data);
+        deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+      }
+    }
+    else {
+      deferred.resolve(true);
+    }
+
+    LogService.debug('END   Gitlab.branchExistsOnRemote(' + branch + ')');
+  });
+
+  return deferred.promise;
+};
+
+/**
+ * Create a merge request on the project on Gitlab between the working branch and 'refBranch'
+ * @param refBranch {string}
+ * @returns {promise|Q.promise}
+ */
+Gitlab.prototype.createMergeRequest = function (refBranch) {
+  var self = this,
+      Q = require('q'),
+      Util = require('./Util'),
+      Index = require('./Index'),
+      LogService = require('./LogService'),
+      deferred = Q.defer();
+
+  LogService.debug('START Gitlab.createMergeRequest(' + refBranch + ')');
+
+  var mrTitle = Util.config.typeDev + '(' + Index.jira.issue.key + '): ' + Index.jira.issue.fields.summary;
+
+  var args = _.merge({
+    headers: {
+      "Content-Type": "application/json"
+    },
+    data: {
+      "id": Util.config.gitlab.projectId,
+      "source_branch": Index.git.workingBranch,
+      "target_branch": refBranch,
+      "title": mrTitle
+    },
+    path: {
+      projectId: Util.config.gitlab.projectId
+    }
+  }, self.apiConfig);
+
+  self.apiClient.methods.postMergeRequest(args, function (data, response) {
+    if (response.statusCode !== 201) { // 201 = HTTP CREATED
+      LogService.debug(response.client._httpMessage.path + '\n', data);
+      deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+    }
+    else {
+      LogService.success('Merge request "' + args.data.title + '" successfully created.');
+      deferred.resolve(data);
+    }
+    LogService.debug('END   Gitlab.createMergeRequest(' + refBranch + ')');
+  });
+
+  return deferred.promise;
+};
+
+/**
+ * Get the Merge Request object from Gitlab API between the working branch and 'refBranch'
+ * @param refBranch {string}
+ * @returns {promise|Q.promise}
+ */
+Gitlab.prototype.getMergeRequest = function () {
+  var self = this,
+      Q = require('q'),
+      Util = require('./Util'),
+      Index = require('./Index'),
+      LogService = require('./LogService'),
+      deferred = Q.defer();
+
+  LogService.debug('START Gitlab.getMergeRequest()');
+
+  var args = _.merge({
+    parameters: {
+      state: 'opened'
+    },
+    path: {
+      projectId: config.gitlab.projectId
+    }
+  }, self.apiConfig);
+
+  self.apiClient.methods.getAllMergeRequests(args, function (data, response) {
+    if (response.statusCode !== 200) {
+      LogService.debug(response.client._httpMessage.path + '\n', data);
+      deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+    }
+    else {
+      var mr = null,
+          i = 0;
+      while (!id && i < data.length) {
+        if (data[i].source_branch === Index.git.workingBranch) { // TODO be careful, it might lead to a bug (mission target_branch) if several merge requests for the working branch
+          mr = data[i];
+        }
+        i++;
+      }
+
+      if (mr) {
+        deferred.resolve(mr);
+      }
+      else {
+        deferred.reject(new Error('Merge request for the project "' + Util.config.gitlab.project + '" could not be found.'));
+      }
+    }
+    LogService.debug('END   Gitlab.getMergeRequest()');
+  });
+
+  return deferred.promise;
+};
+
+/**
+ * Get the user object from Gitlab API that matches the username 'username'
+ * @param username {string}
+ * @returns {promise|Q.promise}
+ */
+Gitlab.prototype.getUserFromUsername = function (username) {
+  var self = this,
+      Q = require('q'),
+      LogService = require('./LogService'),
+      deferred = Q.defer();
+
+  LogService.debug('START Gitlab.getUserFromUsername(' + username + ')');
+
+  var args = _.merge({
+    parameters: {
+      per_page: 1000
+    }
+  }, self.apiConfig);
+
+  self.apiClient.methods.getAllUsers(args, function (data, response) {
+    if (response.statusCode !== 200) {
+      LogService.debug(response.client._httpMessage.path + '\n', data);
+      deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+    }
+    else {
+      var user = null,
+        i = 0;
+      while (!user && i < data.length) {
+        if (data[i].username === username) {
+          user = data[i];
+        }
+        i++;
+      }
+
+      if (user) {
+        deferred.resolve(user);
+      }
+      else {
+        deferred.reject(new Error('User with the username "' + username + '" could not be found.'));
+      }
+    }
+    LogService.debug('END   Gitlab.getUserFromUsername(' + username + ')');
+  });
+
+  return deferred.promise;
+};
+
+/**
+ * Assign 'assignee' to review the merge request related to the working branch
+ * @param assignee {string} username
+ * @returns {promise|Q.promise}
+ */
+Gitlab.prototype.assignMergeRequest = function (assignee) {
+  var self = this,
+    Q = require('q'),
+    Util = require('./Util'),
+    LogService = require('./LogService'),
+    deferred = Q.defer();
+
+  LogService.debug('START Gitlab.assignMergeRequest(' + assignee + ')');
+
+  self.getMergeRequest().then(function (mr) {
+
+    self.getUserFromUsername(assignee).then(function (user) {
+
+      var args = _.merge({
+        headers: {
+          "Content-Type": "application/json"
+        },
+        data: {
+          assignee_id: user.id
+        },
+        path: {
+          projectId: Util.config.gitlab.projectId,
+          mrId: mr.id
+        }
+      }, self.apiConfig);
+
+      self.apiClient.methods.putMergeRequest(args, function (data, response) {
+        if (response.statusCode !== 200) {
+          LogService.debug(response.client._httpMessage.path + '\n', data);
+          deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+        }
+        else {
+          LogService.success('Merge request "' + mr.title + '" assigned to ' + assignee + '.');
+          deferred.resolve(data);
+        }
+
+        LogService.debug('END   Gitlab.assignMergeRequest(' + assignee + ')');
+      });
+
+    }, function (err) {
+      deferred.reject(new Error(err));
+    });
+
+  }, function (err) {
+    deferred.reject(new Error(err));
+  });
+
+  return deferred.promise;
+};
+
+/**
+ * Accept the merge request for the working branch
+ * @returns {promise|Q.promise}
+ */
+Gitlab.prototype.acceptMergeRequest = function () {
+  var self = this,
+    Q = require('q'),
+    Util = require('./Util'),
+    LogService = require('./LogService'),
+    deferred = Q.defer();
+
+  LogService.debug('START Gitlab.acceptMergeRequest()');
+
+  self.getMergeRequest().then(function (mr) {
+
+    var args = _.merge({
+      headers: {
+        "Content-Type": "application/json"
+      },
+      path: {
+        projectId: Util.config.gitlab.projectId,
+        mrId: mr.id
+      },
+      data: {}
+    }, self.apiConfig);
+
+    self.apiClient.methods.putAcceptMergeRequest(args, function (data, response) {
+      if (response.statusCode !== 200) {
+        LogService.error('URL -> ' + response.client._httpMessage.path + '\n', data); // error not debug
+        deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+      }
+      else {
+        LogService.success('Merge request "' + mr.title + '" has been accepted!');
+        deferred.resolve(data);
+      }
+
+      LogService.debug('END   Gitlab.acceptMergeRequest()');
+    });
+
+  }, function (err) {
+    deferred.reject(new Error(err));
   });
 
   return deferred.promise;

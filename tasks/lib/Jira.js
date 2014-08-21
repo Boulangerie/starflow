@@ -23,7 +23,6 @@ Jira.prototype.constructor = Jira;
 
 /**
  * Get the ID of the project which name is in the config (Gruntfile)
- * @param projectName {string}
  * @returns {promise|Q.promise}
  */
 Jira.prototype.setProjectId = function () {
@@ -52,7 +51,7 @@ Jira.prototype.setProjectId = function () {
       }
 
       if (id) {
-        LogService.success('The ID for the project "' + Util.config.jira.project + '" was found: ' + id);
+        LogService.success('The ID for the Jira project "' + Util.config.jira.project + '" was found: ' + id);
         deferred.resolve(id);
       }
       else {
@@ -102,6 +101,10 @@ Jira.prototype.checkConnection = function () {
   return deferred.promise;
 };
 
+/**
+ * Check if there is a Jira issue with the key given as arg of the task (with --card=KEY)
+ * @returns {promise|Q.promise}
+ */
 Jira.prototype.checkIssue = function () {
   var self = this,
       Q = require('q'),
@@ -188,6 +191,10 @@ Jira.prototype.checkIssue = function () {
   return deferred.promise;
 };
 
+/**
+ * Get a list of statuses for the project Util.config.jira.project and group them by issue type
+ * @returns {promise|Q.promise}
+ */
 Jira.prototype.getStatusesGroupByIssuetype = function () {
   var self = this,
       Q = require('q'),

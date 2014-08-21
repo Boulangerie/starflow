@@ -213,26 +213,11 @@ Git.prototype.pull = function (repository, branch, withRebase) {
       deferred = Q.defer(),
       option = withRebase ? '--rebase ' : '';
 
-  // shuffle args if branch (and repo) is (are) not defined
+  // set default values if params not defined
   repository = repository || 'origin';
   branch = branch || 'master';
 
   LogService.debug('START Git.pull(' + repository + ', ' + branch + ', ' + withRebase + ')');
-
-  /*self
-    .checkout(branch)
-    .then(function () {
-   exec('git pull ' + option + repository + ' ' + branch, function (err, data) {
-   if (err) {
-   deferred.reject(new Error(err));
-   }
-   else {
-   LogService.message('Local branch ' + branch + ' is now up-to-date.');
-   deferred.resolve(data);
-   }
-   LogService.debug('END   Git.pull(' + repository + ', ' + branch + ', ' + withRebase + ')');
-   });
-    });*/
 
   exec('git pull ' + option + repository + ' ' + branch, function (err, data) {
     if (err) {
@@ -262,14 +247,14 @@ Git.prototype.push = function (repository, branch) {
       LogService = require('./LogService'),
       deferred = Q.defer();
 
+  // set default values if params not defined
+  repository = repository || 'origin';
+  branch = branch || self.workingBranch;
+
   LogService.debug('START Git.push(' + repository + ', ' + branch + ')');
 
-  // shuffle args if branch (and repo) is (are) not defined
-  repository = repository || 'origin';
-  branch = branch || 'master';
-
   Gitlab
-    .branchExists(branch)
+    .branchExistsOnRemote(branch)
     .then(function (branchExists) {
       var option = branchExists ? '-u ' : ' ';
       exec('git push ' + option + repository + ' ' + branch, function (err, data) {

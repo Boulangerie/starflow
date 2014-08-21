@@ -12,6 +12,15 @@ var Index = function () {
     var Git = require('./Gitlab');
     self.gitlab = new Gitlab();
 
+    if (_.isString(Util.config.gitlab.project)) {
+      Util.promisesToHandle.unshift(function () {
+        return self.gitlab.setProjectId();
+      });
+    }
+    else {
+      Util.config.gitlab.projectId = parseInt(Util.config.gitlab.project);
+    }
+
     Util.promisesToHandle.unshift(function () {
       return self.gitlab.checkConnection();
     });
@@ -27,7 +36,7 @@ var Index = function () {
       });
     }
     else {
-      Util.config.jira.projectId = Util.config.jira.project;
+      Util.config.jira.projectId = parseInt(Util.config.jira.project);
     }
 
     Util.promisesToHandle.unshift(function () {
@@ -74,8 +83,22 @@ Index.prototype.get = function (step) {
     case 'jira.move.card':
       return fn.call(self.jira, step[key].status);
       break;
+    case 'gitlab.createMergeRequest':
+      return fn.call(self.gitlab, step[key].ref_branch);
+      break;
+    case 'gitlab.assignMergeRequest':
+      return fn.call(self.gitlab, step[key].assignee);
+      break;
+    case 'gitlab.acceptMergeRequest':
+      return fn.call(self.gitlab);
+      break;
     default:
-        return console.log('DEFAULT'); // TODO tmp
+      return function () { // return a rejected promise
+        var Q = require('q'),
+            deferred = Q.defer();
+        deferred.reject(new Error('No method implementation for the following step: ' + step.toString()));
+        return deferred.promise;
+      };
   }
 };
 
@@ -110,6 +133,7 @@ Index.prototype.getMethodFor = function (key) {
   }
 };
 
+// available commands for the user
 Index.prototype.DSL_MAP = {
   "git.checkout": { "class": "Git", "method": "checkout" },
   "git.create.branch": { "class": "Git", "method": "createBranch" },
@@ -117,7 +141,10 @@ Index.prototype.DSL_MAP = {
   "git.push": { "class": "Git", "method": "push" },
   "git.merge": { "class": "Git", "method": "merge" },
   "git.cherrypick": { "class": "Git", "method": "cherryPick" },
-  "jira.move.card": { "class": "Jira", "method": "changeStatus" }
+  "jira.move.card": { "class": "Jira", "method": "changeStatus" },
+  "gitlab.create.merge_request": { "class": "Gitlab", "method": "createMergeRequest" },
+  "gitlab.assign.merge_request": { "class": "Gitlab", "method": "assignMergeRequest" },
+  "gitlab.accept.merge_request": { "class": "Gitlab", "method": "acceptMergeRequest" }
 };
 
 module.exports = new Index();
