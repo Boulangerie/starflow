@@ -100,6 +100,7 @@ Git.prototype.checkout = function (branch) {
         if (self.otherBranches.indexOf(branch) !== -1) {
           self.otherBranches.splice(self.otherBranches.indexOf(branch), 1);
         }
+        LogService.success('Switched to branch ' + branch + '.');
         deferred.resolve(data);
       }
 
@@ -120,7 +121,6 @@ Git.prototype.checkout = function (branch) {
  * @param withCheckout {boolean}
  * @returns {promise|Q.promise}
  */
-// TODO update otherBranches and currentBranch
 Git.prototype.createBranch = function (branch, withCheckout) {
   var self = this,
       Q = require('q'),
@@ -136,31 +136,35 @@ Git.prototype.createBranch = function (branch, withCheckout) {
   if (!_.isString(branch)) {
     deferred.reject(new Error('A branch name is mandatory to create a new branch.\nIf your workflow uses Jira, you must pass in the issue key (--card=MY-CARD).\nElse, pass in the branch name (--branch=MY-WORKING-BRANCH)'));
   }
-
-  if (withCheckout) {
-    var option = branchExists ? '' : '-b';
-    gitCmd = 'git checkout ' + option + branch;
-  }
   else {
-    gitCmd = 'git branch ' + branch;
+    exec('git branch ' + branch, function (err, data) {
+      if (err) {
+        deferred.reject(new Error(err));
+      }
+      else {
+        if (!branchExists) {
+          LogService.success('New branch created: ' + branch + '.');
+          self.otherBranches.push(branch);
+        }
+
+        if (withCheckout) {
+//          LogService.message('Switched to branch ' + branch + '.');
+          self
+            .checkout(branch)
+            .then(function () {
+              deferred.resolve(data);
+            }, function (err) {
+              deferred.reject(err);
+            });
+        }
+        else {
+          deferred.resolve(data);
+        }
+      }
+
+      LogService.debug('END   Git.createBranch(' + branch + ', ' + withCheckout + ')');
+    });
   }
-
-  exec(gitCmd, function (err, data) {
-    if (err) {
-      deferred.reject(new Error(err));
-    }
-    else {
-      if (!branchExists) {
-        LogService.success('New branch created: ' + branch + '.');
-      }
-      if (self.currentBranch !== branch && withCheckout) {
-        LogService.message('Switched to branch ' + branch + '.');
-      }
-      deferred.resolve(data);
-    }
-
-    LogService.debug('END   Git.createBranch(' + branch + ', ' + withCheckout + ')');
-  });
 
   return deferred.promise;
 };

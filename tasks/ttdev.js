@@ -79,19 +79,19 @@ module.exports = function (grunt) {
       var exec = require('child_process').exec;
 
       exec('git checkout refactor-architecture', function (err) {
-        LogService('git checkout refactor-architecture');
+        LogService.message('git checkout refactor-architecture');
         if (err) {
           grunt.fail.fatal(err);
         }
         exec('git branch -D ' + branchName, function (err) {
-          LogService('git branch -D ' + branchName);
+          LogService.message('git branch -D ' + branchName);
           if (err) {
             grunt.fail.fatal(err);
           }
+
+          done();
         });
       });
-
-      done();
     }
     /*
      * end RESET
@@ -115,36 +115,34 @@ module.exports = function (grunt) {
       .then(function () {
 
         function runPromisesSequence() {
+          var sequence;
+
           // stopping assertion
           if (Util.promisesToHandle.length > 0) {
 
-            if (Util.promisesToHandle.length > 1) {
-              // pop the first promiseWrapper function of the array Util.promisesToHandle
-              // and call it immediately to 'execute the promise'
-              return Util.promisesToHandle.shift()()
-                .then(runPromisesSequence)
-                .catch(function (err) {
-                  grunt.fail.fatal(err);
-                  done(false);
-                });
-            }
-            else { // length === 1
-              // pop the first promiseWrapper function of the array Util.promisesToHandle
-              // and call it immediately to 'execute the promise'
-              return Util.promisesToHandle.shift()()
-                .then(runPromisesSequence)
-                .catch(function (err) {
-                  grunt.fail.fatal(err);
-                  done(false);
-                })
+            LogService.debug('Running promises sequence. Remaining promises: ' + Util.promisesToHandle.length);
+
+            // get the first function (wrapper returning a promise) and call it immediately to 'execute the promise'
+            // after the promise is resolved, run this function until there is no function left in prmisesToHandle
+            sequence = Util.promisesToHandle.shift()()
+              .then(runPromisesSequence)
+              .catch(function (err) {
+                grunt.fail.fatal(err);
+                done(false);
+              });
+
+            if (Util.promisesToHandle.length === 0) {
+              sequence
                 .then(function () {
-                  LogService.success('Task execution complete!');
+                  LogService.success('---> Task execution complete!');
                 });
             }
           }
+
+          return sequence;
         }
 
-        runPromisesSequence();
+        runPromisesSequence().done();
 
       })
       .done();

@@ -22,7 +22,7 @@ module.exports = function (grunt) {
       },
       create: {
         steps: [
-//          { 'git.checkout': { branch: 'master' } },
+//          { 'git.checkout': { branch: 'refactor-architecture' } },
 //          { 'git.pull': { with_rebase: true } },
           { 'git.create.branch': { with_checkout: true } },
 //          'git.push',

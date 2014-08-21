@@ -1,5 +1,6 @@
 var Index = function () {
   var self = this,
+      _ = require('lodash'),
       Util = require('./Util');
 
   if (Util.isUsed.git) {
@@ -19,6 +20,15 @@ var Index = function () {
   if (Util.isUsed.jira) {
     var Jira = require('./Jira');
     self.jira = new Jira();
+
+    if (_.isString(Util.config.jira.project)) {
+      Util.promisesToHandle.unshift(function () {
+        return self.jira.setProjectId();
+      });
+    }
+    else {
+      Util.config.jira.projectId = Util.config.jira.project;
+    }
 
     Util.promisesToHandle.unshift(function () {
       return self.jira.checkIssue();
