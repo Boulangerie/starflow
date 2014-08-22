@@ -1,6 +1,6 @@
 /**
  * @name teadsdev.js
- * 
+ *
  * @copyright 2014 Teads Technology
  */
 
@@ -84,8 +84,8 @@ module.exports = function (grunt) {
     if (grunt.option('reset')) {
       var exec = require('child_process').exec;
 
-      exec('git checkout refactor-architecture', function (err) {
-        LogService.message('git checkout refactor-architecture');
+      exec('git checkout master', function (err) {
+        LogService.message('git checkout master');
         if (err) {
           grunt.fail.fatal(err);
         }
@@ -104,7 +104,7 @@ module.exports = function (grunt) {
     //////////////////////////
 
     var Index = require('./lib/Index');
-    var whenGitReady = (Util.isUsed.git) ? Index.git.init() : true;
+    var whenGitReady = (Util.isUsed.git) ? Index.git.init() : Q.resolve(true);
 
     Index.git.workingBranch = branchName;
 
@@ -138,6 +138,7 @@ module.exports = function (grunt) {
               sequence
                 .then(function () {
                   LogService.success('---> Task execution complete!');
+                  done();
                 });
             }
           }

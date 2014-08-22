@@ -22,7 +22,7 @@ Util.prototype.checkRelatedCommand = function (key) {
   var self = this,
       _ = require('lodash'),
       LogService = require('./LogService'),
-      gitRegex = /^git/i,
+      gitRegex = /^git(?!lab)/i,
       gitlabRegex = /^gitlab/i,
       jiraRegex = /^jira/i;
 
@@ -31,22 +31,13 @@ Util.prototype.checkRelatedCommand = function (key) {
   if (_.isString(key)) {
     if (gitRegex.test(key)) {
       self.isUsed.git = true;
-      return true;
     }
     else if (gitlabRegex.test(key)) {
       self.isUsed.gitlab = true;
-      return true;
     }
     else if (jiraRegex.test(key)) {
       self.isUsed.jira = true;
-      return true;
     }
-    else {
-      return false;
-    }
-  }
-  else {
-    return false;
   }
 };
 

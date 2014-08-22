@@ -1,7 +1,7 @@
 var Index = function () {
   var self = this,
-      _ = require('lodash'),
-      Util = require('./Util');
+    _ = require('lodash'),
+    Util = require('./Util');
 
   if (Util.isUsed.git) {
     var Git = require('./Git');
@@ -9,7 +9,7 @@ var Index = function () {
   }
 
   if (Util.isUsed.gitlab) {
-    var Git = require('./Gitlab');
+    var Gitlab = require('./Gitlab');
     self.gitlab = new Gitlab();
 
     if (_.isString(Util.config.gitlab.project)) {
@@ -64,8 +64,8 @@ Index.prototype.constructor = Index;
  */
 Index.prototype.get = function (step) {
   var self = this,
-      key = Object.keys(step)[0],
-      fn = self.getMethodFor(key);
+    key = Object.keys(step)[0],
+    fn = self.getMethodFor(key);
 
   switch (key) {
     case 'git.checkout':
@@ -89,19 +89,19 @@ Index.prototype.get = function (step) {
     case 'jira.move.card':
       return fn.call(self.jira, step[key].status);
       break;
-    case 'gitlab.createMergeRequest':
+    case 'gitlab.create.merge_request':
       return fn.call(self.gitlab, step[key].ref_branch);
       break;
-    case 'gitlab.assignMergeRequest':
+    case 'gitlab.assign.merge_request':
       return fn.call(self.gitlab, step[key].assignee);
       break;
-    case 'gitlab.acceptMergeRequest':
+    case 'gitlab.accept.merge_request':
       return fn.call(self.gitlab);
       break;
     default:
       return function () { // return a rejected promise
         var Q = require('q'),
-            deferred = Q.defer();
+          deferred = Q.defer();
         deferred.reject(new Error('No method implementation for the following step: ' + step.toString()));
         return deferred.promise;
       };
@@ -115,8 +115,8 @@ Index.prototype.get = function (step) {
  */
 Index.prototype.getMethodFor = function (key) {
   var self = this,
-      _  = require('lodash'),
-      config;
+    _  = require('lodash'),
+    config;
 
   if (_.isString(key) && _.contains(Object.keys(self.DSL_MAP), key)) {
     config = self.DSL_MAP[key];

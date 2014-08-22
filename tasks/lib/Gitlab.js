@@ -31,6 +31,7 @@ Gitlab.prototype.constructor = Gitlab;
 Gitlab.prototype.setProjectId = function () {
   var self = this,
     Q = require('q'),
+    _ = require('lodash'),
     Util = require('./Util'),
     LogService = require('./LogService'),
     projectName = Util.config.gitlab.project,
@@ -38,7 +39,13 @@ Gitlab.prototype.setProjectId = function () {
 
   LogService.debug('START Gitlab.setProjectId()');
 
-  self.apiClient.methods.getAllProjects(self.apiConfig, function (data, response) {
+  var args = _.merge({
+    parameters: {
+      per_page: 1000
+    }
+  }, self.apiConfig);
+
+  self.apiClient.methods.getAllProjects(args, function (data, response) {
     if (response.statusCode !== 200) {
       LogService.debug(response.client._httpMessage.path + '\n', data);
       deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
@@ -74,9 +81,9 @@ Gitlab.prototype.setProjectId = function () {
  */
 Gitlab.prototype.checkConnection = function () {
   var self = this,
-      Q = require('q'),
-      LogService = require('LogService'),
-      deferred = Q.defer();
+    Q = require('q'),
+    LogService = require('./LogService'),
+    deferred = Q.defer();
 
   LogService.debug('START Gitlab.checkConnection()');
 
@@ -103,11 +110,11 @@ Gitlab.prototype.checkConnection = function () {
  */
 Gitlab.prototype.branchExistsOnRemote = function (branch) {
   var self = this,
-      Q = require('q'),
-      Util = require('./Util'),
-      Index = require('./Index'),
-      LogService = require('./LogService'),
-      deferred = Q.defer();
+    Q = require('q'),
+    _ = require('lodash'),
+    Util = require('./Util'),
+    LogService = require('./LogService'),
+    deferred = Q.defer();
 
   LogService.debug('START Gitlab.branchExistsOnRemote(' + branch + ')');
 
@@ -145,11 +152,12 @@ Gitlab.prototype.branchExistsOnRemote = function (branch) {
  */
 Gitlab.prototype.createMergeRequest = function (refBranch) {
   var self = this,
-      Q = require('q'),
-      Util = require('./Util'),
-      Index = require('./Index'),
-      LogService = require('./LogService'),
-      deferred = Q.defer();
+    Q = require('q'),
+    Util = require('./Util'),
+    _ = require('lodash'),
+    Index = require('./Index'),
+    LogService = require('./LogService'),
+    deferred = Q.defer();
 
   LogService.debug('START Gitlab.createMergeRequest(' + refBranch + ')');
 
@@ -192,11 +200,11 @@ Gitlab.prototype.createMergeRequest = function (refBranch) {
  */
 Gitlab.prototype.getMergeRequest = function () {
   var self = this,
-      Q = require('q'),
-      Util = require('./Util'),
-      Index = require('./Index'),
-      LogService = require('./LogService'),
-      deferred = Q.defer();
+    Q = require('q'),
+    Util = require('./Util'),
+    Index = require('./Index'),
+    LogService = require('./LogService'),
+    deferred = Q.defer();
 
   LogService.debug('START Gitlab.getMergeRequest()');
 
@@ -216,7 +224,7 @@ Gitlab.prototype.getMergeRequest = function () {
     }
     else {
       var mr = null,
-          i = 0;
+        i = 0;
       while (!id && i < data.length) {
         if (data[i].source_branch === Index.git.workingBranch) { // TODO be careful, it might lead to a bug (mission target_branch) if several merge requests for the working branch
           mr = data[i];
@@ -244,9 +252,9 @@ Gitlab.prototype.getMergeRequest = function () {
  */
 Gitlab.prototype.getUserFromUsername = function (username) {
   var self = this,
-      Q = require('q'),
-      LogService = require('./LogService'),
-      deferred = Q.defer();
+    Q = require('q'),
+    LogService = require('./LogService'),
+    deferred = Q.defer();
 
   LogService.debug('START Gitlab.getUserFromUsername(' + username + ')');
 
@@ -293,6 +301,7 @@ Gitlab.prototype.assignMergeRequest = function (assignee) {
   var self = this,
     Q = require('q'),
     Util = require('./Util'),
+    _ = require('lodash'),
     LogService = require('./LogService'),
     deferred = Q.defer();
 
@@ -347,6 +356,7 @@ Gitlab.prototype.acceptMergeRequest = function () {
   var self = this,
     Q = require('q'),
     Util = require('./Util'),
+    _ = require('lodash'),
     LogService = require('./LogService'),
     deferred = Q.defer();
 
