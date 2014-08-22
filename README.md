@@ -1,4 +1,4 @@
-# grunt-dev-workflow v0.1.2
+# grunt-dev-workflow v0.2.0
 > Automate your dev workflows simply by describing them in a config file.
 
 ## Install
@@ -274,6 +274,18 @@ Bob has finished the feature development, he can switch on another JIRA issue!
 If you find a bug or have any suggestions to improve this Grunt plugin, please use the following trello board: [grunt-dev-workflow board](https://trello.com/b/LPtqQ0bT/grunt-dev-workflow).
 
 ## Release History
+
+- **v0.2.0** - *2014-08-22*
+
+ - Refactor architecture. The grunt task is now composed of:
+ 
+     - `ttdev.js` the main file
+     - `lib/LogService.js` the class to display messages to the output
+     - `lib/Util.js` the class to handle the workflow steps
+     - `lib/Index.js` the class to find and get the available commands (Git, Gitlab, Jira)
+     - `lib/Git` the class to run the commands related to git
+     - `lib/Gitlab` the class to run the commands related to Gitlab
+     - `lib/Jira`the class to run the commands related to Jira
 
 - **v0.1.2** - *2014-08-18*
 
