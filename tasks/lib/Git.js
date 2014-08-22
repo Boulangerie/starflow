@@ -241,7 +241,8 @@ Git.prototype.pull = function (repository, branch, withRebase) {
  * @returns {promise|Q.promise}
  */
 Git.prototype.push = function (repository, branch) {
-  var Q = require('q'),
+  var self = this,
+      Q = require('q'),
       Gitlab = require('./Gitlab'),
       exec = require('child_process').exec,
       LogService = require('./LogService'),
