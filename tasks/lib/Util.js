@@ -62,7 +62,7 @@ Util.prototype.registerPromiseForStep = function (step) {
   // convert string to object
   if (_.isString(step)) {
     var o = {};
-    o[step.key] = {};
+    o[step] = {};
     step = o;
   }
 
