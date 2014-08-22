@@ -243,7 +243,7 @@ Git.prototype.pull = function (repository, branch, withRebase) {
 Git.prototype.push = function (repository, branch) {
   var self = this,
       Q = require('q'),
-      Gitlab = require('./Gitlab'),
+      Index = require('./Index'),
       exec = require('child_process').exec,
       LogService = require('./LogService'),
       deferred = Q.defer();
@@ -254,7 +254,7 @@ Git.prototype.push = function (repository, branch) {
 
   LogService.debug('START Git.push(' + repository + ', ' + branch + ')');
 
-  Gitlab
+  Index.gitlab
     .branchExistsOnRemote(branch)
     .then(function (branchExists) {
       var option = branchExists ? '-u ' : ' ';
