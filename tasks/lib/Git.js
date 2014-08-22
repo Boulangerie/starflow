@@ -242,7 +242,7 @@ Git.prototype.pull = function (repository, branch, withRebase) {
  */
 Git.prototype.push = function (repository, branch) {
   var Q = require('q'),
-      Gitlab = require('Gitlab'),
+      Gitlab = require('./Gitlab'),
       exec = require('child_process').exec,
       LogService = require('./LogService'),
       deferred = Q.defer();
