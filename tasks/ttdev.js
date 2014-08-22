@@ -46,8 +46,10 @@ module.exports = function (grunt) {
 
     // check what commands the steps are using
     // this sets Util.isUsed.X property to true if X is used (X = Git|Gitlab|Jira)
+    var commandName;
     for (var i = 0; i < steps.length; i++) {
-      Util.checkRelatedCommand(Object.keys(steps[i])[0]);
+      commandName = _.isString(steps[i]) ? steps[i] : Object.keys(steps[i])[0];
+      Util.checkRelatedCommand(commandName);
     }
 
     // branch name formed with the type (e.g. feat) and the card (e.g. MAN-123)
