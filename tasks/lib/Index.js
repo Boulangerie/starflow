@@ -14,7 +14,10 @@ var Index = function () {
 
     if (_.isString(Util.config.gitlab.project)) {
       Util.promisesToHandle.unshift(function () {
-        return self.gitlab.setProjectId();
+        return self.gitlab.setProjectId()
+          .then(function (id) {
+            Util.config.gitlab.projectId = id;
+          });
       });
     }
     else {
@@ -36,7 +39,10 @@ var Index = function () {
 
     if (_.isString(Util.config.jira.project)) {
       Util.promisesToHandle.unshift(function () {
-        return self.jira.setProjectId();
+        return self.jira.setProjectId()
+          .then(function (id) {
+            Util.config.jira.projectId = id;
+          });
       });
     }
     else {
