@@ -9,8 +9,8 @@ module.exports = function (grunt) {
     ttdev: {
       options: {
         gitlab: {
-          host: 'https://git.teads.FAKE',
-          project: 'GRUNT Dev Workflow' // id: 4
+          host: 'https://git.teads.tv',
+          project: 'SERVICE Manager' // id: 4
         },
         jira: {
           host: 'https://jira.ebuzzing.com',
