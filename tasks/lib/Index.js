@@ -3,10 +3,10 @@ var Index = function () {
     _ = require('lodash'),
     Util = require('./Util');
 
-  if (Util.isUsed.git) {
-    var Git = require('./Git');
-    self.git = new Git();
-  }
+//  if (Util.isUsed.git) {
+  var Git = require('./Git');
+  self.git = new Git();
+//  }
 
   if (Util.isUsed.gitlab) {
     var Gitlab = require('./Gitlab');

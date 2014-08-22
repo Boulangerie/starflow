@@ -104,18 +104,18 @@ module.exports = function (grunt) {
     //////////////////////////
 
     var Index = require('./lib/Index');
-    var whenGitReady = (Util.isUsed.git) ? Index.git.init() : Q.resolve(true);
-
-    Index.git.workingBranch = branchName;
-
-    // register all the promises in the Util.promisesToHandle array
-    for (var i = 0; i < steps.length; i++) {
-      Util.registerPromiseForStep(steps[i]);
-    }
+    var whenGitReady = Index.git.init();
 
     // When the Index.git object is done getting the project branches, execute the promises sequentially
     whenGitReady
       .then(function () {
+
+        Index.git.workingBranch = branchName;
+
+        // register all the promises in the Util.promisesToHandle array
+        for (var i = 0; i < steps.length; i++) {
+          Util.registerPromiseForStep(steps[i]);
+        }
 
         function runPromisesSequence() {
           var sequence;
