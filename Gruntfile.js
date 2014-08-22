@@ -22,18 +22,18 @@ module.exports = function (grunt) {
       },
       create: {
         steps: [
-//          { 'git.checkout': { branch: 'refactor-architecture' } },
-//          { 'git.pull': { with_rebase: true } },
+          { 'git.checkout': { branch: 'refactor-architecture' } },
+          { 'git.pull': { with_rebase: true } },
           { 'git.create.branch': { with_checkout: true } },
-//          'git.push',
-//          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
+          'git.push',
+          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
           { 'jira.move.card': { status: 'In Progress' } }
         ]
       },
       finish: {
         steps: [
           { 'gitlab.assign.merge_request': { assignee: 'bruiz' } },
-//          { 'jira.move.card': { status: 'Reviews' } }
+          { 'jira.move.card': { status: 'Reviews' } }
         ]
       },
       accept: {
