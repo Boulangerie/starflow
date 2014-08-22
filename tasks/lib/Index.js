@@ -30,6 +30,10 @@ var Index = function () {
     var Jira = require('./Jira');
     self.jira = new Jira();
 
+    Util.promisesToHandle.unshift(function () {
+      return self.jira.checkIssue();
+    });
+
     if (_.isString(Util.config.jira.project)) {
       Util.promisesToHandle.unshift(function () {
         return self.jira.setProjectId();
@@ -38,10 +42,6 @@ var Index = function () {
     else {
       Util.config.jira.projectId = parseInt(Util.config.jira.project);
     }
-
-    Util.promisesToHandle.unshift(function () {
-      return self.jira.checkIssue();
-    });
 
     Util.promisesToHandle.unshift(function () {
       return self.jira.checkConnection();
