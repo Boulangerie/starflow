@@ -428,7 +428,13 @@ Gitlab.prototype.getLabels = function () {
 
   LogService.debug('START Gitlab.getLabels()');
 
-  self.apiClient.methods.getAllLabels(self.apiConfig, function (data, response) {
+  var args = _.merge({
+    path: {
+      projectId: Util.config.gitlab.projectId
+    }
+  }, self.apiConfig);
+
+  self.apiClient.methods.getAllLabels(args, function (data, response) {
     if (response.statusCode !== 200) {
       LogService.debug(response.client._httpMessage.path + '\n', data);
       deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
