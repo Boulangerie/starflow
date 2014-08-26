@@ -12,6 +12,10 @@ var Index = function () {
     var Gitlab = require('./Gitlab');
     self.gitlab = new Gitlab();
 
+    Util.promisesToHandle.unshift(function () {
+      return self.gitlab.getLabels();
+    });
+
     if (_.isString(Util.config.gitlab.project)) {
       Util.promisesToHandle.unshift(function () {
         return self.gitlab.getProjectId()
@@ -23,10 +27,6 @@ var Index = function () {
     else {
       Util.config.gitlab.projectId = parseInt(Util.config.gitlab.project);
     }
-
-    Util.promisesToHandle.unshift(function () {
-      return self.gitlab.getLabels();
-    });
 
     Util.promisesToHandle.unshift(function () {
       return self.gitlab.checkConnection();
