@@ -12,9 +12,12 @@ var Gitlab = function () {
     }
   };
 
+  this.labels = [];
+
   this.apiClient.registerMethod('getAllMergeRequests', '${url}/api/v3/projects/${projectId}/merge_requests', 'GET');
   this.apiClient.registerMethod('getOneMergeRequest', '${url}/api/v3/projects/${projectId}/merge_request/${mrId}', 'GET');
   this.apiClient.registerMethod('getOneBranch', '${url}/api/v3/projects/${projectId}/repository/branches/${branch}', 'GET');
+  this.apiClient.registerMethod('getAllLabels', '${url}/api/v3/projects/${projectId}/labels', 'GET');
   this.apiClient.registerMethod('getAllUsers', '${url}/api/v3/users', 'GET');
   this.apiClient.registerMethod('getCurrentUser', '${url}/api/v3/user', 'GET');
   this.apiClient.registerMethod('getAllProjects', '${url}/api/v3/projects', 'GET');
@@ -28,7 +31,7 @@ Gitlab.prototype.constructor = Gitlab;
  * Get the ID of the project which name is in the config (Gruntfile)
  * @returns {promise|Q.promise}
  */
-Gitlab.prototype.setProjectId = function () {
+Gitlab.prototype.getProjectId = function () {
   var self = this,
     Q = require('q'),
     _ = require('lodash'),
@@ -37,7 +40,7 @@ Gitlab.prototype.setProjectId = function () {
     projectName = Util.config.gitlab.project,
     deferred = Q.defer();
 
-  LogService.debug('START Gitlab.setProjectId()');
+  LogService.debug('START Gitlab.getProjectId()');
 
   var args = _.merge({
     parameters: {
@@ -68,7 +71,7 @@ Gitlab.prototype.setProjectId = function () {
         deferred.reject(new Error('Gitlab project named "' + projectName + '" could not be found.'));
       }
 
-      LogService.debug('END   Gitlab.setProjectId()');
+      LogService.debug('END   Gitlab.getProjectId()');
     }
   });
 
@@ -163,6 +166,24 @@ Gitlab.prototype.createMergeRequest = function (refBranch) {
 
   var mrTitle = Util.config.typeDev + '(' + Index.jira.issue.key + '): ' + Index.jira.issue.fields.summary;
 
+  // put in an external function?
+  var mrLabels = [];
+  // make sure typeDev (e.g. 'feat') is an available type (see list in Util.config.availableTypesDev). Almost useless because of typeMatches var in ttdev.js
+  if (_.contains(Util.config.availableTypesDev, Util.config.typeDev)) {
+    // make sure the labels given in Gitlab config in Gruntfile exist on the Gitlab project
+    var labelsFromConfig = Util.config.gitlab.labels[Util.config.typeDev];
+    if (!_.isUndefined(labelsFromConfig)) {
+      // transform labels in array if it was a string (single label)
+      labelsFromConfig = _.isString(labelsFromConfig) ? [labelsFromConfig] : labelsFromConfig;
+      for (var i = 0; i < labelsFromConfig.length; i++) {
+        if (_.contains(self.labels, labelsFromConfig[i])) {
+          mrLabels.push(labelsFromConfig[i]);
+        }
+      }
+    }
+  }
+  // end
+
   var args = _.merge({
     headers: {
       "Content-Type": "application/json"
@@ -171,7 +192,8 @@ Gitlab.prototype.createMergeRequest = function (refBranch) {
       "id": Util.config.gitlab.projectId,
       "source_branch": Index.git.workingBranch,
       "target_branch": refBranch,
-      "title": mrTitle
+      "title": mrTitle,
+      "labels": mrLabels
     },
     path: {
       projectId: Util.config.gitlab.projectId
@@ -392,6 +414,33 @@ Gitlab.prototype.acceptMergeRequest = function () {
 
   }, function (err) {
     deferred.reject(new Error(err));
+  });
+
+  return deferred.promise;
+};
+
+Gitlab.prototype.getLabels = function () {
+  var self = this,
+    Q = require('q'),
+    _ = require('lodash'),
+    LogService = require('./LogService'),
+    deferred = Q.defer();
+
+  LogService.debug('START Gitlab.getLabels()');
+
+  self.apiClient.methods.getAllLabels(self.apiConfig, function (data, response) {
+    if (response.statusCode !== 200) {
+      LogService.debug(response.client._httpMessage.path + '\n', data);
+      deferred.reject(new Error(data.message || 'Error ' + response.statusCode + ' (no message given)'));
+    }
+    else {
+      // transform [{name: 'label1'}, {...}] into ['label1', '...']
+      self.labels = data.map(function (label) {
+        return label.name;
+      });
+      deferred.resolve(data);
+    }
+    LogService.debug('END   Gitlab.getLabels()');
   });
 
   return deferred.promise;

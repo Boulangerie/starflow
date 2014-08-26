@@ -14,7 +14,7 @@ var Index = function () {
 
     if (_.isString(Util.config.gitlab.project)) {
       Util.promisesToHandle.unshift(function () {
-        return self.gitlab.setProjectId()
+        return self.gitlab.getProjectId()
           .then(function (id) {
             Util.config.gitlab.projectId = id;
           });
@@ -23,6 +23,10 @@ var Index = function () {
     else {
       Util.config.gitlab.projectId = parseInt(Util.config.gitlab.project);
     }
+
+    Util.promisesToHandle.unshift(function () {
+      return self.gitlab.getLabels();
+    });
 
     Util.promisesToHandle.unshift(function () {
       return self.gitlab.checkConnection();
@@ -39,7 +43,7 @@ var Index = function () {
 
     if (_.isString(Util.config.jira.project)) {
       Util.promisesToHandle.unshift(function () {
-        return self.jira.setProjectId()
+        return self.jira.getProjectId()
           .then(function (id) {
             Util.config.jira.projectId = id;
           });

@@ -10,6 +10,11 @@ module.exports = function (grunt) {
       options: {
         gitlab: {
           host: 'https://git.teads.tv',
+          labels: {
+            feat: 'feature',
+            fix: 'bug',
+            docs: 'documentation'
+          },
           project: 'SERVICE Manager' // id: 4
         },
         jira: {

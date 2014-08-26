@@ -16,7 +16,7 @@ module.exports = function (grunt) {
     var done = this.async(), // indicates to Grunt that this task uses asynchronous calls
       config = this.options(), // get the options from the Gruntfile config
       typeMatches = { // issue types allowed
-        feat: 'feat', feature: 'feat', improvement: 'feat',
+        feat: 'feat', feature: 'feat', improvement: 'feat', enhancement: 'feat',
         fix: 'fix', bug: 'fix',
         chore: 'chore', task: 'chore',
         style: 'style',
@@ -54,7 +54,7 @@ module.exports = function (grunt) {
 
     // branch name formed with the type (e.g. feat) and the card (e.g. MAN-123)
     // OR
-    // branch name givent by the user (with --branch=myBranch) if Jira is not used
+    // branch name given by the user (with --branch=myBranch) if Jira is not used
     var branchName;
 
     if (Util.isUsed.jira) {
@@ -120,13 +120,13 @@ module.exports = function (grunt) {
         function runPromisesSequence() {
           var sequence;
 
-          // stopping assertion
+          // stopping condition
           if (Util.promisesToHandle.length > 0) {
 
             LogService.debug('Running promises sequence. Remaining promises: ' + Util.promisesToHandle.length);
 
             // get the first function (wrapper returning a promise) and call it immediately to 'execute the promise'
-            // after the promise is resolved, run this function until there is no function left in prmisesToHandle
+            // after the promise is resolved, run this recursive function until there is no function left in prmisesToHandle
             sequence = Util.promisesToHandle.shift()()
               .then(runPromisesSequence)
               .catch(function (err) {

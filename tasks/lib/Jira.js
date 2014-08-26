@@ -25,7 +25,7 @@ Jira.prototype.constructor = Jira;
  * Get the ID of the project which name is in the config (Gruntfile)
  * @returns {promise|Q.promise}
  */
-Jira.prototype.setProjectId = function () {
+Jira.prototype.getProjectId = function () {
   var self = this,
       Q = require('q'),
       Util = require('./Util'),
@@ -33,7 +33,7 @@ Jira.prototype.setProjectId = function () {
       projectName = Util.config.jira.project,
       deferred = Q.defer();
 
-  LogService.debug('START Jira.setProjectId()');
+  LogService.debug('START Jira.getProjectId()');
 
   self.apiClient.methods.getAllProjects(self.apiConfig, function (data, response) {
     if (response.statusCode !== 200) {
@@ -58,7 +58,7 @@ Jira.prototype.setProjectId = function () {
         deferred.reject(new Error('JIRA project named "' + projectName + '" could not be found.'));
       }
 
-      LogService.debug('END   Jira.setProjectId()');
+      LogService.debug('END   Jira.getProjectId()');
     }
   });
 
