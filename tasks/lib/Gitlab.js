@@ -423,6 +423,7 @@ Gitlab.prototype.getLabels = function () {
   var self = this,
     Q = require('q'),
     _ = require('lodash'),
+    Util = require('./Util'),
     LogService = require('./LogService'),
     deferred = Q.defer();
 
