@@ -10,8 +10,6 @@ var Util = function () {
 
   // array of promises corresponding with the steps of the workflow + some verifications
   this.promisesToHandle = [];
-
-  this.config.availableTypesDev = ['feat', 'fix', 'test', 'style', 'docs', 'chore', 'refactor'];
 };
 Util.prototype.constructor = Util;
 

@@ -37,6 +37,7 @@ module.exports = function (grunt) {
     };
 
     config.typeDev = type;
+    config.availableTypesDev = ['feat', 'fix', 'test', 'style', 'docs', 'chore', 'refactor'];
 
     // dependencies
     var _ = require('lodash');
