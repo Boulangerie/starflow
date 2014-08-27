@@ -118,7 +118,13 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
         options: {
           gitlab: {
             host: 'https://gitlab.domain.com',
-            project: 'My Gitlab Project' // name of the Gitlab project
+            project: 'My Gitlab Project', // name of the Gitlab project
+            labels: {
+              // dev_type: label(s)
+              feat: 'feature',
+              fix: ['bug', 'problem'],
+              docs: 'documentation'
+            }
           },
           jira: {
             host: 'https://jira.domain.com',
