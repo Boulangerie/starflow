@@ -182,7 +182,6 @@ Gitlab.prototype.createMergeRequest = function (refBranch) {
       }
     }
   }
-  console.log('mrLabels: ', mrLabels);
   // end
 
   var args = _.merge({
