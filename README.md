@@ -1,4 +1,4 @@
-# grunt-dev-workflow v0.2.0
+# grunt-dev-workflow v0.2.1
 > Automate your dev workflows simply by describing them in a config file.
 
 ## Install
@@ -135,8 +135,14 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
 
  ```
  {
-      host: 'http://host.com',
-      project: 'SERVICE Manager' // could be the ID instead of the name
+     host: 'http://host.com',
+     project: 'SERVICE Manager', // could be the ID instead of the name
+     labels: {
+       // dev_type: label(s)
+       feat: 'feature',
+       fix: ['bug', 'problem'],
+       docs: 'documentation'
+     }
  }
  ```
 
@@ -200,7 +206,12 @@ module.exports = function (grunt) {
       options: {
         gitlab: {
           host: 'https://gitlab.domain.com',
-          project: 'My Gitlab Project' // name of the Gitlab project
+          project: 'My Gitlab Project', // name of the Gitlab project
+          labels: {
+            feat: 'feature',
+            fix: 'bug',
+            docs: 'documentation'
+          }
         },
         jira: {
           host: 'https://jira.domain.com',
@@ -274,6 +285,10 @@ Bob has finished the feature development, he can switch on another JIRA issue!
 If you find a bug or have any suggestions to improve this Grunt plugin, please use the following trello board: [grunt-dev-workflow board](https://trello.com/b/LPtqQ0bT/grunt-dev-workflow).
 
 ## Release History
+
+- **v0.2.1** - *2014-08-26*
+
+     - The user can now specify one or more labels to each kind of development (*feat*, *fix*...) in the Gruntfile (see [shared options](#shared-options)) for the Gitlab configuration
 
 - **v0.2.0** - *2014-08-22*
 
