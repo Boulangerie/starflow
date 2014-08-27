@@ -169,7 +169,7 @@ Gitlab.prototype.createMergeRequest = function (refBranch) {
   // put in an external function?
   var mrLabels = [];
   // make sure typeDev (e.g. 'feat') is an available type (see list in Util.config.availableTypesDev). Almost useless because of typeMatches var in ttdev.js
-  if (_.contains(Util.config.availableTypesDev, Util.config.typeDev) && !_.isUndefined(Util.config.gitlab)) {
+  if (_.contains(Util.config.availableTypesDev, Util.config.typeDev) && !_.isUndefined(Util.config.gitlab.labels)) {
     // make sure the labels given in Gitlab config in Gruntfile exist on the Gitlab project
     var labelsFromConfig = Util.config.gitlab.labels[Util.config.typeDev];
     if (!_.isUndefined(labelsFromConfig)) {
