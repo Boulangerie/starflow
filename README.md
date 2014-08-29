@@ -1,6 +1,8 @@
 # grunt-dev-workflow v0.2.1
 > Automate your dev workflows simply by describing them in a config file.
 
+**TL;DR** [Frontend developer's scenario](https://git.teads.tv/front-dev/grunt-dev-workflow/tree/master#user-scenario).
+
 ## Install
 
 Add the following line in the `devDependencies` property of the `package.json` file:
@@ -166,7 +168,7 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
 
 The goal of the `grunt-dev-workflow` is to let you define the workflow(s) you will use to work on an issue.
 
-> A **workflow** is a series of steps the developper has to go through in order to work on an issue/feature.
+> A **workflow** is a series of steps the developer has to go through in order to work on an issue/feature.
 
 A workflow is defined in the `steps` property of a target. `steps` is an array where each element can be:
 
@@ -249,7 +251,7 @@ module.exports = function (grunt) {
 };
 ```
 
-#### User story
+#### User scenario
 
 There is an unassigned JIRA issue called **MAN-123** with the summary "Do something" on the **Manager** project.
 
