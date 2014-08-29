@@ -264,11 +264,10 @@ This command will do several things according to the configuration from above:
 2. Check if the JIRA issue **MAN-123** exists. If it does, the `ttdev` task checks if the issue is assigned to Bob. If it isn't, the task assigns the issue to Bob. It doesn't do anything special otherwise
 
 3. Perform several git commands:
-
- - `git checkout master`
- - `git pull --rebase` to update the master branch
- - `git checkout -b feat-MAN-123` to create and switch on the branch `feat-MAN-123`
- - `git push origin feat-MAN-123` to add the branch on the remote repository
+    - `git checkout master`
+    - `git pull --rebase` to update the master branch
+    - `git checkout -b feat-MAN-123` to create and switch on the branch `feat-MAN-123`
+    - `git push origin feat-MAN-123` to add the branch on the remote repository
 
 4. Create a new unassigned Merge Request on Gitlab with the following title: `feat(MAN-123): Do something`
 
