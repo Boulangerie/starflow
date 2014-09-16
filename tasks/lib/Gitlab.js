@@ -233,7 +233,8 @@ Gitlab.prototype.getMergeRequest = function () {
 
   var args = _.merge({
     parameters: {
-      state: 'opened'
+      state: 'opened',
+      per_page: 1000
     },
     path: {
       projectId: Util.config.gitlab.projectId

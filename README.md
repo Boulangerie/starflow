@@ -293,6 +293,10 @@ If you find a bug or have any suggestions to improve this Grunt plugin, please u
 
 ## Release History
 
+- **v0.2.2** - *2014-09-16*
+
+     - Quick fix on Gitlab.getMergeRequest , per_page is now fixed to the max(100)
+
 - **v0.2.1** - *2014-08-26*
 
      - The user can now specify one or more labels to each kind of development (*feat*, *fix*...) in the Gruntfile (see [shared options](#shared-options)) for the Gitlab configuration
