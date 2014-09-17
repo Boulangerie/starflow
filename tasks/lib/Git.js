@@ -254,23 +254,28 @@ Git.prototype.push = function (repository, branch) {
 
   LogService.debug('START Git.push(' + repository + ', ' + branch + ')');
 
-  Index.gitlab
-    .branchExistsOnRemote(branch)
-    .then(function (branchExists) {
-      var option = branchExists ? '-u ' : ' ';
-      exec('git push ' + option + repository + ' ' + branch, function (err, data) {
-        if (err) {
-          deferred.reject(new Error(err));
-        }
-        else {
-          LogService.success('Branch ' + branch + ' was pushed to ' + repository + '/' + branch + '.');
-          deferred.resolve(data);
-        }
+  var pushBranch = function (branchExists) {
+    var option = branchExists ? '-u ' : ' ';
+    exec('git push ' + option + repository + ' ' + branch, function (err, data) {
+      if (err) {
+        deferred.reject(new Error(err));
+      }
+      else {
+        LogService.success('Branch ' + branch + ' was pushed to ' + repository + '/' + branch + '.');
+        deferred.resolve(data);
+      }
 
-        LogService.debug('END   Git.push(' + repository + ', ' + branch + ')');
-      });
+      LogService.debug('END   Git.push(' + repository + ', ' + branch + ')');
     });
+  };
 
+  if (Index.gitlab) {
+    Index.gitlab
+      .branchExistsOnRemote(branch)
+      .then(pushBranch);
+  } else {
+    pushBranch(true);
+  }
   return deferred.promise;
 };
 
