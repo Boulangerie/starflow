@@ -198,12 +198,14 @@ Jira.prototype.checkIssue = function () {
 Jira.prototype.getStatusesGroupByIssuetype = function () {
   var self = this,
       Q = require('q'),
+      _ = require('lodash'),
+      Util = require('./Util'),
       LogService = require('./LogService'),
       deferred = Q.defer();
 
   var args = _.merge({
     path: {
-      project: config.jira.projectId
+      project: Util.config.jira.projectId
     }
   }, self.apiConfig);
 
@@ -270,7 +272,7 @@ Jira.prototype.getStatusObject = function (status) {
       }
       else {
         // if the status object for 'status' (arg) was not found, help user with a list of available status for this issue
-        self.getIssueStatusesGroupByIssuetype().then(function (res) {
+        self.getStatusesGroupByIssuetype().then(function (res) {
           var availableStatuses = '',
             issuetypes = Object.keys(res);
 
