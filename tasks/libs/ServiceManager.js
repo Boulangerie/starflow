@@ -35,9 +35,10 @@ var _setters = {
           .then(function (data) { console.log('  END - git.pull(%s, %s, %s)'.grey, remote, branch, 'rebase=' + ((args.withRebase) ? 'true' : 'false')); return data; });
       })
       .registerCommand('push', function (args) {
-        console.log('START - git.push(%s, %s)'.grey, args.remote, config.branchName);
-        return Q.ninvoke(self.services.git.api, 'push', args.remote, config.branchName)
-          .then(function (data) { console.log('  END - git.push(%s, %s)'.grey, args.remote, config.branchName); return data; });
+        var remote = args.remote || 'origin';
+        console.log('START - git.push(%s, %s)'.grey, remote, config.branchName);
+        return Q.ninvoke(self.services.git.api, 'push', remote, config.branchName)
+          .then(function (data) { console.log('  END - git.push(%s, %s)'.grey, remote, config.branchName); return data; });
       })
       .registerCommand('createBranch', function (args) {
         console.log('START - git.createBranch(%s)'.grey, config.branchName);
