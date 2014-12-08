@@ -1,11 +1,14 @@
 {
   "name": "grunt-dev-workflow",
-  "version": "0.2.2",
-  "description": "Automate your workflows simply by describing them in a config file",
+  "version": "0.3.0",
+  "description": "Manage your developement workflows with a configuration file",
   "dependencies": {
+    "colors": "^1.0.3",
+    "gitlab": "^1.1.0",
+    "gitty": "^3.1.1",
+    "jira": "^0.9.2",
     "lodash": "^2.4.1",
-    "node-rest-client": "^1.0.0",
-    "q": "^1.0.1"
+    "q": "^1.1.2"
   },
   "repository": {
     "type": "git",

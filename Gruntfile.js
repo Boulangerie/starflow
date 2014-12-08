@@ -1,4 +1,5 @@
 module.exports = function (grunt) {
+  'use strict';
 
   grunt.loadTasks('tasks');
 
@@ -6,57 +7,47 @@ module.exports = function (grunt) {
 
     pkg: grunt.file.readJSON('package.json'),
 
-    ttdev: {
+    tdw: {
       options: {
-        gitlab: {
-          host: 'https://git.teads.tv',
-          labels: {
-            feat: 'feature',
-            fix: 'bug',
-            docs: 'documentation'
-          },
-          project: 'SERVICE Manager' // id: 4
-        },
+        branchTpl: '{{ issueType }}/{{ issueKey }}/{{ issueDesc }}',
         jira: {
-          host: 'https://jira.ebuzzing.com',
-          project: 'Manager' // name: Manager #11205
+          protocol: 'https',
+          host: 'jira.ebuzzing.com',
+          projectKey: 'MAN',
+          issueTypesMatching: {
+            feat: 'New Feature',
+            fix: 'Bug',
+            task: 'Task',
+            subtask: 'Sub-task',
+            epic: 'Epic',
+            improv: 'Improvement',
+            story: 'Story',
+            techtask: 'Technical Task'
+          }
+        },
+        gitlab: {
+          protocol: 'https',
+          host: 'git.teads.tv',
+          projectName: 'SERVICE Manager',
+          labelsMatching: {
+            feat: 'feature',
+            fix: 'bug'
+          }
         }
       },
-      test: {
-        steps: []
-      },
-      create: {
-        steps: [
-//          { 'git.checkout': { branch: 'refactor-architecture' } },
-//          { 'git.pull': { with_rebase: true } },
-//          { 'git.create.branch': { with_checkout: true } },
-//          'git.push',
-          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
-          { 'jira.move.card': { status: 'In Progress' } }
-        ]
-      },
-      finish: {
-        steps: [
-          { 'gitlab.assign.merge_request': { assignee: 'bruiz' } },
-          { 'jira.move.card': { status: 'Reviews' } }
-        ]
-      },
-      accept: {
-        steps: [
-          'gitlab.accept.merge_request',
-          { 'git.checkout': { branch: 'master' } },
-          { 'git.pull': { with_rebase: true } }
-        ]
-      },
-      deploy: {
-        steps: [
-          { 'git.checkout': { branch: 'prod' } },
-          { 'git.cherrypick': { commit: '<%= grunt.option("commit") %>' } },
-          { 'git.push': { branch: 'prod' } },
-          { 'git.checkout': { branch: 'master' } },
-          { 'git.merge': { from: 'prod', to: 'master' } }
-        ]
-      }
+      c: [ // create
+        { 'git.checkout': { branch: 'master' } }
+        // { 'git.pull': { remote: 'origin', branch: 'master', withRebase: true } },
+        // { 'git.createBranch': { withCheckout: true } },
+        // 'git.push',
+        // { 'gitlab.createMergeRequest': { refBranch: 'master' } },
+        // 'jira.assignIssue',
+        // { 'jira.changeIssueStatus': { status: 'In  Progress' } }
+      ],
+      f: [ // finish
+        // { 'gitlab.assignMergeRequest': { assignee: 'ygalatol' } },
+        // { 'jira.changeIssueStatus': { status: 'TO REVIEW' } }
+      ]
     }
 
   });
