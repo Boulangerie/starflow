@@ -200,9 +200,57 @@ A workflow is defined in the `steps` property of a target. `steps` is an array w
 
 ## Trello board
 
-If you find a bug or have any suggestions to improve this Grunt plugin, please use the following trello board: [grunt-dev-workflow board](https://trello.com/b/LPtqQ0bT/grunt-dev-workflow).
+Due to internal migration, the Trello board is currently unavailable. Please contact me if you have any feedback: [benoit.ruiz@teads.tv](mailto:benoit.ruiz@teads.tv).
 
-**Important** due to internal migration, the Trello board is currently unavailable. Please contact me if you have any feedback: [benoit.ruiz@teads.tv](mailto:benoit.ruiz@teads.tv).
+## Technical documentation
+
+### Add a command to an existing service
+
+In the `tasks/libs/ServiceManager.js` file, you will find the `_setters` namespace. In order to add a new feature, you need to register a command to the appropriate service. For instance, in the `_setters.git` namespace, you will find configuration about the git service and a list of `registerCommand` calls:
+
+```
+servicesManager.services[SERVICE]
+  .registerCommand('CMD_1', function (args) {})
+  .registerCommand('CMD_2', function (args) {});
+```
+
+To add a new command, you need to register a new one:
+
+```
+servicesManager.services[SERVICE]
+  .registerCommand('CMD_1', function (args) {})
+  .registerCommand('CMD_2', function (args) {})
+  .registerCommand('newCommand', function (args) {
+    // Command code...
+  });
+```
+
+**Important** Each command *must* return a Q.Promise instance ([q module doc](https://github.com/kriskowal/q)).
+
+### Add a new service
+
+Adding a new service is done by specifying a new namespace inside the `_setters` namespace. A service is an instance of the `Service` class (`tasks/libs/Service.js`). In order to work, a service needs:
+
+- A name (unique)
+- A reference to a ServiceManager
+- An API (node module that does *all* the work)
+
+For example, adding a Github service:
+
+```
+  // at the end of _setters
+  {
+    github: function (servicesManager) {
+      var config = servicesManager.config;
+      var Q = require('q');
+      var Service = require('./Service');
+      var self = servicesManager;
+      var api = require('node-github');
+      servicesManager.services['github'] = new Service('github', servicesManager, api);
+      // set commands...
+    }
+  }
+```
 
 ## Release History
 
