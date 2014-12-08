@@ -3,7 +3,7 @@ module.exports = {
 
   init: function (config) {
     this.config = config;
-    this.config.branchTpl = this.config.branchTpl ? this.config.branchTpl : '{{ tdw_issueType }}({{ tdw_issueKey }}):{{ tdw_issueDesc }}';
+    this.config.branchTpl = this.config.branchTpl ? this.config.branchTpl : '{{ issueType }}({{ issueKey }}):{{ issueDesc }}';
     return this;
   },
 
@@ -52,8 +52,7 @@ module.exports = {
       }
     });
 
-    // TODO get issue number from branch name if "branchTpl" matches branch name
-    if (usedServices.indexOf('jira') !== -1) {
+    if (_.isUndefined(config.jira.issueNum)) { // issue number not provided as param -> find it in branchname
       var regx = new RegExp(config.jira.projectKey + '-(\\d+)');
       // start git service if not defined
       if (_.isUndefined(servicesManager.services.git)) {
@@ -66,9 +65,15 @@ module.exports = {
         .replace(/\{\{\s*issueKey\s*\}\}/, config.jira.projectKey+'-(\\d+)')
         .replace(/\{\{\s*issueDesc\s*\}\}/, '([a-zA-Z-]*)');
       var branchRegx = new RegExp(branchTplRegexified);
-      config.jira.issueNum = currentBranch.match(branchRegx)[1];
-      config.jira.issueDesc = currentBranch.match(branchRegx)[2];
-      config.jira.issueKey = config.jira.projectKey + '-' + config.jira.issueNum;
+
+      if (_.isNull(currentBranch.match(branchRegx))) {
+        throw new Error('Jira issue number not provided and could not be found in branch name');
+      }
+      else {
+        config.jira.issueNum = currentBranch.match(branchRegx)[1];
+        config.jira.issueDesc = currentBranch.match(branchRegx)[2];
+        config.jira.issueKey = config.jira.projectKey + '-' + config.jira.issueNum;
+      }
     }
 
     var buildBranchName = function () {
