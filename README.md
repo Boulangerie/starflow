@@ -1,7 +1,28 @@
-# grunt-dev-workflow v0.2.1
-> Automate your dev workflows simply by describing them in a config file.
+# grunt-dev-workflow v0.3.0
+> Manage your developement workflows with a configuration file.
 
-**TL;DR** [Frontend developer's scenario](https://git.teads.tv/front-dev/grunt-dev-workflow/tree/master#user-scenario).
+## TL;DR Manager
+
+Initialize your workflow by using the following command in the terminal:
+
+```
+grunt tdw:c:<issue number>[:<small description for the branch>]
+```
+
+Replace `<issue number>` with the JIRA issue number (e.g. 471). If you wish, you can specify a small description for the branch name, but it's not mandatory.
+
+For example, if we have:
+
+- **branchTpl** `{{ tdw_issueType }}/{{ tdw_issueKey }}/{{ tdw_issueDesc }}`
+- **terminal command** `grunt tdw:c:471:devWorkflowTests`
+
+Then the branch `feat/MAN-471/devWorkflowTests` will be created.
+
+To end the workflow, just type in the following command in your terminal (in the **working branch**!):
+
+```
+grunt tdw:f
+```
 
 ## Install
 
@@ -15,73 +36,15 @@ grunt.loadNpmTasks 'grunt-dev-workflow'
 ```
 Finally, run `npm install` in the terminal.
 
-## TTdev task
+## TDW task
 
-*Run this task with the `grunt ttdev` command.*
+*Run this task with the `grunt tdw` command.*
 
 Task targets and options may be specified according to the grunt [Configuration tasks](http://gruntjs.com/configuring-tasks) guide.
 
 ### Usage
 
-The `grunt-dev-workflow` task is a multitask that can be run in a tasks sequence or in the terminal. If you are using JIRA platform, it is **mandatory** to provide the JIRA issue/card as a parameter when you run the task in the terminal. Passing in the card can be achieved by appending ` --card=JIRA_CARD` to the `grunt TASK` command.
-
-#### Examples
-Suppose we have the following `Gruntfile.js` file:
-
-```
-module.exports = function (grunt) {
-  grunt.loadNpmTasks('grunt-dev-workflow');
-  var initConfig = {
-    pkg: grunt.file.readJSON('package.json'),
-    
-    ttdev: {
-      options: {
-        // shared config with targets
-      },
-      // targets
-      create: {
-        steps: [
-          { 'jira.move.card': { status: 'In Progress' } }
-        ]
-      },
-      finish: {
-        steps: [
-          { 'jira.move.card': { status: 'Reviews' } }
-        ]
-      }
-    }
-  };
-  grunt.initConfig(initConfig);
-  grunt.registerTask('new_feat', ['ttdev:create:feature']);
-};
-```
-
-Now, you can run the task in several ways, but you have to pass in the JIRA card/issue as a parameter if your workflow uses a JIRA card. In a terminal:
-
-```
-grunt new_feat --card=MAN-123
-```
-
-```
-grunt ttdev:create:feature --card=MAN-123
-```
-
-```
-grunt ttdev:create --type=feature --card=MAN-123
-```
-
-The `grunt-dev-workflow` task accepts 1 argument:
-
-- **type** ( *optional* ): the type of issue you are dealing with. **Default** value is `feat`. Values can be:
-    - `feat|feature|improvement`: for a feature or an improvement. Parsed to `feat` value.
-    - `bug|fix`: for a bug fix. Parsed to `fix` value.
-    - `chore|task`: for maintenance procedures. Parsed to `chore` value.
-    - `test|tests`: when adding tests. Parsed to `test` value.
-    - `style`: formatting, missing symbols/semi colons...
-    - `docs|doc|documentation`: for the documentation. Parsed to `docs`.
-    - `refactor|refacto`: for refactor procedures. Parsed to `refactor`.
-
- It follows the git commit conventions described in this document: [Git Commit Message Conventions](https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit).
+The `grunt-dev-workflow` task is a multitask that can be run in a tasks sequence or in the terminal. If you are using JIRA platform, it is **mandatory** to provide the JIRA issue number as a parameter when you run the task in the terminal. Parameters can be passed by appending `:param` to the grunt task name (e.g. `grunt tdw:target:param1:param2`).
 
 ### Authentication
 
@@ -103,35 +66,12 @@ export JIRA_PASSWORD="password"
 
 #### Shared options
 
-The targets can share configuration, for that you just need to put it in the `options` property of the `ttdev` task:
+The targets can share configuration, for that you just need to put it in the `options` property of the `tdw` task:
 ```
       // somewhere in the Gruntfile
-      ttdev: {
+      tsw: {
         options: {
           mySharedData: 'shared'
-        },
-        // targets config...
-      }
-```
-If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare the path to the file where your credentials are, the `host` and the name (or ID) of the `project` you will be working on:
-```
-      // somewhere in the Gruntfile
-      ttdev: {
-        options: {
-          gitlab: {
-            host: 'https://gitlab.domain.com',
-            project: 'My Gitlab Project', // name of the Gitlab project
-            labels: {
-              // dev_type: label(s)
-              feat: 'feature',
-              fix: ['bug', 'problem'],
-              docs: 'documentation'
-            }
-          },
-          jira: {
-            host: 'https://jira.domain.com',
-            project: 12345 // id of the JIRA project
-          }
         },
         // targets config...
       }
@@ -139,18 +79,19 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
 
 ##### List of shared options
 
+- **branchTpl** ( *string* ): The branch name template. Available variables: `{{ issueType }}`, `{{ issueKey }}` and `{{ issueDesc }}`. Example:
+
+ ```
+ branchTpl: "{{ issueType }}/{{ issueKey }}/{{ issueDesc }}"
+ ```
+
 - **gitlab** ( *object* ): config object for accessing Gitlab API.
 
  ```
  {
-     host: 'http://host.com',
-     project: 'SERVICE Manager', // could be the ID instead of the name
-     labels: {
-       // dev_type: label(s)
-       feat: 'feature',
-       fix: ['bug', 'problem'],
-       docs: 'documentation'
-     }
+     protocol: 'https',
+     host: 'git.teads.tv',
+     projectName: 'SERVICE Manager'
  }
  ```
 
@@ -158,8 +99,19 @@ If you plan on using JIRA or Gitlab APIs in your *workflow*, you have to declare
 
  ```
  {
-      host: 'http://host.com',
-      project: 'Manager' // could be the ID instead of the name
+      protocol: 'https',
+      host: 'jira.teads.tv',
+      projectKey: 'MAN',
+      issueTypesMatching: {
+        feat: 'New Feature',
+        fix: 'Bug',
+        task: 'Task',
+        subtask: 'Sub-task',
+        epic: 'Epic',
+        improv: 'Improvement',
+        story: 'Story',
+        techtask: 'Technical Task'
+      }
  }
  ```
 
@@ -175,127 +127,92 @@ A workflow is defined in the `steps` property of a target. `steps` is an array w
 - A **string**: a command without any parameter. Example:
 
  ```
- 'gitlab.check.connection'
+ 'jira.assignIssue'
  ```
 
 - Or an **object**: a command as the key and a map of parameters as the value. Example:
 
  ```
- { 'gitlab.assign.merge_request': { assignee: 'test' } }
+ { 'git.checkout': { branch: 'master' } }
  ```
 
-#### Available commands
+### Available commands
 
-| Command                     | Parameters                                                                                                                                                                                            | Description                                                                                                                        |
-|-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
-| gitlab.create.merge_request | **ref_branch**: the branch you wish to merge your working branch with (e.g. `master`)                                                                                                                 | Creates a new merge request on the project given in the `options` of `ttdev` between the branches `{type}-{card}` and `ref_branch` |
-| gitlab.assign.merge_request | **assignee**: the username of the user you wish to assign the merge request of the issue related to the card passed in the task (via `--card=MY_CARD`)                                                | Assigns a user to the merge request related to the JIRA card                                                                       |
-| jira.move.card              | **status**: new status name of the JIRA issue (e.g. for the Manager project, `In Progress`, `Review`...)                                                                                              | Moves a card from a column to another                                                                                              |
-| git.checkout                | **branch**: name of the branch where to switch on                                                                                                                                                     | Performs a `git checkout branch` command                                                                                           |
-| git.merge                   | **from**: source branch name / **to**: target branch name                                                                                                                                             | Performs a `git merge from to` command                                                                                             |
-| git.create.branch           | **with_checkout**: true if you wish to switch to the created branch, false otherwise                                                                                                                  | Performs a `git branch {type}-{card}` if with_checkout is false, `git checkout -b {type}-{card}` otherwise                         |
-| git.pull                    | **with_rebase**: true if you wish to make a rebase after merge, false otherwise / **repo**: repository name on remote (default is `origin`) / **branch**: branch name on remote (default is `master`) | Performs a `git pull origin master` if with_rebase is false, `git pull --rebase origin master` otherwise                           |
-| git.push                    | **repo**: repository name on remote (default is `origin`) / **branch**: branch name on remote (default is `{type}-{card}`)                                                                            | Performs a `git push origin {type}-{card}`                                                                                         |
-| git.cherrypick              | **commit**: commit SHA1 string                                                                                                                                                                        | Performs a `git cherry-pick <commit> -m 1` command                                                                                 |
+#### Git
+
+**git.checkout**
+
+- Description: performs a `git checkout <branch>`
+- Parameters:
+ - branch ( *String* ) [default: `master`] The branch you wish to checkout out to
 
 
+**git.pull**
 
-### Usage examples
+- Description: performs a `git pull <options> <remote> <branch>`
+- Parameters:
+ - withRebase ( *Boolean* ) [default: `false`] Add the option --rebase if true, no option otherwise
+ - remote ( *String *) [default: `origin`] Repository where to pull from
+ - branch ( *String* ) [default: `master`] Branch to pull
 
-#### Configuration
+**git.push**
 
-```
-module.exports = function (grunt) {
-  grunt.loadNpmTasks('grunt-dev-workflow');
-  var initConfig = {
-    pkg: grunt.file.readJSON('package.json'),
-    
-    ttdev: {
-      options: {
-        gitlab: {
-          host: 'https://gitlab.domain.com',
-          project: 'My Gitlab Project', // name of the Gitlab project
-          labels: {
-            feat: 'feature',
-            fix: 'bug',
-            docs: 'documentation'
-          }
-        },
-        jira: {
-          host: 'https://jira.domain.com',
-          project: 'My JIRA Project' // name of the JIRA project
-        }
-      },
-      create: { // target 'create'
-        steps: [ // steps of the workflow "create new issue"
-          { 'git.checkout': { branch: 'master' } },
-          { 'git.pull': { with_rebase: true } },
-          { 'git.create.branch': { with_checkout: true } }, // branch name is built by the task ({type}-{card})
-          'git.push',
-          { 'gitlab.create.merge_request': { ref_branch: 'master' } },
-          { 'jira.move.card': { status: 'In Progress' } }
-        ]
-      },
-      finish: { // target 'finish'
-        steps: [
-          { 'gitlab.assign.merge_request': { assignee: 'test' } },
-          { 'jira.move.card': { status: 'Reviews' } }
-        ]
-      }
-    }
-  };
-  grunt.initConfig(initConfig);
-  
-  grunt.registerTask('new_feat', ['ttdev:create:feature']);
-  grunt.registerTask('end_feat', ['ttdev:finish:feature']);
-};
-```
+- Description: performs a `git push <remote> <branch>`
+- Parameters:
+ - remote ( *String *) [default: `origin`] Repository where to push to
+ - branch ( *String* ) [default: `master`] Remote branch to push to
 
-#### User scenario
+**git.createBranch**
 
-There is an unassigned JIRA issue called **MAN-123** with the summary "Do something" on the **Manager** project.
+- Description: performs a `git branch <branch>`
+- Parameters:
+ - withCheckout ( *Boolean* ) [default: `false`] Performs a `git checkout -b <branch>` instead
+ - Comment: the branch name is built from the params given to the task and the `branchTpl` option
 
-Bob is a Frontend developer and he wants to develop the *feature* reported on the **MAN-123** JIRA issue. He needs to run the following task in the terminal: `grunt new_feat --card=MAN-123`.
+#### Gitlab
 
-This command will do several things according to the configuration from above:
 
-1. Check if Bob can access JIRA and Gitlab APIs with its credentials from `~/.bash_profile`
+**gitlab.createMergeRequest**
 
-2. Check if the JIRA issue **MAN-123** exists. If it does, the `ttdev` task checks if the issue is assigned to Bob. If it isn't, the task assigns the issue to Bob. It doesn't do anything special otherwise
+- Description: creates a merge request on Gitlab between the working branch and the <refBranch>
+- Parameters:
+ - refBranch ( *String *) [default: `master`] Branch to merge the working branch with
 
-3. Perform several git commands:
-    - `git checkout master`
-    - `git pull --rebase` to update the master branch
-    - `git checkout -b feat-MAN-123` to create and switch on the branch `feat-MAN-123`
-    - `git push origin feat-MAN-123` to add the branch on the remote repository
+**gitlab.assignMergeRequest**
 
-4. Create a new unassigned Merge Request on Gitlab with the following title: `feat(MAN-123): Do something`
+- Description: assigns <assignee> to the merge request between the working branch and the ref branch
+- Parameters:
+ - assignee ( *String *) Assignee username to assign the merge request to
 
-5. Move JIRA issue from *[To Do]* column to *[Work In Progress]* column
+#### Jira
 
-Bob can now work on the feature on the branch `feat-MAN-123`. When he is done developing, he can run this command in the terminal: `grunt end_feat --card=MAN-123`.
+**jira.assignIssue**
 
-This will do the following:
+- Description: assigns a Jira issue to <assignee>
+- Parameters:
+ - assignee ( *String *) Assignee username (firstname.lastname) to assign the issue to
 
-1. Check if Bob can access JIRA and Gitlab APIs
+**jira.changeIssueStatus**
 
-2. Check if the JIRA issue **MAN-123** exists. At this point it does and it's already assigned to Bob
-
-3. Assign **test** to the Merge Request previously created
-
-4. Move JIRA issue from *[Work In Progress]* column to *[Reviews]* column.
-
-Bob has finished the feature development, he can switch on another JIRA issue!
+- Description: changes the status of the issue linked to the workflow
+- Parameters:
+ - status ( *String *) Status to assign to the issue
 
 ## Trello board
 
 If you find a bug or have any suggestions to improve this Grunt plugin, please use the following trello board: [grunt-dev-workflow board](https://trello.com/b/LPtqQ0bT/grunt-dev-workflow).
 
+**Important** due to internal migration, the Trello board is currently unavailable. Please contact me if you have any feedback: [benoit.ruiz@teads.tv](mailto:benoit.ruiz@teads.tv).
+
 ## Release History
+
+- **v0.3.0** - *2014-12-08*
+
+     - Refactor architecture (again). For Manager users: run `grunt tdw:c:XXX` to start workflow and `grunt tdw:f` to end it
 
 - **v0.2.2** - *2014-09-16*
 
-     - Quick fix on Gitlab.getMergeRequest , per_page is now fixed to the max(100)
+     - Quick fix on Gitlab.getMergeRequest , per_page is now fixed to the max (100)
 
 - **v0.2.1** - *2014-08-26*
 
