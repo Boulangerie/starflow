@@ -52,7 +52,7 @@ In order to use the Gitlab or JIRA APIs, the task needs your credentials. For th
 
 ```
 // at the end of the file
-export GITLAB_PRIVATE_TOKEN="token"
+export GITLAB_TOKEN="token"
 export JIRA_USERNAME="username"
 export JIRA_PASSWORD="password"
 ```
