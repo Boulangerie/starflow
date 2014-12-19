@@ -23,7 +23,7 @@ var _setters = {
         var branch = args.branch || 'master';
         console.log('START - git.checkout(%s)'.grey, branch);
         return Q.ninvoke(self.services.git.api, 'checkout', branch)
-          .then(function (data) { console.log('  END - git.checkout(%s)'.grey, branch); return data; });
+          .then(function (data) { console.log('  END - git.checkout(%s)'.grey, '-t ' + branch + 'origin/' + branch); return data; });
       })
       .registerCommand('pull', function (args) {
         console.log('START - git.pull(%s, %s, %s)'.grey, args.remote, args.branch, 'rebase=' + ((args.withRebase) ? 'true' : 'false'));
