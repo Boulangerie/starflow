@@ -1,4 +1,4 @@
-# grunt-dev-workflow v0.3.0
+# grunt-dev-workflow v0.3.1
 > Manage your developement workflows with a configuration file.
 
 ## TL;DR Manager
@@ -253,6 +253,10 @@ For example, adding a Github service:
 ```
 
 ## Release History
+
+- **v0.3.1** - *2015-01-05*
+
+    - Fix bug when doing *git checkout* on the new working branch
 
 - **v0.3.0** - *2014-12-08*
 

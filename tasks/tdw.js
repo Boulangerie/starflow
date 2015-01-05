@@ -5,25 +5,21 @@ module.exports = function (grunt) {
 
     // Magic!
     var config = this.options();
-    var issueNum = this.args[0];
-    var issueDesc = this.args[1];
     var done = this.async();
 
-    config.steps = this.data;
+    config.jira = config.jira || {};
+    config.gitlab = config.gitlab || {};
 
-    // put credentials in config object
     config.jira.user = process.env.JIRA_USERNAME;
     config.jira.pass = process.env.JIRA_PASSWORD;
     config.gitlab.token = process.env.GITLAB_TOKEN;
 
-    config.jira.issueNum = issueNum;
+    config.jira.issueNum = this.args[0];
+    config.jira.issueDesc = this.args[1];
+    config.jira.projectKey = config.jira.projectKey || 'MAN';
     config.jira.issueKey = config.jira.projectKey + '-' + config.jira.issueNum;
-    config.jira.issueDesc = issueDesc;
 
-    // Expose some variables to grunt config
-    // grunt.config('tdw_issueType', 'wut'); // set later when we have found the issue from Jira
-    // grunt.config('tdw_issueKey', (config.jira.projectKey + '-' + issueNum) || null);
-    // grunt.config('tdw_issueDesc', issueDesc || '');
+    config.steps = this.data;
 
     var tdw = require('./libs/tdw').init(config);
 

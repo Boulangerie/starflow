@@ -21,9 +21,10 @@ var _setters = {
     servicesManager.services['git']
       .registerCommand('checkout', function (args) {
         var branch = args.branch || 'master';
+        var withCreate = args.withCreate || false;
         console.log('START - git.checkout(%s)'.grey, branch);
-        return Q.ninvoke(self.services.git.api, 'checkout', branch)
-          .then(function (data) { console.log('  END - git.checkout(%s)'.grey, '-t ' + branch + 'origin/' + branch); return data; });
+        return Q.ninvoke(self.services.git.api, 'checkout', (withCreate ? '-b ' : '') + branch)
+          .then(function (data) { console.log('  END - git.checkout(%s)'.grey, branch); return data; });
       })
       .registerCommand('pull', function (args) {
         console.log('START - git.pull(%s, %s, %s)'.grey, args.remote, args.branch, 'rebase=' + ((args.withRebase) ? 'true' : 'false'));
@@ -42,13 +43,24 @@ var _setters = {
       })
       .registerCommand('createBranch', function (args) {
         console.log('START - git.createBranch(%s)'.grey, config.branchName);
-        return Q.ninvoke(self.services.git.api, 'createBranch', config.branchName)
+        var gitCmd;
+        if (args.withCheckout) {
+          // gitCmd = Q.ninvoke(self.services.git.api, 'checkout', '-b ' + config.branchName);
+          gitCmd = servicesManager.services['git'].commands.checkout({ branch: config.branchName, withCreate: true });
+        }
+        else {
+          gitCmd = Q.ninvoke(self.services.git.api, 'createBranch', config.branchName);
+        }
+        return gitCmd
           .catch(function (err) {
-            if (!/already exists/.test(err)) {
+            if (!/A branch named (?:.+) already exists./.test(err)) {
+              console.log("bob");
               throw err;
             }
+            else {
+              console.log('  Could not create branch %s because it already exists.'.yellow, config.branchName);
+            }
           })
-          .then(Q.ninvoke(self.services.git.api, 'checkout', config.branchName))
           .then(function (data) { console.log('  END - git.createBranch(%s)'.grey, config.branchName); return data; });
       });
   },

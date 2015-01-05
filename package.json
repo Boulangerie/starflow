@@ -1,6 +1,6 @@
 {
   "name": "grunt-dev-workflow",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Manage your developement workflows with a configuration file",
   "dependencies": {
     "colors": "^1.0.3",
