@@ -1,5 +1,5 @@
 {
-  "name": "teads-dev-workflow",
+  "name": "grunt-dev-workflow",
   "version": "1.0.0",
   "description": "Manage your developement workflows with a configuration file",
   "main": "index.js",
