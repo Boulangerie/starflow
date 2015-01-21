@@ -9,34 +9,34 @@ module.exports = function (grunt) {
 
     tdw: {
       options: {
-        branchTpl: '{{ issueType }}/{{ issueKey }}/{{ issueDesc }}',
+        branchTpl: '{{ issueType }}/{{ issueKey }}/{{ issueSlug }}',
         jira: {
           protocol: 'https',
           host: 'jira.ebuzzing.com',
-          projectKey: 'MAN',
-          issueTypesMatching: {
-            feat: 'New Feature',
-            fix: 'Bug',
-            task: 'Task',
-            subtask: 'Sub-task',
-            epic: 'Epic',
-            improv: 'Improvement',
-            story: 'Story',
-            techtask: 'Technical Task'
-          }
+          projectKey: 'MAN'
         },
         gitlab: {
           protocol: 'https',
           host: 'git.teads.tv',
-          projectName: 'SERVICE Manager',
-          labelsMatching: {
-            feat: 'feature',
-            fix: 'bug'
-          }
+          projectName: 'SERVICE Manager'
         }
       },
+      mr: [
+        { 'createMergeRequest': ['feat/MAN-767-forecasting', 'master'] }
+      ],
       c: [ // create
-        { 'git.checkout': { branch: 'master' } }
+        //{ 'gitCheckout': ['master'] },
+        //{ 'gitFetch': ['origin', 'master'] },
+        //{ 'gitRebase': ['origin/master', 'master'] },
+        { 'getJiraIssue': [] },
+        //{ 'createBranch': [] },
+        //{ 'gitCheckout': [] },
+        //{ 'gitPush': ['origin'] },
+        //{ 'gitlabCreateMergeRequest': [null, 'master'] }
+        { 'assignMergeRequest': ['ygalatol'] }
+        //{ 'createBranch': [] },
+        //{ 'gitCheckout': [] }
+        // { 'git.checkout': { branch: 'master' } }
         // { 'git.pull': { remote: 'origin', branch: 'master', withRebase: true } },
         // { 'git.createBranch': { withCheckout: true } },
         // 'git.push',

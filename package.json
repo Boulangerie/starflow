@@ -1,19 +1,18 @@
 {
-  "name": "grunt-dev-workflow",
-  "version": "0.3.1",
+  "name": "teads-dev-workflow",
+  "version": "1.0.0",
   "description": "Manage your developement workflows with a configuration file",
+  "main": "index.js",
   "dependencies": {
     "colors": "^1.0.3",
-    "gitlab": "^1.1.0",
+    "gitlab": "^1.2.0",
     "gitty": "^3.1.1",
     "jira": "^0.9.2",
     "lodash": "^2.4.1",
-    "q": "^1.1.2"
+    "q": "^1.1.2",
+    "slugify": "^0.1.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@git.teads.tv:front-dev/grunt-teads-dev.git"
-  },
-  "author": "Teads Technology",
+  "devDependencies": {},
+  "author": "bruiz",
   "license": "ISC"
 }
