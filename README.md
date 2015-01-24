@@ -111,11 +111,13 @@ The goal of the `grunt-dev-workflow` is to let you define the workflow(s) you wi
 
 > A **workflow** is a series of steps the developer has to go through in order to work on an issue/feature.
 
-A workflow is defined as the value of a target. It's an array where each element can is an object with a single key associated to an array. For example:
+A workflow is defined as the value of a target. It's an array where each element is an object with a single key associated to an array. For example:
 
  ```
- { 'createBranch': [] },
- { 'gitRebase': ['origin/master', 'master'] }
+ target: [
+   { 'gitRebase': ['origin/master', 'master'] },
+   { 'createBranch': [] }
+ ]
  ```
 
 ### Available commands
