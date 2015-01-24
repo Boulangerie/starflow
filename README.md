@@ -1,4 +1,4 @@
-# grunt-dev-workflow v0.3.1
+# grunt-dev-workflow v1.0.0
 > Manage your developement workflows with a configuration file.
 
 ## TL;DR Manager
@@ -6,17 +6,17 @@
 Initialize your workflow by using the following command in the terminal:
 
 ```
-grunt tdw:c:<issue number>[:<small description for the branch>]
+grunt tdw:c:<issue number>
 ```
 
-Replace `<issue number>` with the JIRA issue number (e.g. 471). If you wish, you can specify a small description for the branch name, but it's not mandatory.
+Replace `<issue number>` with the JIRA issue number (e.g. 471).
 
 For example, if we have:
 
-- **branchTpl** `{{ tdw_issueType }}/{{ tdw_issueKey }}/{{ tdw_issueDesc }}`
-- **terminal command** `grunt tdw:c:471:devWorkflowTests`
+- **branchTpl** `{{ issueType }}/{{ issueKey }}/{{ issueSlug }}`
+- **terminal command** `grunt tdw:c:471`
 
-Then the branch `feat/MAN-471/devWorkflowTests` will be created.
+Then the branch `new-feature/MAN-471/keepit-test-grunt-dev-workflow` will be created.
 
 To end the workflow, just type in the following command in your terminal (in the **working branch**!):
 
@@ -44,7 +44,7 @@ Task targets and options may be specified according to the grunt [Configuration 
 
 ### Usage
 
-The `grunt-dev-workflow` task is a multitask that can be run in a tasks sequence or in the terminal. If you are using JIRA platform, it is **mandatory** to provide the JIRA issue number as a parameter when you run the task in the terminal. Parameters can be passed by appending `:param` to the grunt task name (e.g. `grunt tdw:target:param1:param2`).
+The `grunt-dev-workflow` task is a multitask that can be run in a tasks sequence or in the terminal. If you are using JIRA platform and you are starting a new dev, it is **mandatory** to provide the JIRA issue number as a parameter when you run the task in the terminal. Else, the JIRA issue key will be found in the dev branch. Parameters can be passed by appending `:param` to the grunt task name (e.g. `grunt tdw:target:param1:param2`).
 
 ### Authentication
 
@@ -52,24 +52,23 @@ In order to use the Gitlab or JIRA APIs, the task needs your credentials. For th
 
 ```
 // at the end of the file
-export GITLAB_TOKEN="token"
+export GITLAB_TOKEN="private token"
 export JIRA_USERNAME="username"
 export JIRA_PASSWORD="password"
 ```
 
 > **Note:**
 > If your password contains `$` characters, make sure to escape it in the `~/.bash_profile` file.
-> *Example:*
-> `export JIRA_PASSWORD="test\$bob"`
+> *Example*: `export JIRA_PASSWORD="test\$bob"`
 
 ### Options
 
 #### Shared options
 
-The targets can share configuration, for that you just need to put it in the `options` property of the `tdw` task:
+The targets can share configuration, for that all you need is to put it in the `options` property of the `tdw` task:
 ```
       // somewhere in the Gruntfile
-      tsw: {
+      tdw: {
         options: {
           mySharedData: 'shared'
         },
@@ -79,10 +78,10 @@ The targets can share configuration, for that you just need to put it in the `op
 
 ##### List of shared options
 
-- **branchTpl** ( *string* ): The branch name template. Available variables: `{{ issueType }}`, `{{ issueKey }}` and `{{ issueDesc }}`. Example:
+- **branchTpl** ( *string* ): The branch name template. Available variables: `{{ issueType }}`, `{{ issueKey }}` and `{{ issueSlug }}`. Example:
 
  ```
- branchTpl: "{{ issueType }}/{{ issueKey }}/{{ issueDesc }}"
+ branchTpl: "{{ issueType }}/{{ issueKey }}/{{ issueSlug }}"
  ```
 
 - **gitlab** ( *object* ): config object for accessing Gitlab API.
@@ -101,17 +100,7 @@ The targets can share configuration, for that you just need to put it in the `op
  {
       protocol: 'https',
       host: 'jira.teads.tv',
-      projectKey: 'MAN',
-      issueTypesMatching: {
-        feat: 'New Feature',
-        fix: 'Bug',
-        task: 'Task',
-        subtask: 'Sub-task',
-        epic: 'Epic',
-        improv: 'Improvement',
-        story: 'Story',
-        techtask: 'Technical Task'
-      }
+      projectKey: 'MAN'
  }
  ```
 
@@ -122,137 +111,210 @@ The goal of the `grunt-dev-workflow` is to let you define the workflow(s) you wi
 
 > A **workflow** is a series of steps the developer has to go through in order to work on an issue/feature.
 
-A workflow is defined in the `steps` property of a target. `steps` is an array where each element can be:
-
-- A **string**: a command without any parameter. Example:
+A workflow is defined as the value of a target. It's an array where each element can is an object with a single key associated to an array. For example:
 
  ```
- 'jira.assignIssue'
- ```
-
-- Or an **object**: a command as the key and a map of parameters as the value. Example:
-
- ```
- { 'git.checkout': { branch: 'master' } }
+ { 'createBranch': [] },
+ { 'gitRebase': ['origin/master', 'master'] }
  ```
 
 ### Available commands
 
-#### Git
+**setJiraApiInstance**
 
-**git.checkout**
+*Instantiate an object to communicate with the Jira API.*
 
-- Description: performs a `git checkout <branch>`
-- Parameters:
- - branch ( *String* ) [default: `master`] The branch you wish to checkout out to
+Parameters: *none*
 
+> **Note**
+> This command is automatically inserted in the workflow when the task detects if the workflow uses the Jira API
 
-**git.pull**
+**setGitlabApiInstance**
 
-- Description: performs a `git pull <options> <remote> <branch>`
-- Parameters:
- - withRebase ( *Boolean* ) [default: `false`] Add the option --rebase if true, no option otherwise
- - remote ( *String *) [default: `origin`] Repository where to pull from
- - branch ( *String* ) [default: `master`] Branch to pull
+*Instantiate an object to communicate with the Gitlab API.*
 
-**git.push**
+Parameters: *none*
 
-- Description: performs a `git push <remote> <branch>`
-- Parameters:
- - remote ( *String *) [default: `origin`] Repository where to push to
- - branch ( *String* ) [default: `master`] Remote branch to push to
+> **Note**
+> This command is automatically inserted in the workflow when the task detects if the workflow uses the Gitlab API
 
-**git.createBranch**
+**setGitApiInstance**
 
-- Description: performs a `git branch <branch>`
-- Parameters:
- - withCheckout ( *Boolean* ) [default: `false`] Performs a `git checkout -b <branch>` instead
- - Comment: the branch name is built from the params given to the task and the `branchTpl` option
+*Instantiate an object to perform git commands.*
 
-#### Gitlab
+Parameters: *none*
 
+> **Note**
+> This command is automatically inserted in the workflow when the task detects if the workflow uses Git commands
 
-**gitlab.createMergeRequest**
+**getDevBranchName**
 
-- Description: creates a merge request on Gitlab between the working branch and the <refBranch>
-- Parameters:
- - refBranch ( *String *) [default: `master`] Branch to merge the working branch with
+*Try to build the dev branch name with the data provided by user and the current branch name. If the workflow uses Jira and if the issue is a subtask, then the issue type put in the dev branch name will be the issue type of the issue parent*
 
-**gitlab.assignMergeRequest**
+Parameters: *none*
 
-- Description: assigns <assignee> to the merge request between the working branch and the ref branch
-- Parameters:
- - assignee ( *String *) Assignee username to assign the merge request to
+Example:
 
-#### Jira
+- Issue type of MAN-123 is `subtask`, then take issue type of its parent (MAN-456), which is for example `improvement`
 
-**jira.assignIssue**
+**findIssueKey**
 
-- Description: assigns a Jira issue to <assignee>
-- Parameters:
- - assignee ( *String *) Assignee username (firstname.lastname) to assign the issue to
+*Try to find the issue key from the data provided by the user and from the current branch name.*
 
-**jira.changeIssueStatus**
+Parameters: *none*
 
-- Description: changes the status of the issue linked to the workflow
-- Parameters:
- - status ( *String *) Status to assign to the issue
+> **Note**
+> This command is automatically inserted in the workflow when the task detects if the workflow uses `getJiraIssue` or `getDevBranchName`
 
-## Trello board
+Examples:
 
-Due to internal migration, the Trello board is currently unavailable. Please contact me if you have any feedback: [benoit.ruiz@teads.tv](mailto:benoit.ruiz@teads.tv).
+- If the user provides `options.jira.projectKey` (MAN) and `123` as a param to the task (`grunt tdw:c:123`), then the issue key will be `MAN-123`
+- If the user doesn't provide the project key or the issue number, but the current branch is `improvement/MAN-123/hello-world` and the branch template is `{{issueType}}/{{issueKey}}/{{issueSlug}}`, then the key will be `MAN-123`
 
-## Technical documentation
+**gitCheckout**
 
-### Add a command to an existing service
+*Perform a `git checkout param1`.*
 
-In the `tasks/libs/ServiceManager.js` file, you will find the `_setters` namespace. In order to add a new feature, you need to register a command to the appropriate service. For instance, in the `_setters.git` namespace, you will find configuration about the git service and a list of `registerCommand` calls:
+Parameters:
 
-```
-servicesManager.services[SERVICE]
-  .registerCommand('CMD_1', function (args) {})
-  .registerCommand('CMD_2', function (args) {});
-```
+- param1: the branch. If none, fallback to the last branch created, then the dev branch (e.g. new-feature/MAN-123/hello-world), then `master`
 
-To add a new command, you need to register a new one:
+**gitFetch**
 
-```
-servicesManager.services[SERVICE]
-  .registerCommand('CMD_1', function (args) {})
-  .registerCommand('CMD_2', function (args) {})
-  .registerCommand('newCommand', function (args) {
-    // Command code...
-  });
-```
+*Perform a `git fetch param1 param2`.*
 
-**Important** Each command *must* return a Q.Promise instance ([q module doc](https://github.com/kriskowal/q)).
+Parameters:
 
-### Add a new service
+- param1: the remote. If none, fallback to `origin`
+- param2: the branch. If none, the command fetches all the branches from the remote
 
-Adding a new service is done by specifying a new namespace inside the `_setters` namespace. A service is an instance of the `Service` class (`tasks/libs/Service.js`). In order to work, a service needs:
+**gitRebase**
 
-- A name (unique)
-- A reference to a ServiceManager
-- An API (node module that does *all* the work)
+*Perform a `git rebase param1 param2`.*
 
-For example, adding a Github service:
+Parameters:
 
-```
-  // at the end of _setters
-  {
-    github: function (servicesManager) {
-      var config = servicesManager.config;
-      var Q = require('q');
-      var Service = require('./Service');
-      var self = servicesManager;
-      var api = require('node-github');
-      servicesManager.services['github'] = new Service('github', servicesManager, api);
-      // set commands...
-    }
-  }
-```
+- param1: the branch to rebase from. If none, fallback to `origin/master`
+- param2: the branch to rebase to. If none, fallback to `master`
+
+**gitPush**
+
+*Perform a `git push param1 param2`.*
+
+Parameters:
+
+- param1: the remote. If none, fallback to `origin`
+- param2: the branch. If none, fallback to the last branch created, then the dev branch (e.g. new-feature/MAN-123/hello-world)
+
+**createBranch**
+
+*Perform a `git branch param1`.*
+
+Parameters:
+
+- param1: the branch. If none, fallback to the grunt task param (which is usually the issue number), then the dev branch name (e.g. new-feature/MAN-123/hello-world)
+
+Examples:
+
+- If the task is run with `grunt tdw:c:hello-world`, then the `hello-world` branch will be created
+- If the task is run with `grunt tdw:c:471`, then the `new-feature/MAN-471/keepit-test-grunt-dev-workflow` branch will be created
+
+**createBranch**
+
+*Perform a `git branch param1`.*
+
+Parameters:
+
+- param1: the branch. If none, fallback to the grunt task param (which is usually the issue number), then the dev branch name (e.g. new-feature/MAN-123/hello-world)
+
+Examples:
+
+- If the task is run with `grunt tdw:c:hello-world`, then the `hello-world` branch will be created
+- If the task is run with `grunt tdw:c:471`, then the `new-feature/MAN-471/keepit-test-grunt-dev-workflow` branch will be created
+
+**getJiraIssue**
+
+*Get the issue object from Jira API related to issue key provided*
+
+Parameters:
+
+- param1: the issue key. If none, use results from `findIssueKey` command
+
+**assignJiraIssue**
+
+*Assign someone to the issue*
+
+Parameters:
+
+- param1: the assignee's username. If none, use the user's username (provided to connect to the API, `JIRA_USERNAME`)
+
+**getJiraIssueStatuses**
+
+*Get the available statuses for a given issue*
+
+Parameters:
+
+- param1: the issue key. If none, use results from `findIssueKey` command
+
+**changeJiraIssueStatus**
+
+*Change the issue status (e.g. from `Ready` to `In Progress`).*
+
+Parameters:
+
+- param1: the issue key. If none, use results from `findIssueKey` command
+- param2: the status. It must be an element of the array got with `getJiraIssueStatuses`
+
+**getGitlabProject**
+
+*Get the Gitlab project with the `options.gitlab.projectName` name from Gitlab API.*
+
+Parameters:
+
+- param1: the project's name. If none, use the project name provided in the config
+
+**getMergeRequestBetween**
+
+*Get the Gitlab merge request between 2 branches.*
+
+Parameters:
+
+- param1: the source branch. If none, use the last created branch, then the current branch
+- param2: the target branch. If none, use `master`
+
+**getGitlabUser**
+
+*Get the Gitlab user.*
+
+Parameters:
+
+- param1: the username (e.g. bruiz)
+
+**createMergeRequest**
+
+*Create a new merge request on Gitlab.*
+
+Parameters:
+
+- param1: the source branch. If none, use the last created branch, then the current branch
+- param2: the target branch. If none, use `master`
+
+**assignMergeRequest**
+
+*Create a new merge request on Gitlab.*
+
+Parameters:
+
+- param1: the username
+- param2: the source branch. If none, use the last created branch, then the current branch
+- param3: the target branch. If none, use `master`
 
 ## Release History
+
+- **v1.0.0** - *2015-01-24*
+
+    - Deep internal mechanism refactoring
+    - Changes on the available commands and the config syntax for the workflows
 
 - **v0.3.1** - *2015-01-05*
 

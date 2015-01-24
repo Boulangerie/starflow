@@ -137,7 +137,7 @@ module.exports = (function (_, Q, common) {
 
   Gitlab.getMergeRequestBetween = function GitlabGetMergeRequestBetween(input, sourceBranch, targetBranch) {
     var deferred = Q.defer();
-    sourceBranch = sourceBranch || input.git.currentBranch;
+    sourceBranch = sourceBranch || input.git.lastBranchCreated || input.git.currentBranch;
     targetBranch = targetBranch || 'master';
     var _name = 'Gitlab.getMergeRequestBetween(' + sourceBranch + ', ' + targetBranch + ')';
     common.logStart(_name, input.logDepth);
