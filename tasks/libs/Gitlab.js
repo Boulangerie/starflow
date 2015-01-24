@@ -102,7 +102,7 @@ module.exports = (function (_, Q, common) {
 
     getDevBranchInfo()
       .then(function (data) {
-        if (_.isDefinedNotNull(data)) {
+        if (_.isDefinedNotNull(data.dev)) {
           mrTitle = data.dev.issueType + '(' + data.dev.issueKey + '): ' + input.jira.issue.fields.summary;
         }
         else {
