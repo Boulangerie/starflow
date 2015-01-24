@@ -22,7 +22,7 @@ module.exports = function (grunt) {
         }
       },
       mr: [
-        { 'createMergeRequest': ['feat/MAN-767-forecasting', 'master'] }
+        { 'createMergeRequest': ['test-dev-workflow', 'master'] }
       ],
       c: [ // create
         //{ 'gitCheckout': ['master'] },

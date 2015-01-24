@@ -19,7 +19,7 @@ module.exports = function (grunt) {
 
     config.steps = this.data;
 
-    var tdw = require('./libs/tdw');
+    var tdw = require('./lib/tdw');
 
     tdw
       .init(config)
