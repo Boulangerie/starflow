@@ -8,11 +8,11 @@
     "gitlab": "^1.2.0",
     "jira": "^0.9.2",
     "lodash": "^3.9.0",
-    "mustache": "^2.0.0",
     "service-format-framework": "0.0.0-feature-improve-sample-page",
     "service-format-player": "0.0.0-release-v1",
     "lib-format-shared-workflow": "0.0.0-fix-tt-1234-use-helper-create-element",
     "lib-format-tracker": "0.4.7",
+    "slugify": "0.1.1",
     "q": "^1.1.2"
   },
   "devDependencies": {},

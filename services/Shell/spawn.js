@@ -20,6 +20,7 @@ module.exports = (function (_, Q, spawn, chalk, task, Logger) {
       var stderr = [];
       var s = spawn(cmd, args, _.extend({ stdio: 'pipe' }, options));
       s.stdout.setEncoding('utf8');
+      s.stderr.setEncoding('utf8');
 
       _.forEach(data, function (d) {
         s.stdin.write(d.toString());
@@ -35,23 +36,20 @@ module.exports = (function (_, Q, spawn, chalk, task, Logger) {
       });
 
       s.on('close', function (code) {
-        if (code === 0) {
+        if (code === 0 || muteErrors) {
           if (withLog) {
             Logger.log(String(stdout));
+          }
+          if (code !== 0) {
+            self.logSuccess = function () {
+              return chalk.yellow('(errors detected but muted by task config)');
+            };
           }
           deferred.resolve(_.merge(flow, {
             lastShellOutput: stdout
           }));
         } else {
-          if (muteErrors) {
-            // Logger.log(String(stderr));
-            self.logSuccess = function () {
-              return chalk.yellow('(errors detected but muted by task config)');
-            };
-            deferred.resolve(flow);
-          } else {
-            deferred.reject(stderr);
-          }
+          deferred.reject(stderr);
         }
       });
 

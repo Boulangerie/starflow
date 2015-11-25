@@ -7,7 +7,7 @@
     //{ 'git.pull': ['origin', 'master'] },
     //{ 'git.rebase': ['origin', 'master', 'master'] },
     // { 'shell': ['ls'] },
-    // 'npm.list',
+    'npm.list',
     { 'npm.dependencies': 'format' },
     'teads.npmVersionToBranchName'
     // { 'jira.getIssue': '{{args.0}}' },
