@@ -1,0 +1,6 @@
+{
+  "Get the current Git branch": "services/Git/getCurrentBranch",
+  "Get the issue on the JIRA web service": "services/Jira/getIssue",
+  "teads.buildDevBranchName": "Custom/buildDevBranchName",
+  "teads.npmVersionToBranchName": "Custom/npmVersionToBranchName"
+}
