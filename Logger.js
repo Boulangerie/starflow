@@ -19,11 +19,13 @@ Logger.prototype.ERROR_MESSAGE = chalk.red('✗')
 
 var lastLevel;
 Logger.prototype.mute = function mute() {
+  console.log('mute');
   lastLevel = this.level;
   this.level = Logger.prototype.LEVEL.NONE;
 };
 
 Logger.prototype.unmute = function unmute() {
+  console.log('unmute. last level', lastLevel);
   this.level = lastLevel || Logger.prototype.LEVEL.NORMAL;
 };
 

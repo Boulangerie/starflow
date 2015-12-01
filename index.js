@@ -19,11 +19,12 @@ var sequence = [
   // {'git.fetch': ['origin', 'refactor-5']},
   // {'$': ['git', ['rebase', 'origin/refactor-5', 'refactor-5']]},
   // {'$': ['git', ['stash', 'pop']]},
+  'npm.dependencies',
   'git.getCurrentBranch',
-  {'jira.getIssue': '{{args.card}}'},
-  {'prompt': 'main'},
-  {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']},
-  'teads.linkDependencies'
+  {'jira.getIssue': '{{args.card}}'}
+  // {'prompt': 'main'},
+  // {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']},
+  // 'teads.linkDependencies'
   // {'git.createBranch': ['{{teads.branchName}}', true]}
 ];
 var flow = {
@@ -45,6 +46,7 @@ var sf = new Starflow(sequence, flow);
 sf.logger.level = sf.logger.__proto__.LEVEL.ALL;
 
 var starflowShell = require('./shell/starflow-shell');
+var starflowNpm = require('./npm/starflow-npm');
 var starflowGit = require('./git/starflow-git');
 var starflowJira = require('./jira/starflow-jira')(
   'https',
@@ -57,6 +59,7 @@ var starflowTeads = require('./custom/starflow-teads');
 
 sf
   .register(['$', 'shell.spawn'], starflowShell.spawn)
+  .register('npm.dependencies', starflowNpm.dependencies)
   .register('prompt', starflowShell.prompt)
   .register(['git.getCurrentBranch', 'Get the current Git branch name'], starflowGit.currentBranch)
   .register('git.createBranch', starflowGit.createBranch)

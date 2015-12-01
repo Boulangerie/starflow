@@ -2,9 +2,8 @@ var Q = require('q');
 var _ = require('lodash');
 var spawnFactory = require('../shell/spawn');
 
-function CurrentBranch(starflow, muteSteps) {
+function CurrentBranch(starflow) {
   this.starflow = starflow;
-  this.muteSteps = !!muteSteps;
 }
 
 CurrentBranch.prototype.currentBranch = function currentBranch() {

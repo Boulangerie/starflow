@@ -94,16 +94,22 @@ Starflow.prototype.wrapTask = function wrapTask(taskFactory, step) {
       })
       .then(function (flow) {
         self.logger.footer(Logger.prototype.SUCCESS_MESSAGE);
-        self.logger.unmute();
+        if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
+          self.logger.unmute();
+        }
         return flow;
       }, function (err) {
         if (err === self.flow) { // e.g. git.createBranch when branch already exists
           self.logger.footer(Logger.prototype.SUCCESS_MESSAGE);
-          self.logger.unmute();
+          if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
+            self.logger.unmute();
+          }
           return flow;
         } else {
           self.logger.footer(Logger.prototype.ERROR_MESSAGE);
-          self.logger.unmute();
+          if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
+            self.logger.unmute();
+          }
           throw err;
         }
       });
