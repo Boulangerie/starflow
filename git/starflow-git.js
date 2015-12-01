@@ -3,5 +3,6 @@ module.exports = {
   createBranch: require('./createBranch'),
   checkout: require('./checkout'),
   stash: require('./stash'),
-  fetch: require('./fetch')
+  fetch: require('./fetch'),
+  push: require('./push')
 };

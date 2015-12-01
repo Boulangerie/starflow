@@ -64,6 +64,7 @@ sf
   .register('git.createBranch', starflowGit.createBranch)
   .register('git.checkout', starflowGit.checkout)
   .register('git.fetch', starflowGit.fetch)
+  .register('git.push', starflowGit.push)
   .register('git.stash', starflowGit.stash)
   .register('jira.getIssue', starflowJira.getIssue)
   .register('teads.buildBranchName', starflowTeads.buildBranchName)
