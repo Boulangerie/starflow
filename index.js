@@ -1,6 +1,6 @@
 var Starflow = require('./starflow');
 var start = [
-  {'$': ['git', ['stash']]},
+  'git.stash',
   {'$': ['git', ['checkout', 'master']]},
   {'$': ['git', ['fetch', 'origin', 'master']]},
   {'$': ['git', ['origin/master', 'master']]}, // rebase master onto origin/master
@@ -13,18 +13,17 @@ var start = [
 ];
 
 var sequence = [
-  // {'$': ['npm', ['ls', '--depth=0', '--json'], true]},
-  // {'$': ['git', ['stash']]},
-  // {'git.checkout': 'refactor-5'},
-  // {'git.fetch': ['origin', 'refactor-5']},
-  // {'$': ['git', ['rebase', 'origin/refactor-5', 'refactor-5']]},
-  // {'$': ['git', ['stash', 'pop']]},
+  'git.stash',
+  {'git.checkout': 'refactor-5'},
+  {'git.fetch': ['origin', 'refactor-5']},
+  {'$': ['git', ['rebase', 'origin/refactor-5', 'refactor-5']]},
+  { 'git.stash': 'pop' },
   'npm.dependencies',
   'git.getCurrentBranch',
-  {'jira.getIssue': '{{args.card}}'}
-  // {'prompt': 'main'},
-  // {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']},
-  // 'teads.linkDependencies'
+  {'jira.getIssue': '{{args.card}}'},
+  {'prompt': 'main'},
+  {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']},
+  'teads.linkDependencies'
   // {'git.createBranch': ['{{teads.branchName}}', true]}
 ];
 var flow = {
@@ -65,6 +64,7 @@ sf
   .register('git.createBranch', starflowGit.createBranch)
   .register('git.checkout', starflowGit.checkout)
   .register('git.fetch', starflowGit.fetch)
+  .register('git.stash', starflowGit.stash)
   .register('jira.getIssue', starflowJira.getIssue)
   .register('teads.buildBranchName', starflowTeads.buildBranchName)
   .register('teads.linkDependencies', starflowTeads.linkDependencies)
