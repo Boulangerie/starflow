@@ -29,6 +29,4 @@ Stash.prototype.exec = function exec(isPop) {
   return this.stash(!!isPop);
 };
 
-module.exports = function stashFactory(starflow) {
-  return new Stash(starflow);
-};
+module.exports = Stash;

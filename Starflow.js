@@ -1,6 +1,7 @@
 var Q = require('q');
 var _ = require('lodash');
 var Logger = require('./Logger');
+var Sequence = require('./Sequence');
 var Task = require('./Task');
 var chalk = require('chalk');
 
@@ -47,67 +48,6 @@ Starflow.prototype.run = function run() {
     });
 };
 
-Starflow.prototype.runTask = function runTask(task) {
-  var self = this;
-
-  if (!_.isFunction(task.exec)) {
-    throw new Error('The exec property of "' + task.name + '" must be a function');
-  }
-
-  if (this.flow.muteDepth >= 0 && this.flow.muteDepth === this.logger.depth) {
-    this.logger.mute();
-  }
-
-  var headerMessage;
-  if (task.description) {
-    headerMessage = task.description;
-  } else if (task.name) {
-    headerMessage = task.name + ' ' + this.logger.logArgsStr(task.args);
-  } else {
-    headerMessage = '<internal task>';
-  }
-
-  this.logger.header(headerMessage);
-  // wrap in a Q.fcall() to catch the errors correctly
-  return Q.fcall(function () {
-      return task.exec.apply(task, task.args);
-    })
-    .then(function (flow) {
-      self.logger.footer(Logger.prototype.SUCCESS_MESSAGE);
-      if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
-        self.logger.unmute();
-      }
-      return flow;
-    }, function (err) {
-      if (err === self.flow) { // e.g. git.createBranch when branch already exists
-        self.logger.footer(Logger.prototype.SUCCESS_MESSAGE);
-        if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
-          self.logger.unmute();
-        }
-        return flow;
-      } else {
-        self.logger.footer(Logger.prototype.ERROR_MESSAGE);
-        if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
-          self.logger.unmute();
-        }
-        throw err;
-      }
-    });
-};
-
-Starflow.prototype.runSequence = function runSequence(sequence) {
-  var self = this;
-  return _.reduce(sequence, function (prev, current) {
-    return prev.then(function () {
-      if (current instanceof Sequence) {
-        return self.runSequence(current);
-      } else {
-        return self.runTask(current);
-      }
-    });
-  }, Q(this.flow));
-};
-
 Starflow.prototype.processStep = function processStep(step) {
   var task = this.stepToTask(step);
 
@@ -118,7 +58,7 @@ Starflow.prototype.processStep = function processStep(step) {
 
   task.interpolate(this.flow);
 
-  return this.runTask(task);
+  return this.task.run();
 };
 
 Starflow.prototype.stepToTask = function stepToTask(step) {
@@ -140,10 +80,7 @@ Starflow.prototype.stepToTask = function stepToTask(step) {
     throw new Error('The task "' + step + '" must be a string or an object');
   }
 
-  var TaskClass = this.tasks[taskName];
-  var instance = new TaskClass(this);
-
-  return new Task(instance, taskName, taskArgs);
+  return new Task(this.tasks[taskName], taskArgs, taskName);
 };
 
 Starflow.prototype.isRegistered = function isRegistered(taskName) {

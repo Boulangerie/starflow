@@ -41,6 +41,4 @@ CreateBranch.prototype.exec = function exec(branchName, withCheckout) {
   return promise;
 };
 
-module.exports = function createBranchFactory(starflow) {
-  return new CreateBranch(starflow);
-};
+module.exports = CreateBranch;
