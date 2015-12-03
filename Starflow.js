@@ -1,14 +1,14 @@
 var Q = require('q');
 var _ = require('lodash');
-var mustache = require('mustache');
 var Logger = require('./Logger');
+var Task = require('./Task');
 var chalk = require('chalk');
 
 Q.longStackSupport = true;
 
-function Starflow(sequence, flow) {
+function Starflow(workflow, flow) {
   this.tasks = {};
-  this.sequence = sequence || [];
+  this.workflow = workflow || [];
   this.flow = flow || {};
 
   this.logger = new Logger();
@@ -29,29 +29,12 @@ Starflow.prototype.register = function register(names, taskFactory) {
   return this;
 };
 
-// Starflow.prototype.runSequences = function runSequences(sequences) {
-//   var self = this;
-//   return _.reduce(sequences, function (prev, current) {
-//     return prev.then(function (flow) {
-//       return self.runTasks(current);
-//     });
-//   }, Q(this.flow));
-// };
-
-// Starflow.prototype.runTasks = function runTasks(tasks) {
-//   return _.reduce(tasks, function (prev, current) {
-//     return prev.then(function (flow) {
-//       return current();
-//     });
-//   }, Q(this.flow));
-// };
-
 Starflow.prototype.run = function run() {
   var self = this;
 
-  return _.reduce(this.sequence, function (prev, current) {
-    return prev.then(function (flow) {
-      return self.processStep(current)();
+  return _.reduce(this.workflow, function (prev, current) {
+    return prev.then(function () {
+      return self.processStep(current);
     });
   }, Q(this.flow))
     .then(function (flow) {
@@ -64,81 +47,81 @@ Starflow.prototype.run = function run() {
     });
 };
 
-Starflow.prototype.wrapTask = function wrapTask(taskFactory, step) {
+Starflow.prototype.runTask = function runTask(task) {
   var self = this;
-  // return a promise factory for the task
-  return function promiseFactory() {
-    var task = taskFactory(self);
 
-    if (!_.isFunction(task.exec)) {
-      throw new Error('The exec property of "' + step.name + '" must be a function');
-    }
+  if (!_.isFunction(task.exec)) {
+    throw new Error('The exec property of "' + task.name + '" must be a function');
+  }
 
-    if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
-      self.logger.mute();
-    }
+  if (this.flow.muteDepth >= 0 && this.flow.muteDepth === this.logger.depth) {
+    this.logger.mute();
+  }
 
-    var headerMessage;
-    if (step.description) {
-      headerMessage = step.description;
-    } else if (step.name) {
-      headerMessage = step.name + ' ' + self.logger.logArgsStr(step.args);
-    } else {
-      headerMessage = '<internal task>';
-    }
+  var headerMessage;
+  if (task.description) {
+    headerMessage = task.description;
+  } else if (task.name) {
+    headerMessage = task.name + ' ' + this.logger.logArgsStr(task.args);
+  } else {
+    headerMessage = '<internal task>';
+  }
 
-    self.logger.header(headerMessage);
-    // wrap in a Q.fcall() to catch the errors correctly
-    return Q.fcall(function () {
-        return task.exec.apply(task, step.args);
-      })
-      .then(function (flow) {
+  this.logger.header(headerMessage);
+  // wrap in a Q.fcall() to catch the errors correctly
+  return Q.fcall(function () {
+      return task.exec.apply(task, task.args);
+    })
+    .then(function (flow) {
+      self.logger.footer(Logger.prototype.SUCCESS_MESSAGE);
+      if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
+        self.logger.unmute();
+      }
+      return flow;
+    }, function (err) {
+      if (err === self.flow) { // e.g. git.createBranch when branch already exists
         self.logger.footer(Logger.prototype.SUCCESS_MESSAGE);
         if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
           self.logger.unmute();
         }
         return flow;
-      }, function (err) {
-        if (err === self.flow) { // e.g. git.createBranch when branch already exists
-          self.logger.footer(Logger.prototype.SUCCESS_MESSAGE);
-          if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
-            self.logger.unmute();
-          }
-          return flow;
-        } else {
-          self.logger.footer(Logger.prototype.ERROR_MESSAGE);
-          if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
-            self.logger.unmute();
-          }
-          throw err;
+      } else {
+        self.logger.footer(Logger.prototype.ERROR_MESSAGE);
+        if (self.flow.muteDepth >= 0 && self.flow.muteDepth === self.logger.depth) {
+          self.logger.unmute();
         }
-      });
-  };
+        throw err;
+      }
+    });
+};
+
+Starflow.prototype.runSequence = function runSequence(sequence) {
+  var self = this;
+  return _.reduce(sequence, function (prev, current) {
+    return prev.then(function () {
+      if (current instanceof Sequence) {
+        return self.runSequence(current);
+      } else {
+        return self.runTask(current);
+      }
+    });
+  }, Q(this.flow));
 };
 
 Starflow.prototype.processStep = function processStep(step) {
-  var self = this;
-  step = this.normalizeStep(step);
+  var task = this.stepToTask(step);
 
-  var taskFactory = this.tasks[step.name];
+  var taskFactory = this.tasks[task.name];
   if (!taskFactory) {
-    throw new Error('Cannot find the factory for task "' + step.name + '". Did you register it to Starflow?');
+    throw new Error('Cannot find the factory for task "' + task.name + '". Did you register it to Starflow?');
   }
 
-  // parse each argument with Mustache
-  step.args = _.map(step.args, function (arg) {
-    if (_.isString(arg)) {
-      // do not escape HTML special characters like "<", ">" and "/"
-      arg = arg.replace(/\{\{([^&])/g, '{{&\$1');
-      arg = mustache.render(arg, self.flow);
-    }
-    return arg;
-  });
+  task.interpolate(this.flow);
 
-  return this.wrapTask(taskFactory, step);
+  return this.runTask(task);
 };
 
-Starflow.prototype.normalizeStep = function normalizeStep(step) {
+Starflow.prototype.stepToTask = function stepToTask(step) {
   var taskName = '';
   var taskArgs = [];
 
@@ -157,10 +140,10 @@ Starflow.prototype.normalizeStep = function normalizeStep(step) {
     throw new Error('The task "' + step + '" must be a string or an object');
   }
 
-  return {
-    name: taskName,
-    args: taskArgs
-  };
+  var TaskClass = this.tasks[taskName];
+  var instance = new TaskClass(this);
+
+  return new Task(instance, taskName, taskArgs);
 };
 
 Starflow.prototype.isRegistered = function isRegistered(taskName) {

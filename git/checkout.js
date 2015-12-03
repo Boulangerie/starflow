@@ -24,6 +24,4 @@ Checkout.prototype.exec = function exec(branchName) {
   return this.checkout(branchName);
 };
 
-module.exports = function checkoutFactory(starflow) {
-  return new Checkout(starflow);
-};
+module.exports = Checkout;
