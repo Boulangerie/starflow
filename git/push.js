@@ -1,6 +1,7 @@
 var Q = require('q');
 var _ = require('lodash');
 var starflow = require('../starflow');
+var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 
 function Push() {
@@ -8,8 +9,8 @@ function Push() {
 }
 
 Push.prototype.push = function push(remote, branch) {
-  var taskConfig = {args: ['git', ['push', '-u', remote, branch]]};
-  return starflow.wrapTask(spawnFactory, taskConfig)();
+  return new Task(spawnFactory(), ['git', ['push', '-u', remote, branch]])
+    .run();
 };
 
 Push.prototype.exec = function exec(remote, branch) {

@@ -42,4 +42,6 @@ Dependencies.prototype.exec = function exec(path, includeVersion) {
   return this.get(path, !!includeVersion);
 };
 
-module.exports = Dependencies;
+module.exports = function () {
+  return new Dependencies();
+};

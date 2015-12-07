@@ -11,9 +11,10 @@ var workflow = [];
 var flow = {};
 var logger = new Logger();
 
-function init(workflow, flow) {
-  workflow = workflow;
-  flow = flow;
+function init(userWorkflow, userFlow) {
+  workflow = userWorkflow;
+  flow = userFlow;
+  return this;
 }
 
 function getFlow() {
@@ -56,10 +57,6 @@ function runWorkflow() {
 
 function processStep(step) {
   var task = stepToTask(step);
-  var taskFactory = taskFactories[task.name];
-  if (!taskFactory) {
-    throw new Error('Cannot find the factory for task "' + task.name + '". Did you register it to Starflow?');
-  }
   task.interpolate(flow);
   return task.run();
 }
@@ -83,11 +80,15 @@ function stepToTask(step) {
     throw new Error('The task "' + step + '" must be a string or an object');
   }
 
-  var taskInstance = taskFactories[taskName]();
-  return new Task(taskInstance, taskArgs, taskName);
+  var taskFactory = taskFactories[taskName];
+  if (!taskFactory) {
+    throw new Error('Cannot find the factory for task "' + taskName + '". Did you register it to Starflow?');
+  }
+
+  return new Task(taskFactory(), taskArgs, taskName);
 }
 
-module.exports = {
+exports = module.exports = {
   flow: flow,
   logger: logger,
   init: init,

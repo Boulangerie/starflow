@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var Q = require('q');
+var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var starflow = require('../starflow');
 
@@ -12,9 +13,8 @@ Checkout.prototype.checkout = function checkout(branchName) {
     starflow.logger.log('Checked out to branch "' + branchName + '"');
     return starflow.flow;
   }
-
-  var taskConfig = {args: ['git', ['checkout', branchName]]};
-  return starflow.wrapTask(spawnFactory, taskConfig)()
+  return new Task(spawnFactory(), ['git', ['checkout', branchName]])
+    .run()
     .then(onSuccess);
 };
 

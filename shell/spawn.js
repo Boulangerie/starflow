@@ -37,7 +37,7 @@ Spawn.prototype.exec = function exec(cmd, args, muteErrors, options) {
 
   s.on('close', function (code) {
     if (code === 0 || muteErrors) {
-      if (starflow.logger.level > starflow.logger.__proto__.LEVEL.NORMAL) {
+      if (starflow.logger.level > starflow.logger.LEVEL.NORMAL) {
         var messages = String(stdout).split('\n');
         _.forEach(messages, function (message) {
           if (message) {

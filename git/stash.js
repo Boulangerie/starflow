@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var Q = require('q');
 var starflow = require('../starflow');
+var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 
 function Stash() {
@@ -19,8 +20,8 @@ Stash.prototype.stash = function stash(isPop) {
   if (isPop) {
     gitArgs.push('pop');
   }
-  var taskConfig = {args: ['git', gitArgs]};
-  return starflow.wrapTask(spawnFactory, taskConfig)()
+  return new Task(spawnFactory(), ['git', gitArgs])
+    .run()
     .catch(onError);
 };
 

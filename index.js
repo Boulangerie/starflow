@@ -8,23 +8,23 @@ var start = [
   {'$': ['git', ['stash', 'pop']]},
   {'jira.getIssue': '{{args.card}}'},
   {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{args.slug}}']},
-  {'$': ['git', ['checkout', '-b', '{{teads.branchName}}']]},
-  {'teads.linkDependencies': '{{args.deps}}'}, // "big" task
-  {'jira.assignIssue': '{{args.card}}'} // assign the issue to the current user (with Jira credentials)
+  {'$': ['git', ['checkout', '-b', '{{&teads.branchName}}']]},
+  {'teads.linkDependencies': '{{&args.deps}}'} // "big" task
+  // {'jira.assignIssue': '{{args.card}}'} // assign the issue to the current user (with Jira credentials)
 ];
 
 var workflow = [
   'git.stash',
-  {'git.checkout': 'refactor-5'},
-  {'git.fetch': ['origin', 'refactor-5']},
-  {'$': ['git', ['rebase', 'origin/refactor-5', 'refactor-5']]},
+  {'git.checkout': 'refactor-6'},
+  {'git.fetch': ['origin', 'refactor-6']},
+  {'$': ['git', ['rebase', 'origin/refactor-6', 'refactor-6']]},
   { 'git.stash': 'pop' },
   'npm.dependencies',
   'git.getCurrentBranch',
   {'jira.getIssue': '{{args.card}}'},
   {'prompt': 'main'},
-  {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']},
-  'teads.linkDependencies'
+  {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']}
+  // 'teads.linkDependencies'
   // {'git.createBranch': ['{{teads.branchName}}', true]}
 ];
 var flow = {
@@ -42,7 +42,6 @@ var flow = {
     }
   }
 };
-starflow.init(workflow, flow);
 starflow.logger.level = starflow.logger.LEVEL.ALL;
 
 var starflowShell = require('./shell/starflow-shell');
@@ -58,6 +57,7 @@ var starflowJira = require('./jira/starflow-jira')(
 var starflowTeads = require('./custom/starflow-teads');
 
 starflow
+  .init(workflow, flow)
   .register(['$', 'shell.spawn'], starflowShell.spawn)
   .register('prompt', starflowShell.prompt)
   .register('npm.dependencies', starflowNpm.dependencies)

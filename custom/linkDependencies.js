@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var Q = require('q');
 var starflow = require('../starflow');
+var Task = require('../Task');
 var promptFactory = require('../shell/prompt');
 var noOpFactory = require('./noOp');
 
@@ -18,8 +19,8 @@ LinkDependencies.prototype.promptDependencies = function promptDependencies() {
       }
     });
   }
-  var taskConfig = {args: ['teadsDependencies']};
-  return starflow.wrapTask(promptFactory, taskConfig)();
+  return new Task(promptFactory(), ['teadsDependencies'])
+    .run()
 };
 
 LinkDependencies.prototype.exec = function (dependencyChainSeparator) {

@@ -1,6 +1,7 @@
 var Q = require('q');
 var _ = require('lodash');
 var starflow = require('../starflow');
+var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 
 function Fetch() {
@@ -13,8 +14,8 @@ Fetch.prototype.fetch = function fetch(remote, branch) {
   if (branch) {
     gitArgs.push(branch);
   }
-  var taskConfig = {args: ['git', gitArgs]};
-  return starflow.wrapTask(spawnFactory, taskConfig)();
+  return new Task(spawnFactory(), ['git', gitArgs])
+    .run();
 };
 
 Fetch.prototype.exec = function exec(remote, branch) {

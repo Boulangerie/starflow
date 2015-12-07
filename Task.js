@@ -1,7 +1,6 @@
 var _ = require('lodash');
+var Q = require('q');
 var mustache = require('mustache');
-var starflow = require('./starflow');
-var logger = starflow.logger;
 
 function Task(instance, args, name, description) {
   this.instance = instance || null;
@@ -28,13 +27,16 @@ Task.prototype.interpolate = function interpolate(context) {
 };
 
 Task.prototype.run = function run() {
+  var starflow = require('./starflow');
+  var logger = starflow.logger;
+
   var self = this;
 
   if (!_.isFunction(this.instance.exec)) {
     throw new Error('The exec property of "' + this.name + '" must be a function');
   }
 
-  if (starflow.flow.muteDepth >= 0 && starflow.flow.muteDepth === starflow.logger.depth) {
+  if (starflow.flow.muteDepth >= 0 && starflow.flow.muteDepth === logger.depth) {
     logger.mute();
   }
 
@@ -51,7 +53,7 @@ Task.prototype.run = function run() {
 
   // wrap in a Q.fcall() to catch the errors correctly
   return Q.fcall(function () {
-      return self.instance.exec(self.args);
+      return self.instance.exec.apply(self.instance, self.args);
     })
     .then(function (flow) {
       logger.footer(logger.SUCCESS_MESSAGE);
