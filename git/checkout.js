@@ -1,14 +1,13 @@
 var _ = require('lodash');
 var Q = require('q');
 var spawnFactory = require('../shell/spawn');
+var starflow = require('../starflow');
 
-function Checkout(starflow) {
-  this.starflow = starflow;
+function Checkout() {
+
 }
 
 Checkout.prototype.checkout = function checkout(branchName) {
-  var starflow = this.starflow;
-
   function onSuccess() {
     starflow.logger.log('Checked out to branch "' + branchName + '"');
     return starflow.flow;
@@ -24,4 +23,6 @@ Checkout.prototype.exec = function exec(branchName) {
   return this.checkout(branchName);
 };
 
-module.exports = Checkout;
+module.exports = function () {
+  return new Checkout();
+};

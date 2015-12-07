@@ -1,14 +1,13 @@
 var Q = require('q');
 var _ = require('lodash');
+var starflow = require('../starflow');
 var spawnFactory = require('../shell/spawn');
 
-function Fetch(starflow) {
-  this.starflow = starflow;
+function Fetch() {
+
 }
 
 Fetch.prototype.fetch = function fetch(remote, branch) {
-  var starflow = this.starflow;
-
   var gitArgs = ['fetch', remote];
   // if no specific branch, then fetch every branch on specified remote
   if (branch) {
@@ -23,6 +22,6 @@ Fetch.prototype.exec = function exec(remote, branch) {
   return this.fetch(remote, branch);
 };
 
-module.exports = function FetchFactory(starflow) {
-  return new Fetch(starflow);
+module.exports = function () {
+  return new Fetch();
 };

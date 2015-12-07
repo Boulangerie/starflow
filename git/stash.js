@@ -1,14 +1,13 @@
 var _ = require('lodash');
 var Q = require('q');
+var starflow = require('../starflow');
 var spawnFactory = require('../shell/spawn');
 
-function Stash(starflow) {
-  this.starflow = starflow;
+function Stash() {
+
 }
 
 Stash.prototype.stash = function stash(isPop) {
-  var starflow = this.starflow;
-
   function onError(err) {
     if (!/No stash found/.test(err.message)) {
       throw err;
@@ -29,4 +28,6 @@ Stash.prototype.exec = function exec(isPop) {
   return this.stash(!!isPop);
 };
 
-module.exports = Stash;
+module.exports = function () {
+  return new Stash();
+};

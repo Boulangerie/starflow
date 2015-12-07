@@ -1,4 +1,5 @@
-var Starflow = require('./starflow');
+var starflow = require('./starflow');
+
 var start = [
   'git.stash',
   {'$': ['git', ['checkout', 'master']]},
@@ -12,7 +13,7 @@ var start = [
   {'jira.assignIssue': '{{args.card}}'} // assign the issue to the current user (with Jira credentials)
 ];
 
-var sequence = [
+var workflow = [
   'git.stash',
   {'git.checkout': 'refactor-5'},
   {'git.fetch': ['origin', 'refactor-5']},
@@ -41,8 +42,8 @@ var flow = {
     }
   }
 };
-var sf = new Starflow(sequence, flow);
-sf.logger.level = sf.logger.__proto__.LEVEL.ALL;
+starflow.init(workflow, flow);
+starflow.logger.level = starflow.logger.LEVEL.ALL;
 
 var starflowShell = require('./shell/starflow-shell');
 var starflowNpm = require('./npm/starflow-npm');
@@ -56,10 +57,10 @@ var starflowJira = require('./jira/starflow-jira')(
 );
 var starflowTeads = require('./custom/starflow-teads');
 
-sf
+starflow
   .register(['$', 'shell.spawn'], starflowShell.spawn)
-  .register('npm.dependencies', starflowNpm.dependencies)
   .register('prompt', starflowShell.prompt)
+  .register('npm.dependencies', starflowNpm.dependencies)
   .register(['git.getCurrentBranch', 'Get the current Git branch name'], starflowGit.currentBranch)
   .register('git.createBranch', starflowGit.createBranch)
   .register('git.checkout', starflowGit.checkout)
@@ -69,5 +70,5 @@ sf
   .register('jira.getIssue', starflowJira.getIssue)
   .register('teads.buildBranchName', starflowTeads.buildBranchName)
   .register('teads.linkDependencies', starflowTeads.linkDependencies)
-  .run()
+  .runWorkflow()
   .done();

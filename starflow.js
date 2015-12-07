@@ -1,43 +1,49 @@
 var Q = require('q');
 var _ = require('lodash');
 var Logger = require('./Logger');
-var Sequence = require('./Sequence');
 var Task = require('./Task');
 var chalk = require('chalk');
 
 Q.longStackSupport = true;
 
-function Starflow(workflow, flow) {
-  this.tasks = {};
-  this.workflow = workflow || [];
-  this.flow = flow || {};
+var taskFactories = {};
+var workflow = [];
+var flow = {};
+var logger = new Logger();
 
-  this.logger = new Logger();
+function init(workflow, flow) {
+  workflow = workflow;
+  flow = flow;
 }
 
-Starflow.prototype.register = function register(names, taskFactory) {
-  var self = this;
+function getFlow() {
+  return flow;
+}
+
+function getLogger() {
+  return logger;
+}
+
+function register(names, taskFactory) {
   if (_.isString(names)) {
     names = [names];
   }
   _.forEach(names, function (name) {
-    if (self.tasks[name]) {
+    if (taskFactories[name]) {
       console.log(chalk.yellow('Overriding the factory associated with the task "' + name + '". Make sure you are registering tasks with different names to avoid this.'));
     }
-    self.tasks[name] = taskFactory;
+    taskFactories[name] = taskFactory;
   });
 
   return this;
-};
+}
 
-Starflow.prototype.run = function run() {
-  var self = this;
-
-  return _.reduce(this.workflow, function (prev, current) {
+function runWorkflow() {
+  return _.reduce(workflow, function (prev, current) {
     return prev.then(function () {
-      return self.processStep(current);
+      return processStep(current);
     });
-  }, Q(this.flow))
+  }, Q(flow))
     .then(function (flow) {
       console.log(chalk.black.bgGreen('\n SUCCESS ') + chalk.green(' Sequence finished successfully'));
       return flow;
@@ -46,22 +52,19 @@ Starflow.prototype.run = function run() {
       console.log(chalk.black.bgRed('\n ERROR ') + chalk.red(' ' + err.message));
       throw err;
     });
-};
+}
 
-Starflow.prototype.processStep = function processStep(step) {
-  var task = this.stepToTask(step);
-
-  var taskFactory = this.tasks[task.name];
+function processStep(step) {
+  var task = stepToTask(step);
+  var taskFactory = taskFactories[task.name];
   if (!taskFactory) {
     throw new Error('Cannot find the factory for task "' + task.name + '". Did you register it to Starflow?');
   }
+  task.interpolate(flow);
+  return task.run();
+}
 
-  task.interpolate(this.flow);
-
-  return this.task.run();
-};
-
-Starflow.prototype.stepToTask = function stepToTask(step) {
+function stepToTask(step) {
   var taskName = '';
   var taskArgs = [];
 
@@ -80,11 +83,18 @@ Starflow.prototype.stepToTask = function stepToTask(step) {
     throw new Error('The task "' + step + '" must be a string or an object');
   }
 
-  return new Task(this.tasks[taskName], taskArgs, taskName);
-};
+  var taskInstance = taskFactories[taskName]();
+  return new Task(taskInstance, taskArgs, taskName);
+}
 
-Starflow.prototype.isRegistered = function isRegistered(taskName) {
-  return !!this.tasks[taskName];
+module.exports = {
+  flow: flow,
+  logger: logger,
+  init: init,
+  getFlow: getFlow,
+  getLogger: getLogger,
+  register: register,
+  runWorkflow: runWorkflow,
+  processStep: processStep,
+  stepToTask: stepToTask
 };
-
-module.exports = Starflow;

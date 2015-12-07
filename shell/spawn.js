@@ -1,13 +1,13 @@
 var _ = require('lodash');
 var Q = require('q');
 var spawn = require('child_process').spawn;
+var starflow = require('../starflow');
 
-function Spawn(starflow) {
-  this.starflow = starflow;
+function Spawn() {
+
 }
 
 Spawn.prototype.exec = function exec(cmd, args, muteErrors, options) {
-  var starflow = this.starflow;
   var deferred = Q.defer();
 
   var stdout = [];
@@ -60,6 +60,6 @@ Spawn.prototype.exec = function exec(cmd, args, muteErrors, options) {
   return deferred.promise;
 };
 
-module.exports = function spawnFactory(starflow) {
-  return new Spawn(starflow);
+module.exports = function () {
+  return new Spawn();
 };

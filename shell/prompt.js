@@ -2,13 +2,13 @@ var _ = require('lodash');
 var Q = require('q');
 var prompt = require('prompt');
 var chalk = require('chalk');
+var starflow = require('../starflow');
 
-function Prompt(starflow) {
-  this.starflow = starflow;
+function Prompt() {
+
 }
 
 Prompt.prototype.exec = function (schemaName) {
-  var starflow = this.starflow;
   var deferred = Q.defer();
 
   prompt.message = chalk.gray(starflow.logger.getPaddingText()) + ' ?';
@@ -35,6 +35,6 @@ Prompt.prototype.exec = function (schemaName) {
   return deferred.promise;
 };
 
-module.exports = function promptFactory(starflow) {
-  return new Prompt(starflow);
+module.exports = function () {
+  return new Prompt();
 };

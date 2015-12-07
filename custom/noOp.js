@@ -1,14 +1,15 @@
 var _ = require('lodash');
 var Q = require('q');
+var starflow = require('../starflow');
 
-function NoOp(starflow) {
-  this.starflow = starflow;
+function NoOp() {
+
 }
 
 NoOp.prototype.exec = function () {
-  return this.starflow.flow;
+  return starflow.flow;
 };
 
-module.exports = function noOpFactory(starflow) {
-  return new NoOp(starflow);
+module.exports = function () {
+  return new NoOp();
 };

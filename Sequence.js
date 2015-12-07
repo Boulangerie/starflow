@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var starflow = require('starflow');
+var starflow = require('./starflow');
 
 /**
  * var sq = new Sequence([

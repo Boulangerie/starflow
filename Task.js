@@ -1,43 +1,40 @@
 var _ = require('lodash');
 var mustache = require('mustache');
-var starflow = require('starflow');
-var logger = require('logger');
+var starflow = require('./starflow');
+var logger = starflow.logger;
 
-function Task(TaskClass, args, name, description) {
-  this.instance = new TaskClass();
+function Task(instance, args, name, description) {
+  this.instance = instance || null;
   this.args = args || [];
   this.name = name || '';
   this.description = description || '';
 }
 
 Task.prototype.instance = null;
-Task.prototype.args = null;
+Task.prototype.args = [];
 Task.prototype.name = '';
 Task.prototype.description = '';
 
 Task.prototype.interpolate = function interpolate(context) {
-
   // parse each argument with Mustache
   this.args = _.map(this.args, function (arg) {
     if (_.isString(arg)) {
-      // do not escape HTML special characters like "<", ">" and "/"
+      // FIXME do not escape HTML special characters like "<", ">" and "/"
       //arg = arg.replace(/\{\{([^&])/g, '{{&\$1');
       arg = mustache.render(arg, context);
     }
     return arg;
   });
-
 };
 
 Task.prototype.run = function run() {
-  
   var self = this;
 
   if (!_.isFunction(this.instance.exec)) {
     throw new Error('The exec property of "' + this.name + '" must be a function');
   }
 
-  if (this.flow.muteDepth >= 0 && this.flow.muteDepth === starflow.logger.depth) {
+  if (starflow.flow.muteDepth >= 0 && starflow.flow.muteDepth === starflow.logger.depth) {
     logger.mute();
   }
 

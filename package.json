@@ -12,6 +12,7 @@
     "q": "^1.1.2"
   },
   "devDependencies": {
+    "mustache": "^2.2.0",
     "prompt": "^0.2.14",
     "yargs": "^3.30.0"
   },

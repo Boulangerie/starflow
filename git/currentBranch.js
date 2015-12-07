@@ -1,13 +1,13 @@
 var Q = require('q');
 var _ = require('lodash');
 var spawnFactory = require('../shell/spawn');
+var starflow = require('../starflow');
 
-function CurrentBranch(starflow) {
-  this.starflow = starflow;
+function CurrentBranch() {
+
 }
 
 CurrentBranch.prototype.currentBranch = function currentBranch() {
-  var starflow = this.starflow;
   var taskConfig = {args: ['git', ['rev-parse', '--abbrev-ref', 'HEAD']]};
   taskConfig.description = taskConfig.args[0] + ' ' + taskConfig.args[1].join(' ');
 
@@ -27,6 +27,6 @@ CurrentBranch.prototype.exec = function exec() {
   return this.currentBranch();
 };
 
-module.exports = function currentBranchFactory(starflow) {
-  return new CurrentBranch(starflow);
+module.exports = function () {
+  return new CurrentBranch();
 };
