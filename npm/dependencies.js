@@ -1,13 +1,13 @@
 var Q = require('q');
 var _ = require('lodash');
 var fs = require('fs');
+var starflow = require('../starflow');
 
-function Dependencies(starflow) {
-  this.starflow = starflow;
+function Dependencies() {
+
 }
 
-Dependencies.prototype.get = function get(path) {
-  var starflow = this.starflow;
+Dependencies.prototype.get = function get(path, includeVersion) {
   var packageJson = JSON.parse(fs.readFileSync(path + '/package.json', 'utf-8'));
   var dependencies = _.assign({}, packageJson.dependencies || {}, packageJson.devDependencies || {});
 
@@ -28,16 +28,20 @@ Dependencies.prototype.get = function get(path) {
   starflow.logger.log(_.size(_.keys(packageJson.devDependencies)) + ' devDependencies found');
   displayDependencies(packageJson.devDependencies);
 
+  if (!includeVersion) {
+    dependencies = _.keys(dependencies);
+  }
+
   _.set(starflow.flow, 'npm.dependencies', dependencies);
   return starflow.flow;
-}
-
-Dependencies.prototype.exec = function exec(path) {
-  path = path || '.';
-  path = path.replace(/\/$/, ''); // remove last character if it's a '/'
-  return this.get(path);
 };
 
-module.exports = function dependenciesFactory(starflow) {
-  return new Dependencies(starflow);
+Dependencies.prototype.exec = function exec(path, includeVersion) {
+  path = path || '.';
+  path = path.replace(/\/$/, ''); // remove last character if it's a '/'
+  return this.get(path, !!includeVersion);
+};
+
+module.exports = function () {
+  return new Dependencies();
 };

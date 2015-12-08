@@ -1,14 +1,14 @@
 var _ = require('lodash');
 var Q = require('q');
+var starflow = require('../starflow');
+var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 
-function Stash(starflow) {
-  this.starflow = starflow;
+function Stash() {
+
 }
 
 Stash.prototype.stash = function stash(isPop) {
-  var starflow = this.starflow;
-
   function onError(err) {
     if (!/No stash found/.test(err.message)) {
       throw err;
@@ -20,8 +20,8 @@ Stash.prototype.stash = function stash(isPop) {
   if (isPop) {
     gitArgs.push('pop');
   }
-  var taskConfig = {args: ['git', gitArgs]};
-  return starflow.wrapTask(spawnFactory, taskConfig)()
+  return new Task(spawnFactory(), ['git', gitArgs])
+    .run()
     .catch(onError);
 };
 
@@ -29,6 +29,6 @@ Stash.prototype.exec = function exec(isPop) {
   return this.stash(!!isPop);
 };
 
-module.exports = function stashFactory(starflow) {
-  return new Stash(starflow);
+module.exports = function () {
+  return new Stash();
 };

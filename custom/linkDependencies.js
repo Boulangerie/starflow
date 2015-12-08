@@ -1,14 +1,15 @@
 var _ = require('lodash');
 var Q = require('q');
+var starflow = require('../starflow');
+var Task = require('../Task');
 var promptFactory = require('../shell/prompt');
 var noOpFactory = require('./noOp');
 
-function LinkDependencies(starflow) {
-  this.starflow = starflow;
+function LinkDependencies() {
+
 }
 
 LinkDependencies.prototype.promptDependencies = function promptDependencies() {
-  var starflow = this.starflow;
   if (!_.get(starflow.flow, 'prompt.teadsDependencies.properties.list')) {
     _.set(starflow.flow, 'prompt.teadsDependencies.properties', {
       list: {
@@ -18,12 +19,11 @@ LinkDependencies.prototype.promptDependencies = function promptDependencies() {
       }
     });
   }
-  var taskConfig = {args: ['teadsDependencies']};
-  return starflow.wrapTask(promptFactory, taskConfig)();
+  return new Task(promptFactory(), ['teadsDependencies'])
+    .run()
 };
 
 LinkDependencies.prototype.exec = function (dependencyChainSeparator) {
-  var starflow = this.starflow;
   dependencyChainSeparator = dependencyChainSeparator || '/';
 
   return this.promptDependencies()
@@ -66,6 +66,6 @@ LinkDependencies.prototype.exec = function (dependencyChainSeparator) {
     // });
 };
 
-module.exports = function linkDependenciesFactory(starflow) {
-  return new LinkDependencies(starflow);
+module.exports = function () {
+  return new LinkDependencies();
 };

@@ -1,16 +1,14 @@
 var Q = require('q');
 var _ = require('lodash');
+var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
+var starflow = require('../starflow');
 
-function CurrentBranch(starflow) {
-  this.starflow = starflow;
+function CurrentBranch() {
+
 }
 
 CurrentBranch.prototype.currentBranch = function currentBranch() {
-  var starflow = this.starflow;
-  var taskConfig = {args: ['git', ['rev-parse', '--abbrev-ref', 'HEAD']]};
-  taskConfig.description = taskConfig.args[0] + ' ' + taskConfig.args[1].join(' ');
-
   var self = this;
   function onSuccess() {
     var branchName = String(starflow.flow.lastShellOutput).trim();
@@ -19,7 +17,9 @@ CurrentBranch.prototype.currentBranch = function currentBranch() {
     return starflow.flow;
   }
 
-  return starflow.wrapTask(spawnFactory, taskConfig)()
+  var description = 'git rev-parse --abbrev-ref HEAD';
+  return new Task(spawnFactory(), ['git', ['rev-parse', '--abbrev-ref', 'HEAD']], null, description)
+    .run()
     .then(onSuccess);
 }
 
@@ -27,6 +27,6 @@ CurrentBranch.prototype.exec = function exec() {
   return this.currentBranch();
 };
 
-module.exports = function currentBranchFactory(starflow) {
-  return new CurrentBranch(starflow);
+module.exports = function () {
+  return new CurrentBranch();
 };
