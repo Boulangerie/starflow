@@ -1,83 +1,101 @@
-global.libRequire = function libRequire(name) {
-  return require(__dirname + '/lib/' + name);
-};
+var Q = require('q');
+var _ = require('lodash');
+var Logger = require('./Logger');
+var Task = require('./Task');
+var chalk = require('chalk');
 
-global.rootRequire = function rootRequire(name) {
-  return require(__dirname + '/' + name);
-};
+Q.longStackSupport = true;
 
-module.exports = (function (_, Q, fs, chalk, Common, Logger) {
-  'use strict';
+var taskFactories = {};
+var workflow = [];
+var flow = {};
+var logger = new Logger();
 
-  libRequire('utils');
+function init(userWorkflow, userFlow) {
+  workflow = userWorkflow;
+  flow = userFlow;
+  return this;
+}
 
-  Q.longStackSupport = true;
+function getFlow() {
+  return flow;
+}
 
-  var _mapTaskCallback = {};
-  var _tasks = [];
-  var _flow = {};
-  var _execContext;
+function getLogger() {
+  return logger;
+}
 
-  function _initMaps(userMap) {
-    try {
-      var starflowMap = fs.readFileSync(__dirname + '/lib/mapTaskCallback.json', 'utf-8');
-      starflowMap = JSON.parse(starflowMap);
-    } catch (err) {
+function register(names, taskFactory) {
+  if (_.isString(names)) {
+    names = [names];
+  }
+  _.forEach(names, function (name) {
+    if (taskFactories[name]) {
+      console.log(chalk.yellow('Overriding the factory associated with the task "' + name + '". Make sure you are registering tasks with different names to avoid this.'));
+    }
+    taskFactories[name] = taskFactory;
+  });
+
+  return this;
+}
+
+function runWorkflow() {
+  return _.reduce(workflow, function (prev, current) {
+    return prev.then(function () {
+      return processStep(current);
+    });
+  }, Q(flow))
+    .then(function (flow) {
+      console.log(chalk.black.bgGreen('\n SUCCESS ') + chalk.green(' Sequence finished successfully'));
+      return flow;
+    })
+    .fail(function (err) {
+      console.log(chalk.black.bgRed('\n ERROR ') + chalk.red(' ' + err.message));
       throw err;
-    }
-
-    _.forEach(starflowMap, function (filepath, key) {
-      starflowMap[key] = __dirname + '/' + filepath;
     });
+}
 
-    _.forEach(userMap, function (filepath, key) {
-      userMap[key] = _execContext + '/' + filepath;
-    });
+function processStep(step) {
+  var task = stepToTask(step);
+  task.interpolate(flow);
+  return task.run();
+}
 
-    _mapTaskCallback = _.extend(starflowMap, userMap);
+function stepToTask(step) {
+  var taskName = '';
+  var taskArgs = [];
+
+  if (_.isString(step)) {
+    taskName = step;
+  } else if (_.isObject(step)) { // task is an object
+    taskName = _.first(_.keys(step));
+    if (_.isString(step[taskName])) {
+      taskArgs = [step[taskName]];
+    } else if (_.isArray(step[taskName])) { // args is an array
+      taskArgs = step[taskName];
+    } else { // args are neither string nor array
+      throw new Error('The args for the task "' + taskName + '" must be a string or an array');
+    }
+  } else { // task is neither string or object
+    throw new Error('The task "' + step + '" must be a string or an object');
   }
 
-  function init(tasks, execContext, flow, userMap) {
-    if (_.isUndefinedOrNull(flow)) {
-      flow = {};
-    }
-
-    if (_.isUndefinedOrNull(execContext)) {
-      throw new Error('You must set the execution context (usually __dirname) for starflow.init');
-    }
-
-    _execContext = execContext;
-    _tasks = tasks;
-    _flow = flow;
-    _initMaps(userMap);
-    Common.init(_mapTaskCallback);
-    return this;
+  var taskFactory = taskFactories[taskName];
+  if (!taskFactory) {
+    throw new Error('Cannot find the factory for task "' + taskName + '". Did you register it to Starflow?');
   }
 
-  function run(withEndMessage) {
-    withEndMessage = _.isUndefined(withEndMessage) ? true : withEndMessage;
-    var promise = Common.runSequence(_tasks, _flow);
+  return new Task(taskFactory(), taskArgs, taskName);
+}
 
-    if (withEndMessage) {
-      promise
-        .then(function (res) {
-          console.log(chalk.black.bgGreen('\n SUCCESS ') + chalk.green(' Sequence finished successfully'));
-          return res;
-        })
-        .fail(function (err) {
-          //console.log(chalk.black.bgRed('\n ERROR ') + chalk.red(' Sequence aborted due to errors: ' + err.message));
-          console.log(chalk.black.bgRed('\n ERROR ') + chalk.red(' ' + err.message));
-          throw err;
-        })
-        .done();
-    }
-
-    return promise;
-  }
-
-  return {
-    init: init,
-    run: run
-  };
-
-})(require('lodash'), require('q'), require('fs'), require('chalk'), libRequire('Common'), libRequire('Logger'));
+exports = module.exports = {
+  flow: flow,
+  logger: logger,
+  init: init,
+  getFlow: getFlow,
+  getLogger: getLogger,
+  register: register,
+  runWorkflow: runWorkflow,
+  processStep: processStep,
+  stepToTask: stepToTask
+};

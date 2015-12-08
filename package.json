@@ -11,7 +11,11 @@
     "slugify": "0.1.1",
     "q": "^1.1.2"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mustache": "^2.2.0",
+    "prompt": "^0.2.14",
+    "yargs": "^3.30.0"
+  },
   "author": "bruiz",
   "license": "ISC"
 }
