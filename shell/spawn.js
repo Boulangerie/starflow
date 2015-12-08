@@ -50,7 +50,7 @@ Spawn.prototype.exec = function exec(cmd, args, muteErrors, options) {
       if (code !== 0) {
         starflow.logger.warning('Errors detected but muted by the task parameters');
       }
-      _.set(starflow.flow, 'lastShellOutput', stdout);
+      _.set(starflow.flow, 'lastShellOutput', String(stdout));
       deferred.resolve(starflow.flow);
     } else {
       deferred.reject(new Error(stderr));

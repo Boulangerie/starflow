@@ -14,22 +14,23 @@ var start = [
 ];
 
 var workflow = [
-  'git.stash',
-  {'git.checkout': 'refactor-6'},
-  {'git.fetch': ['origin', 'refactor-6']},
-  {'$': ['git', ['rebase', 'origin/refactor-6', 'refactor-6']]},
-  { 'git.stash': 'pop' },
-  'npm.dependencies',
-  'git.getCurrentBranch',
-  {'jira.getIssue': '{{args.card}}'},
-  {'prompt': 'main'},
-  {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']}
+  'git.stash'
+  // {'git.checkout': 'master'},
+  // {'git.fetch': ['origin', 'master']},
+  // {'$': ['git', ['rebase', 'origin/master', 'refactor-6']]},
+  ,{ 'git.stash': 'pop' }
+  ,'npm.dependencies'
+  // 'git.getCurrentBranch',
+  // {'jira.getIssue': '{{args.card}}'},
+  // {'prompt': 'main'},
+  // {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']}
   // 'teads.linkDependencies'
   // {'git.createBranch': ['{{teads.branchName}}', true]}
 ];
+var argv = require('yargs').argv;
 var flow = {
-  args: require('yargs').argv,
-  muteDepth: -1,
+  args: argv,
+  muteDepth: Number(argv['mute-depth']) || 0,
   prompt: {
     main: {
       properties: {
