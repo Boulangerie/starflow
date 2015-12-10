@@ -18,15 +18,13 @@ Stash.prototype.getStashId = function getStashId() {
       var pattern = '^stash@\\{(\\d+)\\}\\: (?:.+\\: )' + STASH_NAME;
       var stashLines = flow.lastShellOutput ? flow.lastShellOutput.split('\n') : [];
       var matches;
-      for (var i = 0, len = stashLines.length; i < len; i++) {
-        if (!_.isEmpty(stashLines[i])) {
-          matches = stashLines[i].match(new RegExp(pattern));
-          if (matches) {
-            _.set(flow, 'git.starflowTmpStashId', matches[1]);
-            i = len;
-          }
+      _.forEach(stashLines, function (line) {
+        matches = stashLines[i].match(new RegExp(pattern));
+        if (matches) {
+          _.set(flow, 'git.starflowTmpStashId', matches[1]);
+          return false;
         }
-      }
+      });
 
       if (_.isUndefined(flow.git) || (flow.git && _.isUndefined(flow.git.starflowTmpStashId))) {
         throw new Error(STASH_ID_UNDEFINED_MESSAGE);

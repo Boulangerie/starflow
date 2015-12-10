@@ -11,9 +11,7 @@ var publicApi = {
   logger: new Logger(),
   init: init,
   register: register,
-  runWorkflow: runWorkflow,
-  processStep: processStep,
-  stepToTask: stepToTask
+  runWorkflow: runWorkflow
 };
 var taskFactories = {};
 var workflow = [];
