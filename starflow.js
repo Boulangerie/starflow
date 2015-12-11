@@ -6,23 +6,20 @@ var chalk = require('chalk');
 
 Q.longStackSupport = true;
 
+var publicApi = {
+  flow: {},
+  logger: new Logger(),
+  init: init,
+  register: register,
+  runWorkflow: runWorkflow
+};
 var taskFactories = {};
 var workflow = [];
-var flow = {};
-var logger = new Logger();
 
 function init(userWorkflow, userFlow) {
   workflow = userWorkflow;
-  flow = userFlow;
-  return this;
-}
-
-function getFlow() {
-  return flow;
-}
-
-function getLogger() {
-  return logger;
+  publicApi.flow = userFlow;
+  return publicApi;
 }
 
 function register(names, taskFactory) {
@@ -36,7 +33,7 @@ function register(names, taskFactory) {
     taskFactories[name] = taskFactory;
   });
 
-  return this;
+  return publicApi;
 }
 
 function runWorkflow() {
@@ -44,7 +41,7 @@ function runWorkflow() {
     return prev.then(function () {
       return processStep(current);
     });
-  }, Q(flow))
+  }, Q(publicApi.flow))
     .then(function (flow) {
       console.log(chalk.black.bgGreen('\n SUCCESS ') + chalk.green(' Sequence finished successfully'));
       return flow;
@@ -57,7 +54,7 @@ function runWorkflow() {
 
 function processStep(step) {
   var task = stepToTask(step);
-  task.interpolate(flow);
+  task.interpolate(publicApi.flow);
   return task.run();
 }
 
@@ -88,14 +85,4 @@ function stepToTask(step) {
   return new Task(taskFactory(), taskArgs, taskName);
 }
 
-exports = module.exports = {
-  flow: flow,
-  logger: logger,
-  init: init,
-  getFlow: getFlow,
-  getLogger: getLogger,
-  register: register,
-  runWorkflow: runWorkflow,
-  processStep: processStep,
-  stepToTask: stepToTask
-};
+module.exports = publicApi;
