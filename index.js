@@ -14,21 +14,21 @@ var start = [
 ];
 
 var workflow = [
-  'git.stash'
-  // {'git.checkout': 'master'},
-  // {'git.fetch': ['origin', 'master']},
-  // {'$': ['git', ['rebase', 'origin/master', 'refactor-6']]},
-  ,{ 'git.stash': 'pop' }
-  ,'npm.dependencies'
-  // 'git.getCurrentBranch',
-  // {'jira.getIssue': '{{args.card}}'},
-  // {'prompt': 'main'},
-  // {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']}
-  // 'teads.linkDependencies'
+  'git.stash',
+  {'git.checkout': 'feature/GH14_rename-flow-config'},
+  {'git.fetch': ['origin', 'feature/GH14_rename-flow-config']},
+  {'$': ['git', ['rebase', 'origin/feature/GH14_rename-flow-config', 'feature/GH14_rename-flow-config']]},
+  { 'git.stash': 'pop' },
+  'npm.dependencies',
+  'git.getCurrentBranch',
+  {'jira.getIssue': '{{args.card}}'},
+  {'prompt': 'main'},
+  {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']},
+  'teads.linkDependencies'
   // {'git.createBranch': ['{{teads.branchName}}', true]}
 ];
 var argv = require('yargs').argv;
-var flow = {
+var config = {
   args: argv,
   muteDepth: Number(argv['mute-depth']) || 0,
   prompt: {
@@ -58,7 +58,7 @@ var starflowJira = require('./jira/starflow-jira')(
 var starflowTeads = require('./custom/starflow-teads');
 
 starflow
-  .init(workflow, flow)
+  .init(workflow, config)
   .register(['$', 'shell.spawn'], starflowShell.spawn)
   .register('prompt', starflowShell.prompt)
   .register('npm.dependencies', starflowNpm.dependencies)

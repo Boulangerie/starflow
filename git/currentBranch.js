@@ -11,10 +11,9 @@ function CurrentBranch() {
 CurrentBranch.prototype.currentBranch = function currentBranch() {
   var self = this;
   function onSuccess() {
-    var branchName = String(starflow.flow.lastShellOutput).trim();
+    var branchName = String(starflow.config.lastShellOutput).trim();
     starflow.logger.log('Current git branch: ' + branchName);
-    _.set(starflow.flow, 'git.currentBranch', branchName);
-    return starflow.flow;
+    _.set(starflow.config, 'git.currentBranch', branchName);
   }
 
   var description = 'git rev-parse --abbrev-ref HEAD';

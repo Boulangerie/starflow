@@ -1,6 +1,5 @@
 var Q = require('q');
 var _ = require('lodash');
-var starflow = require('../starflow');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 

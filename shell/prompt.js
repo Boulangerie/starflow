@@ -16,7 +16,7 @@ Prompt.prototype.exec = function (schemaName) {
 
   prompt.start();
 
-  var schema = _.get(starflow.flow, 'prompt.' + schemaName);
+  var schema = _.get(starflow.config, 'prompt.' + schemaName);
   if (!schema) {
     deferred.reject(new Error('Schema "' + schemaName + '" form prompt not found'));
     return;
@@ -28,8 +28,8 @@ Prompt.prototype.exec = function (schemaName) {
       deferred.reject(err);
       return;
     }
-    _.set(starflow.flow, 'prompt.' + schemaName + '.result', result);
-    deferred.resolve(starflow.flow);
+    _.set(starflow.config, 'prompt.' + schemaName + '.result', result);
+    deferred.resolve();
   });
 
   return deferred.promise;

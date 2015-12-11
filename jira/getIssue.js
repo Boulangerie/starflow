@@ -10,8 +10,7 @@ GetIssue.prototype.getIssue = function getIssue(key) {
   function onSuccess(issue) {
     starflow.logger.success('JIRA issue "' + key + '" was found');
     starflow.logger.log('<' + issue.fields.issuetype.name + '> ' + issue.fields.summary + ' (assigned to ' + ((!_.isNull(issue.fields.assignee)) ? issue.fields.assignee.name : 'nobody') + ', status: ' + issue.fields.status.name + ')');
-    _.set(starflow.flow, 'jira.issue', issue);
-    return starflow.flow;
+    _.set(starflow.config, 'jira.issue', issue);
   }
 
   function onError(err) {

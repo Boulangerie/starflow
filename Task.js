@@ -36,7 +36,7 @@ Task.prototype.run = function run() {
     throw new Error('The exec property of "' + this.name + '" must be a function');
   }
 
-  if (starflow.flow.muteDepth >= 0 && starflow.flow.muteDepth === logger.depth) {
+  if (starflow.config.muteDepth >= 0 && starflow.config.muteDepth === logger.depth) {
     logger.mute();
   }
 
@@ -55,26 +55,17 @@ Task.prototype.run = function run() {
   return Q.fcall(function () {
       return self.instance.exec.apply(self.instance, self.args);
     })
-    .then(function (flow) {
+    .then(function () {
       logger.footer(logger.SUCCESS_MESSAGE);
-      if (starflow.flow.muteDepth >= 0 && starflow.flow.muteDepth === logger.depth) {
+      if (starflow.config.muteDepth >= 0 && starflow.config.muteDepth === logger.depth) {
         logger.unmute();
       }
-      return flow;
     }, function (err) {
-      if (err === starflow.flow) { // e.g. git.createBranch when branch already exists
-        logger.footer(logger.SUCCESS_MESSAGE);
-        if (starflow.flow.muteDepth >= 0 && starflow.flow.muteDepth === logger.depth) {
-          logger.unmute();
-        }
-        return flow;
-      } else {
-        logger.footer(logger.ERROR_MESSAGE);
-        if (starflow.flow.muteDepth >= 0 && starflow.flow.muteDepth === logger.depth) {
-          logger.unmute();
-        }
-        throw err;
+      logger.footer(logger.ERROR_MESSAGE);
+      if (starflow.config.muteDepth >= 0 && starflow.config.muteDepth === logger.depth) {
+        logger.unmute();
       }
+      throw err;
     });
 };
 
