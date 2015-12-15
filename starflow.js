@@ -7,7 +7,7 @@ var chalk = require('chalk');
 Q.longStackSupport = true;
 
 var publicApi = {
-  flow: {},
+  config: {},
   logger: new Logger(),
   init: init,
   register: register,
@@ -15,11 +15,12 @@ var publicApi = {
 };
 var taskFactories = {};
 var workflow = [];
+var logger = new Logger();
 
-function init(userWorkflow, userFlow) {
+function init(userWorkflow, userConfig) {
   workflow = userWorkflow;
-  publicApi.flow = userFlow;
-  return publicApi;
+  publicApi.config = userConfig;
+  return this;
 }
 
 function register(names, taskFactory) {
@@ -41,10 +42,10 @@ function runWorkflow() {
     return prev.then(function () {
       return processStep(current);
     });
-  }, Q(publicApi.flow))
-    .then(function (flow) {
+  }, Q())
+    .then(function () {
       console.log(chalk.black.bgGreen('\n SUCCESS ') + chalk.green(' Sequence finished successfully'));
-      return flow;
+      return publicApi.config;
     })
     .fail(function (err) {
       console.log(chalk.black.bgRed('\n ERROR ') + chalk.red(' ' + err.message));
@@ -54,7 +55,7 @@ function runWorkflow() {
 
 function processStep(step) {
   var task = stepToTask(step);
-  task.interpolate(publicApi.flow);
+  task.interpolate(publicApi.config);
   return task.run();
 }
 

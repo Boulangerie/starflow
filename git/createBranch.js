@@ -12,15 +12,13 @@ function CreateBranch() {
 CreateBranch.prototype.createBranch = function createBranch(branchName) {
   function onCreateBranchSuccess() {
     starflow.logger.log('Git branch created: ' + branchName);
-    _.set(starflow.flow, 'git.createdBranch', branchName);
-    return starflow.flow;
+    _.set(starflow.config, 'git.createdBranch', branchName);
   }
   function onCreateBranchErr(err) {
     if (!/already exists/.test(err.message)) {
       throw err;
     }
     starflow.logger.warning('Could not create the branch because it already exists');
-    return starflow.flow;
   }
 
   return new Task(spawnFactory(), ['git', ['branch', branchName]])

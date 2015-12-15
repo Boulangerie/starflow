@@ -32,8 +32,7 @@ Dependencies.prototype.get = function get(path, includeVersion) {
     dependencies = _.keys(dependencies);
   }
 
-  _.set(starflow.flow, 'npm.dependencies', dependencies);
-  return starflow.flow;
+  _.set(starflow.config, 'npm.dependencies', dependencies);
 };
 
 Dependencies.prototype.exec = function exec(path, includeVersion) {

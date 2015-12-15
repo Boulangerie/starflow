@@ -11,7 +11,6 @@ function Checkout() {
 Checkout.prototype.checkout = function checkout(branchName) {
   function onSuccess() {
     starflow.logger.log('Checked out to branch "' + branchName + '"');
-    return starflow.flow;
   }
   return new Task(spawnFactory(), ['git', ['checkout', branchName]])
     .run()

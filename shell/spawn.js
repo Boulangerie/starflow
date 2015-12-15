@@ -16,7 +16,7 @@ Spawn.prototype.exec = function exec(cmd, args, muteErrors, options) {
   s.stdout.setEncoding('utf8');
   s.stderr.setEncoding('utf8');
 
-  // var data = _.isUndefinedOrNull(stdin) ? starflow.flow.lastShellOutput : stdin;
+  // var data = _.isUndefinedOrNull(stdin) ? starflow.config.lastShellOutput : stdin;
   // _.forEach(data, function (d) {
   //   s.stdin.write(d.toString());
   // });
@@ -50,8 +50,8 @@ Spawn.prototype.exec = function exec(cmd, args, muteErrors, options) {
       if (code !== 0) {
         starflow.logger.warning('Errors detected but muted by the task parameters');
       }
-      _.set(starflow.flow, 'lastShellOutput', String(stdout));
-      deferred.resolve(starflow.flow);
+      _.set(starflow.config, 'lastShellOutput', String(stdout));
+      deferred.resolve();
     } else {
       deferred.reject(new Error(stderr));
     }

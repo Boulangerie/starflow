@@ -28,7 +28,7 @@ Sequence.prototype.run = function run() {
     return prev.then(function () {
       return current.run();
     });
-  }, Q(starflow.flow));
+  }, Q());
 };
 
 module.exports = Sequence;

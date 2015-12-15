@@ -14,23 +14,21 @@ function Stash() {
 Stash.prototype.getStashId = function getStashId() {
   return new Task(spawnFactory(), ['git', ['stash', 'list']], '$')
     .run()
-    .then(function (flow) {
+    .then(function () {
       var pattern = '^stash@\\{(\\d+)\\}\\: (?:.+\\: )' + STASH_NAME;
-      var stashLines = flow.lastShellOutput ? flow.lastShellOutput.split('\n') : [];
+      var stashLines = starflow.config.lastShellOutput ? starflow.config.lastShellOutput.split('\n') : [];
       var matches;
       _.forEach(stashLines, function (line) {
         matches = stashLines[i].match(new RegExp(pattern));
         if (matches) {
-          _.set(flow, 'git.starflowTmpStashId', matches[1]);
+          _.set(starflow.config, 'git.starflowTmpStashId', matches[1]);
           return false;
         }
       });
 
-      if (_.isUndefined(flow.git) || (flow.git && _.isUndefined(flow.git.starflowTmpStashId))) {
+      if (_.isUndefined(starflow.config.git) || (starflow.config.git && _.isUndefined(starflow.config.git.starflowTmpStashId))) {
         throw new Error(STASH_ID_UNDEFINED_MESSAGE);
       }
-
-      return flow;
     });
 };
 
@@ -40,11 +38,10 @@ Stash.prototype.stash = function stash(isPop) {
       throw err;
     }
     starflow.logger.warning('Nothing was stashed');
-    return starflow.flow;
   }
 
-  function onGetStashIdSuccess(flow) {
-    var gitArgs = ['stash', (isPop ? 'pop' : 'save'), (isPop ? 'stash@{' + flow.git.starflowTmpStashId + '}' : STASH_NAME)];
+  function onGetStashIdSuccess() {
+    var gitArgs = ['stash', (isPop ? 'pop' : 'save'), (isPop ? 'stash@{' + starflow.config.git.starflowTmpStashId + '}' : STASH_NAME)];
     return new Task(spawnFactory(), ['git', gitArgs], '$').run();
   }
 
@@ -53,10 +50,9 @@ Stash.prototype.stash = function stash(isPop) {
       throw err;
     }
     starflow.logger.warning('No starflow-tmp stash was found');
-    return starflow.flow;
   }
 
-  var promise = isPop ? this.getStashId.bind(this) : Q.bind(starflow.flow);
+  var promise = isPop ? this.getStashId.bind(this) : Q.bind();
 
   return promise()
     .then(onGetStashIdSuccess, onGetStashIdError)

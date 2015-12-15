@@ -10,8 +10,8 @@ function LinkDependencies() {
 }
 
 LinkDependencies.prototype.promptDependencies = function promptDependencies() {
-  if (!_.get(starflow.flow, 'prompt.teadsDependencies.properties.list')) {
-    _.set(starflow.flow, 'prompt.teadsDependencies.properties', {
+  if (!_.get(starflow.config, 'prompt.teadsDependencies.properties.list')) {
+    _.set(starflow.config, 'prompt.teadsDependencies.properties', {
       list: {
         description: 'Dependencies list (blank space separated)',
         message: 'e.g. teads-player teads-player/lib-format-vpaid-ui',
@@ -29,7 +29,7 @@ LinkDependencies.prototype.exec = function (dependencyChainSeparator) {
   return this.promptDependencies()
     .then(function () {
       var deps = [];
-      var dependencies = _.get(starflow.flow, 'prompt.teadsDependencies.result.list');
+      var dependencies = _.get(starflow.config, 'prompt.teadsDependencies.result.list');
       dependencies = dependencies ? dependencies.split(' ') : [];
       _.forEach(dependencies, function (dep) {
         // e.g. dep==="service-format-player", dep==="service-format-player/lib-format-vpaid-ui"
@@ -43,12 +43,10 @@ LinkDependencies.prototype.exec = function (dependencyChainSeparator) {
         deps.push({
           name: dep,
           chain: depChain,
-          branch: starflow.flow.teads.branchName,
+          branch: starflow.config.teads.branchName,
           path: cdPath
         });
       });
-
-      return starflow.flow;
       // TODO
       // return deps;
     });
