@@ -19,7 +19,7 @@ Spawn.prototype.exec = function exec(cmd) {
   } else {
     args = _.rest(arguments);
     muteErrors = false;
-    options = {}
+    options = {};
   }
 
   var stdout = [];
