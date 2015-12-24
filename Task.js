@@ -22,6 +22,11 @@ Task.prototype.interpolate = function interpolate(context) {
       //arg = arg.replace(/\{\{([^&])/g, '{{&\$1');
       arg = mustache.render(arg, context);
     }
+    else if(_.isArray(arg)){
+      var embeddedArgs = {args : arg};
+      Task.prototype.interpolate.call(embeddedArgs, context);
+      arg = embeddedArgs.args;
+    }
     return arg;
   });
 };
