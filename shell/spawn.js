@@ -7,8 +7,20 @@ function Spawn() {
 
 }
 
-Spawn.prototype.exec = function exec(cmd, args, muteErrors, options) {
+Spawn.prototype.exec = function exec(cmd) {
+  var args, muteErrors, options;
   var deferred = Q.defer();
+
+  if ((arguments.length === 1) && _.isObject(cmd)) {
+    args = cmd.args || [];
+    muteErrors = cmd.muteErrors || false;
+    options = cmd.options || {};
+    cmd = cmd.cmd;
+  } else {
+    args = _.rest(arguments);
+    muteErrors = false;
+    options = {};
+  }
 
   var stdout = [];
   var stderr = [];

@@ -18,8 +18,8 @@ var workflow = [];
 var logger = new Logger();
 
 function init(userWorkflow, userConfig) {
-  workflow = userWorkflow;
-  publicApi.config = userConfig;
+  workflow = userWorkflow || [];
+  publicApi.config = userConfig || {};
   return this;
 }
 
@@ -67,7 +67,7 @@ function stepToTask(step) {
     taskName = step;
   } else if (_.isObject(step)) { // task is an object
     taskName = _.first(_.keys(step));
-    if (_.isString(step[taskName])) {
+    if (_.isString(step[taskName]) || (_.isObject(step[taskName]) && !_.isArray(step[taskName]))) {
       taskArgs = [step[taskName]];
     } else if (_.isArray(step[taskName])) { // args is an array
       taskArgs = step[taskName];
