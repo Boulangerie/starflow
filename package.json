@@ -9,11 +9,11 @@
     "jira": "^0.9.2",
     "lodash": "^3.9.0",
     "slugify": "0.1.1",
-    "q": "^1.1.2"
+    "q": "^1.1.2",
+    "mustache": "^2.2.0",
+    "prompt": "^0.2.14"
   },
   "devDependencies": {
-    "mustache": "^2.2.0",
-    "prompt": "^0.2.14",
     "yargs": "^3.30.0"
   },
   "author": "bruiz",
