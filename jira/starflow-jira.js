@@ -8,6 +8,9 @@ module.exports = function jiraFactory(protocol, host, port, user, pass) {
   }
 
   return {
-    getIssue: require('./getIssue')(api)
+    assignIssue: require('./assignIssue')(api),
+    changeIssueStatus: require('./changeIssueStatus')(api),
+    getIssue: require('./getIssue')(api),
+    getIssueStatuses: require('./getIssueStatuses')(api)
   };
 };
