@@ -16,7 +16,7 @@ AssignIssue.prototype.mapNonUserAssignee = function mapNonUserAssignee(assignee)
 };
 
 AssignIssue.prototype.assignIssue = function assignIssue(key, assignee) {
-  var params = _.set({}, 'fields.assignee.name', assignee);
+  var params = _.set({}, 'fields.assignee.name', this.mapNonUserAssignee(assignee));
   return Q
     .ninvoke(this.api, 'updateIssue', key, params)
     .then(onSuccess, onError);
@@ -48,7 +48,6 @@ AssignIssue.prototype.exec = function exec(key, assignee) {
     throw new Error('An assignee is required');
   }
 
-  assignee =  this.mapNonUserAssignee(assignee);
   return this.assignIssue(key, assignee);
 };
 
