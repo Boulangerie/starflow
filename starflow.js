@@ -43,11 +43,12 @@ function runWorkflow() {
     });
   }, Q())
     .then(function () {
-      console.log(chalk.black.bgGreen('\n SUCCESS ') + chalk.green(' Sequence finished successfully'));
+      console.log(chalk.black.bgGreen('\n SUCCESS ') + chalk.green(' Sequence finished successfully') + ' ');
       return publicApi.config;
     })
     .fail(function (err) {
-      console.log(chalk.black.bgRed('\n ERROR ') + chalk.red(' ' + err.message));
+      var message = _.get(err, 'message', err);
+      console.log(chalk.black.bgRed('\n ERROR ') + chalk.red(' ' + message + ' '));
       throw err;
     });
 }
