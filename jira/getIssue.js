@@ -17,7 +17,7 @@ GetIssue.prototype.getIssue = function getIssue(key) {
     starflow.logger.error('JIRA issue "' + key + '" was not found');
     throw err;
   }
-  var jiraFindIssue = Promise.promisify(this.api.findIssue);
+  var jiraFindIssue = Promise.promisify(this.api.findIssue, {context: this.api});
   return jiraFindIssue(key)
     .then(onSuccess, onError);
 };
