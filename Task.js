@@ -55,7 +55,10 @@ Task.prototype.run = function run() {
 
   logger.header(headerMessage);
 
-  return self.instance.exec.apply(self.instance, self.args)
+  var execResult = self.instance.exec.apply(self.instance, self.args);
+  var execPromise = (_.get(execResult, 'isFulfilled'))? execResult : Promise.resolve(execResult);
+
+  return execPromise
     .then(function () {
       logger.footer(logger.SUCCESS_MESSAGE);
       if (starflow.config.muteDepth >= 0 && starflow.config.muteDepth === logger.depth) {
