@@ -17,7 +17,7 @@ Stash.prototype.getStashId = function getStashId() {
       var stashLines = starflow.config.lastShellOutput ? starflow.config.lastShellOutput.split('\n') : [];
       var matches;
       _.forEach(stashLines, function (line) {
-        matches = stashLines[i].match(new RegExp(pattern));
+        matches = line.match(new RegExp(pattern));
         if (matches) {
           _.set(starflow.config, 'git.starflowTmpStashId', matches[1]);
           return false;
