@@ -1,4 +1,5 @@
 var _ = require('lodash');
+var Promise = require("bluebird");
 var prompt = require('prompt');
 var chalk = require('chalk');
 var starflow = require('../starflow');
@@ -6,30 +7,26 @@ var starflow = require('../starflow');
 function Prompt() {}
 
 Prompt.prototype.exec = function (schemaName) {
-  var deferred = new Promise();
+  return new Promise(function(resolve, reject){
+    prompt.message = chalk.gray(starflow.logger.getPaddingText()) + ' ?';
+    prompt.delimiter = ' ';
 
-  prompt.message = chalk.gray(starflow.logger.getPaddingText()) + ' ?';
-  prompt.delimiter = ' ';
+    prompt.start();
 
-  prompt.start();
-
-  var schema = _.get(starflow.config, 'prompt.' + schemaName);
-  if (!schema) {
-    deferred.reject(new Error('Schema "' + schemaName + '" form prompt not found'));
-    return;
-  }
-
-  prompt.get(schema, function (err, result) {
-    if (err) {
-      console.log('');
-      deferred.reject(err);
-      return;
+    var schema = _.get(starflow.config, 'prompt.' + schemaName);
+    if (!schema) {
+      reject(new Error('Schema "' + schemaName + '" form prompt not found'));
     }
-    _.set(starflow.config, 'prompt.' + schemaName + '.result', result);
-    deferred.resolve();
-  });
 
-  return deferred.promise;
+    //@todo: Do something better with bluebird here
+    prompt.get(schema, function (err, result) {
+      if (err) {
+        reject(err);
+      }
+      _.set(starflow.config, 'prompt.' + schemaName + '.result', result);
+      resolve();
+    });
+  });
 };
 
 module.exports = function () {

@@ -1,9 +1,7 @@
-var Promise = require("bluebird");
-
 function NoOp() {}
 
 NoOp.prototype.exec = function () {
-  return new Promise();
+  return true;
 };
 
 module.exports = function () {
