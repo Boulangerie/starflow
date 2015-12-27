@@ -1,15 +1,12 @@
 var _ = require('lodash');
-var Q = require('q');
 var prompt = require('prompt');
 var chalk = require('chalk');
 var starflow = require('../starflow');
 
-function Prompt() {
-
-}
+function Prompt() {}
 
 Prompt.prototype.exec = function (schemaName) {
-  var deferred = Q.defer();
+  var deferred = new Promise();
 
   prompt.message = chalk.gray(starflow.logger.getPaddingText()) + ' ?';
   prompt.delimiter = ' ';

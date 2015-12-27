@@ -1,10 +1,8 @@
-var Q = require('q');
 var _ = require('lodash');
+var Promise = require("bluebird");
 var Logger = require('./Logger');
 var Task = require('./Task');
 var chalk = require('chalk');
-
-Q.longStackSupport = true;
 
 var publicApi = {
   config: {},
@@ -13,6 +11,7 @@ var publicApi = {
   register: register,
   runWorkflow: runWorkflow
 };
+
 var taskFactories = {};
 var workflow = [];
 
@@ -41,12 +40,12 @@ function runWorkflow() {
     return prev.then(function () {
       return processStep(current);
     });
-  }, Q())
+  }, new Promise())
     .then(function () {
       console.log(chalk.black.bgGreen('\n SUCCESS ') + chalk.green(' Sequence finished successfully') + ' ');
       return publicApi.config;
     })
-    .fail(function (err) {
+    .catch(function (err) {
       var message = _.get(err, 'message', err);
       console.log(chalk.black.bgRed('\n ERROR ') + chalk.red(' ' + message + ' '));
       throw err;

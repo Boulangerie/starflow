@@ -1,15 +1,13 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var spawn = require('child_process').spawn;
 var starflow = require('../starflow');
 
-function Spawn() {
-
-}
+function Spawn() {}
 
 Spawn.prototype.exec = function exec(cmd) {
   var args, muteErrors, options;
-  var deferred = Q.defer();
+  var deferred = new Promise();
 
   if ((arguments.length === 1) && _.isObject(cmd)) {
     args = cmd.args || [];

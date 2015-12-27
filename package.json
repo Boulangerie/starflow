@@ -4,6 +4,7 @@
   "description": "Manage your developement workflows with a configuration file",
   "main": "starflow.js",
   "dependencies": {
+    "bluebird": "^3.1.1",
     "chalk": "^1.0.0",
     "github": "^0.2.4",
     "gitlab": "^1.2.0",

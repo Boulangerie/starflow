@@ -1,13 +1,10 @@
 var _ = require('lodash');
-var Q = require('q');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 
-function LinkDependencies() {
-
-}
+function LinkDependencies() {}
 
 LinkDependencies.prototype.exec = function () {
 

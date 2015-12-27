@@ -1,11 +1,8 @@
-var Q = require('q');
 var _ = require('lodash');
 var fs = require('fs');
 var starflow = require('../starflow');
 
-function Dependencies() {
-
-}
+function Dependencies() {}
 
 Dependencies.prototype.get = function get(path, includeVersion) {
   var packageJson = JSON.parse(fs.readFileSync(path + '/package.json', 'utf-8'));

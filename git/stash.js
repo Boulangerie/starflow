@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var starflow = require('../starflow');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
@@ -7,9 +7,7 @@ var spawnFactory = require('../shell/spawn');
 var STASH_NAME = 'starflow-tmp';
 var STASH_ID_UNDEFINED_MESSAGE = 'Could not find any stash ID for starflow-tmp';
 
-function Stash() {
-
-}
+function Stash() {}
 
 Stash.prototype.getStashId = function getStashId() {
   return new Task(spawnFactory(), ['git', ['stash', 'list']], '$')
@@ -51,8 +49,8 @@ Stash.prototype.stash = function stash(isPop) {
     }
     starflow.logger.warning('No starflow-tmp stash was found');
   }
-
-  var promise = isPop ? this.getStashId.bind(this) : Q.bind();
+  //@todo: Test this case when isPop is false
+  var promise = isPop ? this.getStashId.bind(this) : new Promise();
 
   return promise()
     .then(onGetStashIdSuccess, onGetStashIdError)

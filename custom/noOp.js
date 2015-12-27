@@ -1,12 +1,9 @@
-var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 
-function NoOp() {
-
-}
+function NoOp() {}
 
 NoOp.prototype.exec = function () {
-  return Q();
+  return new Promise();
 };
 
 module.exports = function () {

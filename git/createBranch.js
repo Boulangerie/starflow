@@ -1,13 +1,10 @@
-var Q = require('q');
 var _ = require('lodash');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var checkoutFactory = require('../git/checkout');
 
-function CreateBranch() {
-
-}
+function CreateBranch() {}
 
 CreateBranch.prototype.createBranch = function createBranch(branchName) {
   function onCreateBranchSuccess() {
@@ -24,11 +21,10 @@ CreateBranch.prototype.createBranch = function createBranch(branchName) {
   return new Task(spawnFactory(), ['git', ['branch', branchName]])
     .run()
     .then(onCreateBranchSuccess, onCreateBranchErr);
-}
+};
 
 CreateBranch.prototype.checkout = function checkout(branchName) {
-  return new Task(checkoutFactory(), [branchName])
-    .run()
+  return new Task(checkoutFactory(), [branchName]).run()
 };
 
 CreateBranch.prototype.exec = function exec(branchName, withCheckout) {
