@@ -14,23 +14,26 @@ var start = [
 ];
 
 var workflow = [
-  'git.stash',
-  {'git.checkout': 'feature/GH14_rename-flow-config'},
-  {'git.fetch': ['origin', 'feature/GH14_rename-flow-config']},
-  {'$': ['git', ['rebase', 'origin/feature/GH14_rename-flow-config', 'feature/GH14_rename-flow-config']]},
-  { 'git.stash': 'pop' },
-  'npm.dependencies',
-  'git.getCurrentBranch',
-  {'jira.getIssue': '{{args.card}}'},
-  {'prompt': 'main'},
-  {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']},
-  'teads.linkDependencies'
+  {'$': ['npm', 'install', 'teads-player']},
+  {'teads.linkDependencies': ['teads-player/teads-vpaid-video/teads-vpaid']},
+  {'teads.unlinkDependencies': ['teads-player/teads-vpaid-video/teads-vpaid', 'teads-player/teads-vpaid-video', 'teads-player']}
+  // 'git.stash',
+  // {'git.checkout': 'feature/GH14_rename-flow-config'},
+  // {'git.fetch': ['origin', 'feature/GH14_rename-flow-config']},
+  // {'$': ['git', ['rebase', 'origin/feature/GH14_rename-flow-config', 'feature/GH14_rename-flow-config']]},
+  // { 'git.stash': 'pop' },
+  // 'npm.dependencies',
+  // 'git.getCurrentBranch',
+  // {'jira.getIssue': '{{args.card}}'},
+  // {'prompt': 'main'},
+  // {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', '{{args.card}}', '{{prompt.main.result.title}}']},
+  // 'teads.linkDependencies'
   // {'git.createBranch': ['{{teads.branchName}}', true]}
 ];
 var argv = require('yargs').argv;
 var config = {
   args: argv,
-  muteDepth: Number(argv['mute-depth']) || 0,
+  muteDepth: Number(argv['mute-depth']) || 2,
   prompt: {
     main: {
       properties: {
@@ -71,5 +74,6 @@ starflow
   .register('jira.getIssue', starflowJira.getIssue)
   .register('teads.buildBranchName', starflowTeads.buildBranchName)
   .register('teads.linkDependencies', starflowTeads.linkDependencies)
+  .register('teads.unlinkDependencies', starflowTeads.unlinkDependencies)
   .runWorkflow()
   .done();

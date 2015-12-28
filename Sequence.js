@@ -1,4 +1,5 @@
 var _ = require('lodash');
+var Q = require('q');
 var starflow = require('./starflow');
 
 /**

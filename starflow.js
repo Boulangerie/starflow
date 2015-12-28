@@ -15,7 +15,6 @@ var publicApi = {
 };
 var taskFactories = {};
 var workflow = [];
-var logger = new Logger();
 
 function init(userWorkflow, userConfig) {
   workflow = userWorkflow || [];
