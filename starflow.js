@@ -40,7 +40,7 @@ function runWorkflow() {
     return prev.then(function () {
       return processStep(current);
     });
-  }, new Promise())
+  }, Promise.resolve())
     .then(function () {
       console.log(chalk.black.bgGreen('\n SUCCESS ') + chalk.green(' Sequence finished successfully') + ' ');
       return publicApi.config;
@@ -48,6 +48,7 @@ function runWorkflow() {
     .catch(function (err) {
       var message = _.get(err, 'message', err);
       console.log(chalk.black.bgRed('\n ERROR ') + chalk.red(' ' + message + ' '));
+      //@todo(GH25): Maybe check the type, debug mode, etc... Before throw it
       throw err;
     });
 }

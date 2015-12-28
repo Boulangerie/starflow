@@ -50,7 +50,7 @@ Stash.prototype.stash = function stash(isPop) {
     starflow.logger.warning('No starflow-tmp stash was found');
   }
   //@todo: Test this case when isPop is false
-  var promise = isPop ? this.getStashId.bind(this) : new Promise();
+  var promise = isPop ? this.getStashId.bind(this) : Promise.resolve;
 
   return promise()
     .then(onGetStashIdSuccess, onGetStashIdError)
