@@ -1,15 +1,15 @@
 var _ = require('lodash');
 var Q = require('q');
 var starflow = require('../starflow');
-var taskGetIssueStatues = require('./getIssueStatuses');
+var taskGetIssueStatuses = require('./getIssueStatuses');
 var Task = require('../Task');
 
 function ChangeIssueStatus(api) {
   this.api = api;
 }
 
-ChangeIssueStatus.prototype.getIssueStatues = function getIssueStatues(key, status) {
-  return new Task(taskGetIssueStatues(this.api)(), [key, status]).run();
+ChangeIssueStatus.prototype.getIssueStatuses = function getIssueStatuses(key, status) {
+  return new Task(taskGetIssueStatuses(this.api)(), [key, status]).run();
 };
 
 ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(key, status) {
@@ -49,7 +49,7 @@ ChangeIssueStatus.prototype.exec = function exec(key, status) {
     throw new Error('JIRA status is required');
   }
   return this
-    .getIssueStatues(key, status)
+    .getIssueStatuses(key, status)
     .then(function(){
       return this.changeIssueStatus(key, status);
     }.bind(this));

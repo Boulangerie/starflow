@@ -1,7 +1,9 @@
 var _ = require('lodash');
 var starflow = require('../starflow');
 
-function Echo() {}
+function Echo() {
+
+}
 
 //Implement Executable interface just means declare an exec function here.
 Echo.prototype.exec = function exec(message, fromStarflowConfig) {
