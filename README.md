@@ -1,58 +1,57 @@
 # :star2::rocket::star2: Starflow v0.0.1 :star2::rocket::star2:
 
 ## Description
-Because we always do the same boring tasks every day when we code, we have to invent a tool which can simplify our lives. Starflow idea was born.
+Every time you work on a project, you need to do the same tasks over and over again. Would it not be great if there was some sort of a tool that deals with this for us? Introducing Starflow.
 
-Idea is simple, we all have some boring manual **workflows** we want to automatize, like:
+The idea is simple: we all have some boring manual **workflows** we want to automate, such as:
 
 - Start a new feature
 - End a feature
-- Quick move to an other current task
+- Move to another on-going task
  
-But this isn't so easy rights, in reality **Start a new feature** means :
+But this isn't that easy, right? **Starting a new feature** actually means:
  
-- Fetch your repo
-- Go to master
+- Fetch the last changes from the remote repository
+- Go on the master branch
 - ...more git stuff...
-- Check corresponding card on your agile tool like *Jira*
-- ...more jira stuff...
+- Check the corresponding ticket/issue on your agile tool (like *Jira*)
+- ...more Jira stuff...
 
-If like us you think this kind of task are easy but also a waste of time
+If, like us, you think these tasks are simple but repetitive and a waste of time, then...
  
-**Starflow** come to your rescue !
+**Starflow** comes to the rescue!
  
-Describe yours **Workflows** as **Sequences** of **Tasks** and just call them. Now you can say it's simple to *Start a new feature*
+Describe your **workflows** as a succession of steps and Starflow will handle the rest for you. Now you can say it's simple to *Start a new feature*.
 
-This is **Starflow** and you gonna love it !
+This is **Starflow** and you are going love it!
 
 ## Install
 
-Starflow is a workflow helper
+Starflow is a workflow helper.
 
-- Create a new node/npm project
-- Install **Starflow** as dependency or devDependency
-  * `npm install starflow --save`
-  * `npm install starflow --save-dev`
+- Create a new node project
+- Install **Starflow** as a devDependency (or dependency if you make a starflow plugin)
+  * `npm install starflow --save-dev` (or `npm install starflow --save`)
 
-**That's all folks ! Now you are ready to create your starflows**
+**That's all folks! Now you are ready to create your workflows.**
 
 ## Basic Example
 
-A starflow workflow is a nodejs script where you will tell starflow what you want to do. The following starflow will show you how to echo a prompted value.
+The following starflow usage will show you how to echo a prompted value.
 
 ```javascript
-//Filename: promptEchoFlow.js
+// Filename: echoPromptFlow.js
 
-//1) Get the starflow module
+// 1) Get the starflow module
 var starflow = require('starflow');
 
-//Optional) Set how starflow will be verbose or not during is execution
+// Optional) Set how starflow will be verbose or not during its execution
 starflow.logger.level = starflow.logger.LEVEL.ALL;
 
-//2) Get all API you needs for your workflow (public or yours)
+// 2) Get the APIs/services you need for your workflow (public or yours)
 var starflowShell = require('starflow-shell');
 
-//3) Set the configuration of your workflow
+// 3) Set the configuration of your workflow
 var config = {
   args: require('yargs').argv,
   muteDepth: -1,
@@ -69,168 +68,161 @@ var config = {
   }
 };
 
-//4) Declare your workflow
-var promptEchoFlow = [
+// 4) Declare your workflow
+var echoPromptFlow = [
   {'prompt': 'main'},
-  {'$': ['echo', ['{{prompt.main.result.title}}']]}
+  {'$': ['echo', '{{prompt.main.result.title}}']}
 ];
 
-//5) Put all together and run your workflow !
+// 5) Configure starflow then run your workflow!
 starflow
-  .init(promptEchoFlow, config)
-  .register(['$', 'shell.spawn'], starflowShell.spawn)
+  .init(echoPromptFlow, config)
+  .register('$', starflowShell.spawn) // use the starflowShell.spawn factory through the '$' text in your workflow
   .register('prompt', starflowShell.prompt)
   .runWorkflow()
   .done();
 ```
 
-Now you just have to call your starflow with node
+Finally, execute your script with the node command:
 ```
-node echoPromptFlow
+node echoPromptFlow.js
 ```
 
-And you will see 
+And you should see: 
 
 ![My first starflow](https://cloud.githubusercontent.com/assets/7902756/12002432/032a6320-aafe-11e5-9701-84c1af4a0728.gif)
 
-:warning: We use `yargs` package for parsing potential arguments passed to your workflow, feel free to change it :warning:
+:warning: In this example we use the `yargs` module to parse the arguments passed when running the script, feel free to change it :warning:
 
+## How does it work
 
-## How does it work's
+### Activity diagram of a workflow
 
-### Activity diagram of a starflow
-
-The following diagram represent how a starflow works and you can picture it with the basic example above.
+The following diagram represents how Starflow works and you can picture it with the basic example above.
 ![UML Activity diagram](https://www.lucidchart.com/publicSegments/view/e82a628d-a8ed-413b-bb59-44bbf5cf4634/image.png)
 
 ### Class diagram
 ![UML Class diagram](https://www.lucidchart.com/publicSegments/view/61f3a758-54c7-481a-9c88-000d20ab5648/image.png)
 
-#### Starflow : Core 
-This is our engine which will run all logic. As you see in example it will put together all Task/Sequence, configuration and run them sequentially via a Promise chain.
- 
-#### Logger : Display
-This helper class will allow you to show messages during starflow execution. You can configure it and use it in your own Task factories.
+#### Starflow: core
+This is our engine which will run the workflow. As you can see in the example, it will gather all the tasks/sequences and configuration then run them sequentially following the order of the workflow.
 
-#### Task factory : API's
-You can create your own Task by just implementing the `Executable` interface. This is the minimum for a Task Factory.
-We use the [composite design](https://en.wikipedia.org/wiki/Composite_pattern) pattern for creating complex **starflow** with small blocks represented by **Task** and **Sequence**
+#### Logger: display
+This helper class will allow you to show messages during the Starflow execution. You can configure it and use it in your own Tasks factories.
 
-## Implement your own Task Factory
+#### APIs/services
+You can create your own services by just implementing the `Executable` interface.
+We use the [composite design](https://en.wikipedia.org/wiki/Composite_pattern) pattern for creating complex **workflows** with small blocks represented by **Task** and **Sequence**.
 
-Use our Task Factories or Public API is cool, but maybe they don't fit to your needs and you want to implement
-your own Task Factories and API's. You can mimic our architecture for build your own if you want. 
-So let's start with the most simple example.
+## Implementing your own service
 
-### Your echo task factory : The minimum
-Here is an example of an echo Task which just display a message with starflow Logger.
-As we said above, we have to implement the `Executable` interface and this should do the trick !
+You might not find a service out there that fits your needs, so let's see how we can create one with a simple example.
+
+### The echo service: the minimum
+Here is an example of an echo service which simply displays a message with the starflow Logger singleton.
+As mentioned above, we need to create a class that implements the `Executable` interface, then let Starflow handle the rest.
 
 ```javascript
-//echo/echo.js
+// echo.js
 var starflow = require('starflow');
 
+// This is the main class of our echo service
 function Echo() {}
 
-//Implement Executable interface just means declare an exec function here.
+// Implementing the Executable interface just means declaring an exec method on the class
 Echo.prototype.exec = function exec(message) {
   starflow.logger.log(message);
 };
 
+// Important: export a function that returns an instance of your class (hence, a factory)
 module.exports = function () {
   return new Echo();
 };
 ```
-**Task Factory done !**
 
-If you want to use this task instead of the spawn.echo used in [Basic example](https://github.com/ebuzzing/starflow#basic-example)
-You have to update the example this way
+**Echo service done!**
+
+If you want to use this task instead of the spawn.echo used in [Basic example](https://github.com/ebuzzing/starflow#basic-example), you have to update the example this way:
 
 ```javascript
-//promptEchoFlow.js
+// echoPromptFlow.js
 
-//2) Get all API you needs for your workflow (public or yours)
+// 2) Get the APIs/services you need for your workflow (public or yours)
 var starflowShell = require('starflow-shell');
-var echo = require('./echo/echo');
+var echo = require('./echo');
 
-//...
+// ...
 
-//4) Declare your workflow (we replace previous shell echo by our implementation)
-var promptEchoFlow = [
+// 4) Declare your workflow (we replaced the previous shell echo with our echo implementation)
+var echoPromptFlow = [
   {'prompt': 'main'},
-  {'echo', ['{{prompt.main.result.title}}']}
+  {'echo', '{{prompt.main.result.title}}'}
 ];
 
-//5) Put all together and run your workflow ! (Same work here)
+// 5) Configure starflow then run your workflow!
 starflow
-  .init(promptEchoFlow, config)
+  .init(echoPromptFlow, config)
   .register('echo', echo)
   .register('prompt', starflowShell.prompt)
   .runWorkflow()
   .done();
 ```
 
-That all ! Your starflow now use your Task.
-But we don't recommand you to use this kind of implementation, you should follow our API structure.
+That's all! Your workflow now uses the service you created.
+But we can still improve it...
 
-### Your echo task factory : Refactor it with a solid and extensible API architecture
+### The echo service: refactor it with a solid and extensible API architecture
 
-We have a really simple architecture you could use for your own implementation.
-First create a folder where you will save all your API files.
+First let's create a folder where you will save all the services with a shared namespace.
 
-For our example, we suppose we create an `echo` folder.
+For our example, we need to create an `echo` folder.
 
-Inside of it we will create a module which will be our access to all our API Task we will define here.
-You could namespace it if you want.
-
-We will create `lightening-buzz-echo.js` file which will be our API module.
-
-Inside of it we just create a mapping to our different Task
+Inside, there will be a file which will be the entry point to all the services. Let's create this file: name it `lightening-buzz-echo.js` (for example).
+The content is the following:
 
 ```javascript
-//echo/lightening-buzz-echo.js
+// echo/lightening-buzz-echo.js
 module.exports = {
   echo: require('./echo')
 };
 ```
 
-Our previous `echo.js` file have to be moved in our fresh API folder without modification.
+Our previous `echo.js` file has to be moved in our freshly created `echo` folder without modification.
 
-Final step for now, we update our starflow with our updates
+Final step (for now), updating the main script:
 
 ```javascript
-//promptEchoFlow.js
-//2) Get all API you needs for your workflow
+// echoPromptFlow.js
+// 2) Get the APIs/services you need for your workflow (public or yours)
 var starflowShell = require('starflow-shell');
 var lighteningBuzzEcho = require('./echo/lightening-buzz-echo');
 
-//...
+// ...
 
-//5) Put all together and run your workflow !
+// 5) Configure starflow then run your workflow!
 starflow
-  .init(promptEchoFlow, config)
+  .init(echoPromptFlow, config)
   .register('echo', lighteningBuzzEcho.echo)
   .register('prompt', starflowShell.prompt)
   .runWorkflow()
   .done();
 ```
 
-Now you have a clean API you can extend as you want.
-> Wait, Echo something is good but if I want create an API mapped with an
-> other service like Github, Can I configure it ?
+Now you have a clean namespace you can extend as you wish.
+> Wait, displaying a message is cool but what if I want to create a service that interacts with an API like Github? Can I configure it?
 
-Sure let's improve our example to be configurable.
+Sure! Let's improve our example to make it configurable.
 
-### Your echo task factory : Render our API configurable
+### The echo service: make it configurable
 
-For our example, we want to configure a prefix and a suffix for all message we will echo.
-By doing this you can easily extend it to something more complex like configuring this Github API with credential for example.
- 
-So back to our Module API `echo/lightening-buzz-echo.js` and render it configurable
+For our example, we want to set a prefix and a suffix for all messages that will be displayed.
+By doing this, you can easily extend it to something more complex like configuring a Github API with credentials for example.
+
+Let's go back to our echo API (`echo/lightening-buzz-echo.js`) and make it configurable.
 
 ```javascript
-//echo/lightening-buzz-echo.js
-module.exports = function echoFactory(prefix, suffix) {
+// echo/lightening-buzz-echo.js
+module.exports = function (prefix, suffix) {
   var configuration = {
     prefix: prefix,
     suffix: suffix
@@ -242,87 +234,82 @@ module.exports = function echoFactory(prefix, suffix) {
 };
 ```
 
-Instead of directly return the api, we wrap it into a function which accept parameters.
-Like this when we will get our API we can configure it.
+Instead of directly returning the services map, we wrap it into a function which accepts parameters.
+Like this, when we will require the echo API, we will be able to configure it.
 
-As you can see we have changed the way to map our tasks, let's update `echo/echo.js`
+As you can see, we have changed the way to map our services. Let's update `echo/echo.js`:
 
 ```javascript
-//echo/echo.js
+// echo/echo.js
 var starflow = require('starflow');
 
-//We add our task configurable by the API module by defining args and setup a task
-//configuration.
-function Echo(apiConfig) {
-  this.apiConfig = {
-    prefix : (apiConfig.prefix || ""),
-    suffix : (apiConfig.suffix || "")
+function Echo(options) {
+  this.options = {
+    prefix : options.prefix || '',
+    suffix : options.suffix || ''
   };
 }
 
 Echo.prototype.exec = function exec(message) {
   var fullMessage = [
-    this.apiConfig.prefix,
+    this.options.prefix,
     message,
-    this.apiConfig.suffix
-  ].join("");
+    this.options.suffix
+  ].join('');
   starflow.logger.log(fullMessage);
 };
 
-//We change the way we expose our Task Factory for accept the module API
-//configuration at the runtime.
-module.exports = function (config) {
-  return function(){ 
-    return new Echo(config);
+// We change the way we expose our service through the factory to accept parameters
+module.exports = function (options) {
+  return function echoFactory() { 
+    return new Echo(options);
   };
 };
 ```
 
-Almost all is done, we will update our starflow(`promptEchoFlow.js`) 
-for finalize this tutorial.
+Everything is almost over, we only need to update the main script (`echoPromptFlow.js`):
 
 ```javascript
-//promptEchoFlow.js
-//...
+// echoPromptFlow.js
+// ...
 
-//2) Get all API you needs for your workflow
+// 2) Get the APIs/services you need for your workflow (public or yours)
 var starflowShell = require('starflow-shell');
-var lighteningBuzzEcho = require('./echo/lightening-buzz-echo')("[Buzz]: ", " (⚡⚡⚡)");
+var lighteningBuzzEcho = require('./echo/lightening-buzz-echo')('[Buzz]: ', ' (⚡⚡⚡)');
 
-//...
+// ...
 
-//5) Put all together and run your workflow !
+// 5) Configure starflow then run your workflow!
 starflow
-  .init(promptEchoFlow, config)
+  .init(echoPromptFlow, config)
   .register('echo', lighteningBuzzEcho.echo)
   .register('prompt', starflowShell.prompt)
   .runWorkflow()
   .done();
 ```
 
-This is the end of this tutorial, API Starflowing :star2::rocket::star2: !!!
-In bonus, the Starflow execution
+This is the end of the echo example. Happy _starflowing_ :star2::rocket::star2:!!!
+
+Bonus: the Starflow execution:
 
 ![starflow-tutorial-execution](https://cloud.githubusercontent.com/assets/7902756/12003597/bf8ec71e-ab25-11e5-991f-4618cc299312.gif)
 
-## Integrations
+## Integration
 
-As you see create a starflow is just a binding of tasks defined in API. 
-As explain you can create yours and use ours.
-Here we will detail our integration and yours if you choose to put them public :smiley:
+As you see, using Starflow is basically binding some words (e.g. `$`, `prompt`, `echo`...) to service factories.
+Creating your own factories is not complicated as long as the services implement the `Executable` interface.
 
-### Our Public API
+### Available services
 
-- Git
-- Github (Work in progress)
-- Jira (Work in progress)
-- Npm
-- Shell
-- Teads (Work in progress - What we love use at work)
+- Git (starflow-git)
+- Github (starflow-github) (Work in progress)
+- Jira (starflow-jira) (Work in progress)
+- Npm (starflow-npm)
+- Shell (starflow-shell)
+- Teads (Work in progress - what we love to use at work)
 
-And an image for API detail
-![Starflow public API](https://www.lucidchart.com/publicSegments/view/2aea0576-08f3-4e48-934a-287753476f2c/image.png)
+![Starflow services](https://www.lucidchart.com/publicSegments/view/2aea0576-08f3-4e48-934a-287753476f2c/image.png)
 
-### Contributors API's
+### Contributors services
 
-_We hope to fill this field with many API's soon..._
+_We hope to fill this section with many links soon..._
