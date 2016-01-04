@@ -5,13 +5,14 @@
   "main": "starflow.js",
   "dependencies": {
     "chalk": "^1.0.0",
+    "github": "^0.2.4",
     "gitlab": "^1.2.0",
     "jira": "^0.9.2",
     "lodash": "^3.9.0",
-    "slugify": "0.1.1",
-    "q": "^1.1.2",
     "mustache": "^2.2.0",
-    "prompt": "^0.2.14"
+    "prompt": "^0.2.14",
+    "q": "^1.1.2",
+    "slugify": "0.1.1"
   },
   "devDependencies": {
     "yargs": "^3.30.0"

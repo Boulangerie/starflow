@@ -14,8 +14,8 @@ Logger.prototype.LEVEL = {
   ALL: 2
 };
 
-Logger.prototype.SUCCESS_MESSAGE = chalk.green('✓')
-Logger.prototype.ERROR_MESSAGE = chalk.red('✗')
+Logger.prototype.SUCCESS_MESSAGE = chalk.green('✓');
+Logger.prototype.ERROR_MESSAGE = chalk.red('✗');
 
 var lastLevel;
 Logger.prototype.mute = function mute() {
@@ -29,7 +29,7 @@ Logger.prototype.unmute = function unmute() {
 
 Logger.prototype.isMute = function isMute() {
   return this.level === Logger.prototype.LEVEL.NONE;
-}
+};
 
 Logger.prototype.header = function header(message) {
   this.depth++;
