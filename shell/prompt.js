@@ -4,7 +4,9 @@ var prompt = require('prompt');
 var chalk = require('chalk');
 var starflow = require('../starflow');
 
-function Prompt() {}
+function Prompt() {
+
+}
 
 Prompt.prototype.exec = function (schemaName) {
   return new Promise(function(resolve, reject){
@@ -18,7 +20,6 @@ Prompt.prototype.exec = function (schemaName) {
       reject(new Error('Schema "' + schemaName + '" form prompt not found'));
     }
 
-    //@todo: Do something better with bluebird here
     prompt.get(schema, function (err, result) {
       if (err) {
         reject(err);

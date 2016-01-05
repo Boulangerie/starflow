@@ -1,4 +1,6 @@
-function NoOp() {}
+function NoOp() {
+
+}
 
 NoOp.prototype.exec = function () {
   return true;

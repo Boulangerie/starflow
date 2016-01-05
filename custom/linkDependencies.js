@@ -1,10 +1,13 @@
 var _ = require('lodash');
+var Promise = require("bluebird");
 var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 
-function LinkDependencies() {}
+function LinkDependencies() {
+
+}
 
 LinkDependencies.prototype.exec = function () {
 
@@ -41,7 +44,7 @@ LinkDependencies.prototype.exec = function () {
     }
   });
 
-  return Q.all(promises)
+  return Promise.all(promises)
     .then(function () {
       starflow.logger.log('NPM dependencies linked: ' + _.pluck(deps, 'name').join(', '));
     })

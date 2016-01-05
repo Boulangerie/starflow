@@ -3,7 +3,9 @@ var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var starflow = require('../starflow');
 
-function CurrentBranch() {}
+function CurrentBranch() {
+
+}
 
 CurrentBranch.prototype.currentBranch = function currentBranch() {
   function onSuccess() {

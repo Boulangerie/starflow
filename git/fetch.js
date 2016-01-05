@@ -1,7 +1,9 @@
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 
-function Fetch() {}
+function Fetch() {
+
+}
 
 Fetch.prototype.fetch = function fetch(remote, branch) {
   var gitArgs = ['fetch', remote];

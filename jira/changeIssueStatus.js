@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var starflow = require('../starflow');
 var taskGetIssueStatuses = require('./getIssueStatuses');
 var Task = require('../Task');
@@ -14,13 +14,13 @@ ChangeIssueStatus.prototype.getIssueStatuses = function getIssueStatuses(key, st
 
 ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(key, status) {
   var transition = _.find(starflow.config.jira.getIssueStatuses, {'to':{'name': status}});
+  var jiraChangeIssueStatus = Promise.promisify(this.api.transitionIssue, {context: this.api});
 
   if(_.isUndefined(transition)){
     throw new Error('Issue status "' + status + '" could not be found for issue "' + key + '"')
   }
 
-  return Q
-    .ninvoke(this.api, 'transitionIssue', key, {transition : transition})
+  return jiraChangeIssueStatus(key, {transition : transition})
     .then(onSuccess, onError);
 
 

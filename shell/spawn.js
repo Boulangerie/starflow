@@ -3,7 +3,9 @@ var Promise = require("bluebird");
 var spawn = require('child_process').spawn;
 var starflow = require('../starflow');
 
-function Spawn() {}
+function Spawn() {
+
+}
 
 Spawn.prototype.exec = function exec(cmd) {
   var args, muteErrors, options;
@@ -14,7 +16,7 @@ Spawn.prototype.exec = function exec(cmd) {
     options = cmd.options || {};
     cmd = cmd.cmd;
   } else {
-    args = _(arguments).rest().first();
+    args = _.rest(arguments);
     muteErrors = false;
     options = {};
   }
@@ -25,12 +27,6 @@ Spawn.prototype.exec = function exec(cmd) {
     var s = spawn(cmd, args, _.extend({ stdio: 'pipe' }, options));
     s.stdout.setEncoding('utf8');
     s.stderr.setEncoding('utf8');
-
-    // var data = _.isUndefinedOrNull(stdin) ? starflow.config.lastShellOutput : stdin;
-    // _.forEach(data, function (d) {
-    //   s.stdin.write(d.toString());
-    // });
-    // s.stdin.end();
 
     s.stdout.on('data', function (data) {
       stdout.push(data);

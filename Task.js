@@ -1,4 +1,5 @@
 var _ = require('lodash');
+var Promise = require("bluebird");
 var mustache = require('mustache');
 
 function Task(instance, args, name, description) {
@@ -56,9 +57,8 @@ Task.prototype.run = function run() {
   logger.header(headerMessage);
 
   var execResult = self.instance.exec.apply(self.instance, self.args);
-  var execPromise = (_.get(execResult, 'isFulfilled'))? execResult : Promise.resolve(execResult);
 
-  return execPromise
+  return Promise.resolve(execResult)
     .then(function () {
       logger.footer(logger.SUCCESS_MESSAGE);
       if (starflow.config.muteDepth >= 0 && starflow.config.muteDepth === logger.depth) {

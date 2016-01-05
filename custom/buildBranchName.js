@@ -2,7 +2,9 @@ var _ = require('lodash');
 var slugify = require('slugify');
 var starflow = require('../starflow');
 
-function BuildBranchName() {}
+function BuildBranchName() {
+
+}
 
 BuildBranchName.prototype.exec = function (type, key, slug) {
   var type = type.toLowerCase() === 'bug' ? 'fix' : 'feature';

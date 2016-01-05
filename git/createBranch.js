@@ -4,7 +4,9 @@ var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var checkoutFactory = require('../git/checkout');
 
-function CreateBranch() {}
+function CreateBranch() {
+
+}
 
 CreateBranch.prototype.createBranch = function createBranch(branchName) {
   function onCreateBranchSuccess() {

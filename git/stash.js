@@ -7,7 +7,9 @@ var spawnFactory = require('../shell/spawn');
 var STASH_NAME = 'starflow-tmp';
 var STASH_ID_UNDEFINED_MESSAGE = 'Could not find any stash ID for starflow-tmp';
 
-function Stash() {}
+function Stash() {
+
+}
 
 Stash.prototype.getStashId = function getStashId() {
   return new Task(spawnFactory(), ['git', ['stash', 'list']], '$')
