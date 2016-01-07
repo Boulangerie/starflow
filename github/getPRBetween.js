@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var starflow = require('../starflow');
 
 function GetPRBetween(api) {
@@ -9,8 +9,8 @@ function GetPRBetween(api) {
 //@todo: check head construction fit to our needs
 //Doc for head construction : https://developer.github.com/v3/pulls/#list-pull-requests
 GetPRBetween.prototype.getPRBetween = function getPRBetween(username, projectName, sourceBranch, targetBranch) {
-  return Q
-    .ninvoke(this.api.pullRequests, 'getAll', {
+  var githubGetPRBetween = Promise.promisify(this.api.pullRequests.getAll, {context: this.api});
+  return githubGetPRBetween({
       user: username,
       repo: projectName,
       base: sourceBranch,
@@ -25,7 +25,6 @@ GetPRBetween.prototype.getPRBetween = function getPRBetween(username, projectNam
     }
     else{
       starflow.logger.success('GITHUB PR "' + username + '/' + projectName + ' ' + sourceBranch + ':' + targetBranch + '" found (PR number: ' + pr[0].number + ')');
-      //console.log(JSON.stringify(pr[0], ' ', 2));
       _.set(starflow.config, 'github.getPRBetween', pr[0]);
     }
   }

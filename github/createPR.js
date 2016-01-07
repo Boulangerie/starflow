@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var starflow = require('../starflow');
 
 function CreatePR(api) {
@@ -7,8 +7,8 @@ function CreatePR(api) {
 }
 
 CreatePR.prototype.createPR = function createPR(username, projectName, sourceBranch, targetBranch, title) {
-  return Q
-    .ninvoke(this.api.pullRequests, 'create', {
+  var githubCreatePR = Promise.promisify(this.api.pullRequests.create, {context: this.api});
+  return githubCreatePR({
       user: username,
       repo: projectName,
       base: sourceBranch,

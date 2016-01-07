@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var starflow = require('./starflow');
 
 /**
@@ -29,7 +29,7 @@ Sequence.prototype.run = function run() {
     return prev.then(function () {
       return current.run();
     });
-  }, Q());
+  }, Promise.resolve());
 };
 
 module.exports = Sequence;

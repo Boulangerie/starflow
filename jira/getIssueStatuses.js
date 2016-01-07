@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var starflow = require('../starflow');
 
 function GetIssueStatuses(api) {
@@ -7,6 +7,10 @@ function GetIssueStatuses(api) {
 }
 
 GetIssueStatuses.prototype.getIssueStatuses = function getIssueStatuses(key) {
+  var jiraGetIssueStatuses = Promise.promisify(this.api.listTransitions, {context: this.api});
+  return jiraGetIssueStatuses(key)
+    .then(onSuccess, onError);
+
   function onSuccess(issue) {
     starflow.logger.success('JIRA issue statuses"' + key + '" were found');
     starflow.logger.log('Statuses : ' + _.map(issue.transitions, function (status) { return status.to.name; }).join(', '));
@@ -17,9 +21,6 @@ GetIssueStatuses.prototype.getIssueStatuses = function getIssueStatuses(key) {
     starflow.logger.error('JIRA issue "' + key + '" was not found');
     throw err;
   }
-
-  return Q.ninvoke(this.api, 'listTransitions', key)
-    .then(onSuccess, onError);
 };
 
 GetIssueStatuses.prototype.exec = function exec(key) {

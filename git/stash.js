@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var starflow = require('../starflow');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
@@ -19,7 +19,7 @@ Stash.prototype.getStashId = function getStashId() {
       var stashLines = starflow.config.lastShellOutput ? starflow.config.lastShellOutput.split('\n') : [];
       var matches;
       _.forEach(stashLines, function (line) {
-        matches = stashLines[i].match(new RegExp(pattern));
+        matches = line.match(new RegExp(pattern));
         if (matches) {
           _.set(starflow.config, 'git.starflowTmpStashId', matches[1]);
           return false;
@@ -51,8 +51,8 @@ Stash.prototype.stash = function stash(isPop) {
     }
     starflow.logger.warning('No starflow-tmp stash was found');
   }
-
-  var promise = isPop ? this.getStashId.bind(this) : Q.bind();
+  //@todo: Test this case when isPop is false
+  var promise = isPop ? this.getStashId.bind(this) : Promise.resolve;
 
   return promise()
     .then(onGetStashIdSuccess, onGetStashIdError)

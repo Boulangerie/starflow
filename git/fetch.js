@@ -1,5 +1,3 @@
-var Q = require('q');
-var _ = require('lodash');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 
@@ -13,8 +11,7 @@ Fetch.prototype.fetch = function fetch(remote, branch) {
   if (branch) {
     gitArgs.push(branch);
   }
-  return new Task(spawnFactory(), ['git', gitArgs])
-    .run();
+  return new Task(spawnFactory(), ['git', gitArgs]).run();
 };
 
 Fetch.prototype.exec = function exec(remote, branch) {

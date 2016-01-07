@@ -1,12 +1,9 @@
-var _ = require('lodash');
-var Q = require('q');
-
 function NoOp() {
 
 }
 
 NoOp.prototype.exec = function () {
-  return Q();
+  return true;
 };
 
 module.exports = function () {

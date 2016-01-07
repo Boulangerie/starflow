@@ -1,14 +1,14 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var starflow = require('../starflow');
 
 function AssignPR(api) {
   this.api = api;
 }
-//none
+
 AssignPR.prototype.assignPR = function assignPR(username, projectName, assignee, PRNumber) {
-  return Q
-    .ninvoke(this.api.issues, 'edit', {
+  var githubAssignPr = Promise.promisify(this.api.issues.edit, {context: this.api});
+  return githubAssignPr({
       user: username,
       repo: projectName,
       assignee: assignee,

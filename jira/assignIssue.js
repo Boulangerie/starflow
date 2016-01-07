@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var starflow = require('../starflow');
 
 function AssignIssue(api) {
@@ -17,8 +17,9 @@ AssignIssue.prototype.mapNonUserAssignee = function mapNonUserAssignee(assignee)
 
 AssignIssue.prototype.assignIssue = function assignIssue(key, assignee) {
   var params = _.set({}, 'fields.assignee.name', this.mapNonUserAssignee(assignee));
-  return Q
-    .ninvoke(this.api, 'updateIssue', key, params)
+  var jiraAssignIssue = Promise.promisify(this.api.updateIssue, {context: this.api});
+
+  return jiraAssignIssue(key, params)
     .then(onSuccess, onError);
 
 

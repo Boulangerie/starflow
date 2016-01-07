@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var starflow = require('../starflow');
 
 function GetIssue(api) {
@@ -17,8 +17,8 @@ GetIssue.prototype.getIssue = function getIssue(key) {
     starflow.logger.error('JIRA issue "' + key + '" was not found');
     throw err;
   }
-
-  return Q.ninvoke(this.api, 'findIssue', key)
+  var jiraFindIssue = Promise.promisify(this.api.findIssue, {context: this.api});
+  return jiraFindIssue(key)
     .then(onSuccess, onError);
 };
 

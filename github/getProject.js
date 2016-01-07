@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Q = require('q');
+var Promise = require("bluebird");
 var starflow = require('../starflow');
 
 function GetProject(api) {
@@ -7,8 +7,8 @@ function GetProject(api) {
 }
 
 GetProject.prototype.getProject = function getProject(username, projectName) {
-  return Q
-    .ninvoke(this.api.repos, 'get', {
+  var githubGetProject = Promise.promisify(this.api.repos.get, {context: this.api});
+  return githubGetProject({
       user: username,
       repo: projectName
     })
