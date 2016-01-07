@@ -17,6 +17,9 @@
   "devDependencies": {
     "yargs": "^3.30.0"
   },
+  "scripts": {
+    "starflow" : "node ./index.js"
+  },
   "author": "bruiz",
   "license": "ISC"
 }
