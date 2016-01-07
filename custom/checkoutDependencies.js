@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Q = require('q');
+var path = require('path');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
@@ -15,7 +15,7 @@ CheckoutDependencies.prototype.exec = function (branch, dependencies) {
   var dependencyChainSeparator = '/';
 
   var deps = _.map(dependencies, function (dep) {
-    // e.g. dep==="teads-player", dep==="teads-player/lib-format-vpaid-ui"
+    // e.g. dep === "teads-player", dep === "teads-player/teads-vpaid-ui"
     var depChain = dep.split(dependencyChainSeparator);
     return {
       name: dep,
@@ -26,31 +26,32 @@ CheckoutDependencies.prototype.exec = function (branch, dependencies) {
   var promises = _.map(deps, function (dep) {
     var tasks = [];
     var task;
-    var path = './';
+    var pathName = './';
     _.forEach(dep.chain, function (chainedDep) {
-      path += 'node_modules/' + chainedDep + '/';
+      pathName += 'node_modules/' + chainedDep + '/';
       task = new Sequence([
         new Task(gitStashFactory()),
         new Task(spawnFactory(), [{
           cmd: 'git',
           args: ['checkout', branch],
           options: {
-            cwd: path
+            cwd: path.resolve(pathName)
           }
         }]),
-        new Task(gitStashFactory(), [true])
+        new Task(gitStashFactory(), [true]) // git stash pop
       ]);
       tasks.push(task);
     });
-    return new Sequence(tasks).run();
+    return new Sequence(tasks);
   });
 
-  return Q.all(promises)
+  return new Sequence(promises)
+    .run()
     .then(function () {
-      starflow.logger.log('NPM dependencies linked: ' + _.pluck(deps, 'name').join(', '));
+      starflow.logger.log('The branch "' + branch + '" has been checked out for the following dependencies: ' + _.pluck(deps, 'name').join(', '));
     })
     .catch(function (err) {
-      starflow.logger.warning('Could not link the dependencies');
+      starflow.logger.warning('Could not checkout "' + branch + '" on the given dependencies');
       throw err;
     });
 };

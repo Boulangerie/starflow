@@ -15,7 +15,7 @@ UnlinkDependencies.prototype.exec = function () {
   var dependencyChainSeparator = '/';
 
   var deps = _.map(dependencies, function (dep) {
-    // e.g. dep==="service-format-player", dep==="service-format-player/lib-format-vpaid-ui"
+    // e.g. dep === "teads-player", dep === "teads-player/teads-vpaid-ui"
     var depChain = dep.split(dependencyChainSeparator);
     return {
       name: dep,
