@@ -24,25 +24,23 @@ CheckoutDependencies.prototype.exec = function (branch, dependencies) {
   });
 
   var promises = _.map(deps, function (dep) {
-    var tasks = [];
-    var task;
-    var pathName = './';
-    _.forEach(dep.chain, function (chainedDep) {
-      pathName += 'node_modules/' + chainedDep + '/';
-      task = new Sequence([
-        new Task(gitStashFactory()),
-        new Task(spawnFactory(), [{
-          cmd: 'git',
-          args: ['checkout', branch],
-          options: {
-            cwd: path.resolve(pathName)
-          }
-        }]),
-        new Task(gitStashFactory(), [true]) // git stash pop
-      ]);
-      tasks.push(task);
-    });
-    return new Sequence(tasks);
+    var pathName = _.reduce(dep.chain, function (prev, current) {
+      return prev + 'node_modules/' + current + '/';
+    }, './');
+    var fullPath = path.resolve(pathName);
+    var spawnConfig = {
+      cmd: 'git',
+      args: ['checkout', branch],
+      options: {
+        cwd: fullPath
+      }
+    };
+
+    return new Sequence([
+      new Task(gitStashFactory({cwd: fullPath})),
+      new Task(spawnFactory(), spawnConfig),
+      new Task(gitStashFactory({cwd: fullPath}), true) // git stash pop
+    ]);
   });
 
   return new Sequence(promises)
