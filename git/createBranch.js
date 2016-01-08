@@ -4,8 +4,10 @@ var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var checkoutFactory = require('../git/checkout');
 
-function CreateBranch() {
-
+function CreateBranch(options) {
+  this.options = _.defaults({}, options, {
+    cwd: './'
+  });
 }
 
 CreateBranch.prototype.createBranch = function createBranch(branchName) {
@@ -20,13 +22,21 @@ CreateBranch.prototype.createBranch = function createBranch(branchName) {
     starflow.logger.warning('Could not create the branch because it already exists');
   }
 
-  return new Task(spawnFactory(), ['git', ['branch', branchName]])
+  var options = this.options;
+  var spawnConfig = {
+    cmd: 'git',
+    args: ['branch', branchName],
+    options: {
+      cwd: options.cwd
+    }
+  };
+  return new Task(spawnFactory(), spawnConfig)
     .run()
     .then(onCreateBranchSuccess, onCreateBranchErr);
 };
 
 CreateBranch.prototype.checkout = function checkout(branchName) {
-  return new Task(checkoutFactory(), [branchName]).run()
+  return new Task(checkoutFactory(this.options.cwd), [branchName]).run()
 };
 
 CreateBranch.prototype.exec = function exec(branchName, withCheckout) {
@@ -37,6 +47,6 @@ CreateBranch.prototype.exec = function exec(branchName, withCheckout) {
   return promise;
 };
 
-module.exports = function () {
-  return new CreateBranch();
+module.exports = function (options) {
+  return new CreateBranch(options);
 };

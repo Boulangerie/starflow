@@ -67,13 +67,7 @@ function stepToTask(step) {
     taskName = step;
   } else if (_.isObject(step)) { // task is an object
     taskName = _.first(_.keys(step));
-    if (_.isString(step[taskName]) || (_.isObject(step[taskName]) && !_.isArray(step[taskName]))) {
-      taskArgs = [step[taskName]];
-    } else if (_.isArray(step[taskName])) { // args is an array
-      taskArgs = step[taskName];
-    } else { // args are neither string nor array
-      throw new Error('The args for the task "' + taskName + '" must be a string or an array');
-    }
+    taskArgs = _.isArray(step[taskName]) ? step[taskName] : [step[taskName]];
   } else { // task is neither string or object
     throw new Error('The task "' + step + '" must be a string or an object');
   }
