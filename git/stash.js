@@ -7,12 +7,22 @@ var spawnFactory = require('../shell/spawn');
 var STASH_NAME = 'starflow-tmp';
 var STASH_ID_UNDEFINED_MESSAGE = 'Could not find any stash ID for starflow-tmp';
 
-function Stash() {
-
+function Stash(options) {
+  this.options = _.defaults({}, options, {
+    cwd: './'
+  });
 }
 
 Stash.prototype.getStashId = function getStashId() {
-  return new Task(spawnFactory(), ['git', ['stash', 'list']], '$')
+  var options = this.options;
+  var spawnConfig = {
+    cmd: 'git',
+    args: ['stash', 'list'],
+    options: {
+      cwd: options.cwd
+    }
+  };
+  return new Task(spawnFactory(), spawnConfig, '$')
     .run()
     .then(function () {
       var pattern = '^stash@\\{(\\d+)\\}\\: (?:.+\\: )' + STASH_NAME;
@@ -40,9 +50,16 @@ Stash.prototype.stash = function stash(isPop) {
     starflow.logger.warning('Nothing was stashed');
   }
 
+  var options = this.options;
   function onGetStashIdSuccess() {
-    var gitArgs = ['stash', (isPop ? 'pop' : 'save'), (isPop ? 'stash@{' + starflow.config.git.starflowTmpStashId + '}' : STASH_NAME)];
-    return new Task(spawnFactory(), ['git', gitArgs], '$').run();
+    var spawnConfig = {
+      cmd: 'git',
+      args: ['stash', (isPop ? 'pop' : 'save'), (isPop ? 'stash@{' + starflow.config.git.starflowTmpStashId + '}' : STASH_NAME)],
+      options: {
+        cwd: options.cwd
+      }
+    };
+    return new Task(spawnFactory(), spawnConfig, '$').run();
   }
 
   function onGetStashIdError(err) {
@@ -63,6 +80,6 @@ Stash.prototype.exec = function exec(isPop) {
   return this.stash(!!isPop);
 };
 
-module.exports = function () {
-  return new Stash();
+module.exports = function (options) {
+  return new Stash(options);
 };

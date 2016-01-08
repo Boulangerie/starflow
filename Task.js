@@ -5,6 +5,12 @@ var mustache = require('mustache');
 function Task(instance, args, name, description) {
   this.instance = instance || null;
   this.args = args || [];
+
+  // if args is not an array, transform it in an array of 1 element
+  if (!_.isArray(this.args)) {
+    this.args = [this.args];
+  }
+
   this.name = name || '';
   this.description = description || '';
 }

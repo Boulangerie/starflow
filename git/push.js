@@ -1,12 +1,23 @@
+var _ = require('lodash');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 
-function Push() {
-
+function Push(options) {
+  this.options = _.defaults({}, options, {
+    cwd: './'
+  });
 }
 
 Push.prototype.push = function push(remote, branch) {
-  return new Task(spawnFactory(), ['git', ['push', '-u', remote, branch]]).run();
+  var options = this.options;
+  var spawnConfig = {
+    cmd: 'git',
+    args: ['push', '-u', remote, branch],
+    options: {
+      cwd: options.cwd
+    }
+  };
+  return new Task(spawnFactory(), spawnConfig).run();
 };
 
 Push.prototype.exec = function exec(remote, branch) {
@@ -17,6 +28,6 @@ Push.prototype.exec = function exec(remote, branch) {
   return this.push(remote, branch);
 };
 
-module.exports = function () {
-  return new Push();
+module.exports = function (options) {
+  return new Push(options);
 };
