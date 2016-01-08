@@ -14,7 +14,6 @@ function LinkDependencies(helpers) {
 }
 
 LinkDependencies.prototype.exec = function () {
-
   var dependencies = _.toArray(arguments);
   var deps = this.helpers.parseDependencies(dependencies);
 
@@ -29,21 +28,41 @@ LinkDependencies.prototype.exec = function () {
         options: {
           cwd: path.resolve(pathName)
         }
-      }]);
+      }], null, 'npm link ' + chainedDep);
       pathName += 'node_modules/' + chainedDep + '/';
       tasks.push(task);
     });
     return new Sequence(tasks).run();
   });
 
-  return Promise.all(promises)
-    .then(function () {
-      starflow.logger.log('NPM dependencies linked: ' + _.pluck(deps, 'name').join(', '));
-    })
-    .catch(function (err) {
-      starflow.logger.warning('Could not link the dependencies');
-      throw err;
-    });
+  return new Promise(function (resolve, reject) {
+    Promise.all(promises)
+      .then(function () {
+        starflow.logger.log('NPM dependencies linked: ' + _.pluck(deps, 'name').join(', '));
+        resolve();
+      })
+      .catch(function (err) {
+        starflow.logger.warning('Could not link the dependencies');
+        if (/file already exists, symlink/.test(err.message)) {
+          resolve();
+          return;
+        }
+        reject(err);
+      });
+  });
+  //return Promise.all(promises)
+  //  .then(function () {
+  //    starflow.logger.log('NPM dependencies linked: ' + _.pluck(deps, 'name').join(', '));
+  //  })
+  //  .catch(function (err) {
+  //    starflow.logger.warning('Could not link the dependencies');
+  //    throw err;
+  //  }).catch(function (err) {
+  //    if (/file already exists, symlink/.test(err.message)) {
+  //      return true;
+  //    }
+  //    throw err;
+  //  });
 };
 
 module.exports = function (helpers) {

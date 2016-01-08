@@ -1,3 +1,4 @@
 module.exports = {
-  dependencies: require('./dependencies')
+  dependencies: require('./dependencies'),
+  updatePackageVersion: require('./updatePackageVersion'),
 };
