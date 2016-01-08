@@ -36,7 +36,7 @@ CreateBranch.prototype.createBranch = function createBranch(branchName) {
 };
 
 CreateBranch.prototype.checkout = function checkout(branchName) {
-  return new Task(checkoutFactory(this.options.cwd), [branchName]).run()
+  return new Task(checkoutFactory({cwd: this.options.cwd}), [branchName]).run()
 };
 
 CreateBranch.prototype.exec = function exec(branchName, withCheckout) {
