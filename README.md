@@ -48,7 +48,7 @@ var starflow = require('starflow');
 // Optional) Set how starflow will be verbose or not during its execution
 starflow.logger.level = starflow.logger.LEVEL.ALL;
 
-// 2) Get the APIs/services you need for your workflow (public or yours)
+// 2) Get the executables you need for your workflow (public or yours)
 var starflowShell = require('starflow-shell');
 
 // 3) Set the configuration of your workflow
@@ -92,8 +92,6 @@ And you should see:
 
 ![My first starflow](https://cloud.githubusercontent.com/assets/7902756/12002432/032a6320-aafe-11e5-9701-84c1af4a0728.gif)
 
-:warning: In this example we use the `yargs` module to parse the arguments passed when running the script, feel free to change it :warning:
-
 ## How does it work
 
 ### Activity diagram of a workflow
@@ -110,16 +108,16 @@ This is our engine which will run the workflow. As you can see in the example, i
 #### Logger: display
 This helper class will allow you to show messages during the Starflow execution. You can configure it and use it in your own Tasks factories.
 
-#### APIs/services
-You can create your own services by just implementing the `Executable` interface.
+#### Executables
+You can create your own executable classes by just implementing the `Executable` interface.
 We use the [composite design](https://en.wikipedia.org/wiki/Composite_pattern) pattern for creating complex **workflows** with small blocks represented by **Task** and **Sequence**.
 
-## Implementing your own service
+## Implementing your own executable
 
-You might not find a service out there that fits your needs, so let's see how we can create one with a simple example.
+You might not find an executable class out there that fits your needs, so let's see how we can create one with a simple example.
 
-### The echo service: the minimum
-Here is an example of an echo service which simply displays a message with the starflow Logger singleton.
+### The echo executable: the minimum
+Here is an example of an *echo* class which simply displays a message with the starflow Logger helper.
 As mentioned above, we need to create a class that implements the `Executable` interface, then let Starflow handle the rest.
 
 ```javascript
@@ -140,14 +138,14 @@ module.exports = function () {
 };
 ```
 
-**Echo service done!**
+**Echo executable done!**
 
-If you want to use this task instead of the spawn.echo used in [Basic example](https://github.com/ebuzzing/starflow#basic-example), you have to update the example this way:
+If you want to use this task instead of the spawn.echo used in the *Basic example* section, you have to update the example this way:
 
 ```javascript
 // echoPromptFlow.js
 
-// 2) Get the APIs/services you need for your workflow (public or yours)
+// 2) Get the executables you need for your workflow (public or yours)
 var starflowShell = require('starflow-shell');
 var echo = require('./echo');
 
@@ -168,16 +166,16 @@ starflow
   .done();
 ```
 
-That's all! Your workflow now uses the service you created.
+That's all! Your workflow now uses the executable you created.
 But we can still improve it...
 
-### The echo service: refactor it with a solid and extensible API architecture
+### The echo executable: provide a bundle instead
 
-First let's create a folder where you will save all the services with a shared namespace.
+First let's create a folder (an *executable bundle*) where you will save all the executables which share the same "namespace".
 
 For our example, we need to create an `echo` folder.
 
-Inside, there will be a file which will be the entry point to all the services. Let's create this file: name it `lightening-buzz-echo.js` (for example).
+Inside, there will be a file which will be the entry point to all the executables. Let's create this file: name it `lightening-buzz-echo.js` (for example).
 The content is the following:
 
 ```javascript
@@ -193,8 +191,9 @@ Final step (for now), updating the main script:
 
 ```javascript
 // echoPromptFlow.js
-// 2) Get the APIs/services you need for your workflow (public or yours)
+// 2) Get the executables you need for your workflow (public or yours)
 var starflowShell = require('starflow-shell');
+// import the bundle
 var lighteningBuzzEcho = require('./echo/lightening-buzz-echo');
 
 // ...
@@ -213,12 +212,12 @@ Now you have a clean namespace you can extend as you wish.
 
 Sure! Let's improve our example to make it configurable.
 
-### The echo service: make it configurable
+### The echo executable: make it configurable
 
 For our example, we want to set a prefix and a suffix for all messages that will be displayed.
 By doing this, you can easily extend it to something more complex like configuring a Github API with credentials for example.
 
-Let's go back to our echo API (`echo/lightening-buzz-echo.js`) and make it configurable.
+Let's go back to our echo class (`echo/lightening-buzz-echo.js`) and make it configurable.
 
 ```javascript
 // echo/lightening-buzz-echo.js
@@ -234,7 +233,7 @@ module.exports = function (prefix, suffix) {
 };
 ```
 
-Instead of directly returning the services map, we wrap it into a function which accepts parameters.
+Instead of directly returning the executables map, we wrap it into a function which accepts parameters.
 Like this, when we will require the echo API, we will be able to configure it.
 
 As you can see, we have changed the way to map our services. Let's update `echo/echo.js`:
@@ -273,7 +272,7 @@ Everything is almost over, we only need to update the main script (`echoPromptFl
 // echoPromptFlow.js
 // ...
 
-// 2) Get the APIs/services you need for your workflow (public or yours)
+// 2) Get the executables you need for your workflow (public or yours)
 var starflowShell = require('starflow-shell');
 var lighteningBuzzEcho = require('./echo/lightening-buzz-echo')('[Buzz]: ', ' (⚡⚡⚡)');
 
@@ -296,10 +295,10 @@ Bonus: the Starflow execution:
 
 ## Integration
 
-As you see, using Starflow is basically binding some words (e.g. `$`, `prompt`, `echo`...) to service factories.
-Creating your own factories is not complicated as long as the services implement the `Executable` interface.
+As you can see, using Starflow is basically binding some words (e.g. `$`, `prompt`, `echo`...) to executable factories.
+Creating your own factories is not complicated as long as the classes implement the `Executable` interface.
 
-### Available services
+### Available executable bundles
 
 - Git (starflow-git)
 - Github (starflow-github) (Work in progress)
@@ -307,8 +306,6 @@ Creating your own factories is not complicated as long as the services implement
 - Npm (starflow-npm)
 - Shell (starflow-shell)
 - Teads (Work in progress - what we love to use at work)
-
-![Starflow services](https://www.lucidchart.com/publicSegments/view/2aea0576-08f3-4e48-934a-287753476f2c/image.png)
 
 ### Contributors services
 
