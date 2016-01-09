@@ -1,6 +1,5 @@
 var _ = require('lodash');
 var Promise = require("bluebird");
-var mustache = require('mustache');
 
 function Task(instance, args, name, description) {
   this.instance = instance || null;
@@ -24,9 +23,9 @@ Task.prototype.interpolate = function interpolate(context) {
   // parse each argument with Mustache
   this.args = _.map(this.args, function (arg) {
     if (_.isString(arg)) {
-      // FIXME do not escape HTML special characters like "<", ">" and "/"
-      //arg = arg.replace(/\{\{([^&])/g, '{{&\$1');
-      arg = mustache.render(arg, context);
+      arg = arg.replace(/\{\{(.+)\}\}/g, function (match, name) {
+        return _.get(context, name);
+      });
     }
     else if(_.isArray(arg)){
       var embeddedArgs = {args : arg};

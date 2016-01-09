@@ -96,7 +96,7 @@ Logger.prototype.logArgsStr = function logArgsStr(args) {
       var firstElements = _.slice(arg, 0, limitElements);
       var str = firstElements.join(', ');
       str += arg.length > limitElements ? '...' : '';
-      argsStr += '[' + str + '], ';
+      argsStr += '["' + str + '"], ';
     } else if (_.isObject(arg)) {
       argsStr += _logObjectStr(arg) + ', ';
     } else if (_.isBoolean(arg)) {

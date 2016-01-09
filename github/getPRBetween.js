@@ -20,17 +20,19 @@ GetPRBetween.prototype.getPRBetween = function getPRBetween(username, projectNam
     .then(onSuccess, onError);
 
   function onSuccess(pr) {
-    if(_.isUndefined(pr[0])){
-      onError('No PR founded');
-    }
-    else{
-      starflow.logger.success('GITHUB PR "' + username + '/' + projectName + ' ' + sourceBranch + ':' + targetBranch + '" found (PR number: ' + pr[0].number + ')');
-      _.set(starflow.config, 'github.getPRBetween', pr[0]);
+    var prKey = username + '/' + projectName + ' ' + sourceBranch + ':' + targetBranch; // e.g. me/my-project master:my-dev
+    if (_.isUndefined(pr[0])) {
+      onError('No PR found for ' + prKey);
+    } else {
+      starflow.logger.success('Github PR "' + prKey + '" found (PR number: ' + pr[0].number + ')');
+      var githubPrMap = _.get(starflow.config, 'github.pr', {});
+      githubPrMap[prKey] = pr[0];
+      _.set(starflow.config, 'github.pr', githubPrMap);
     }
   }
 
   function onError(err) {
-    starflow.logger.error('GITHUB PR between('+sourceBranch+' ... '+targetBranch+') " on ' + projectName + '" was not found with ' + username + ' user');
+    starflow.logger.error('GITHUB PR between ('+sourceBranch+' ... '+targetBranch+') " on ' + projectName + '" was not found with ' + username + ' user');
     throw err;
   }
 
@@ -38,16 +40,16 @@ GetPRBetween.prototype.getPRBetween = function getPRBetween(username, projectNam
 
 GetPRBetween.prototype.exec = function exec(username, projectName, sourceBranch, targetBranch) {
   if (_.isEmpty(username)) {
-    throw new Error('Username/Organisation is required to get a Github PR between two branches');
+    throw new Error('Username/Organization is required to get a Github PR between two branches');
   }
   if (_.isEmpty(projectName)) {
-    throw new Error('Project name is required a Github PR between two branches');
+    throw new Error('Project name is required to get a Github PR between two branches');
   }
   if (_.isEmpty(sourceBranch)) {
-    throw new Error('Source Branch is required a Github PR between two branches');
+    throw new Error('Source Branch is required to get a Github PR between two branches');
   }
   if (_.isEmpty(targetBranch)) {
-    throw new Error('Target Branch is required a Github PR between two branches');
+    throw new Error('Target Branch is required to get a Github PR between two branches');
   }
 
   return this.getPRBetween(username, projectName, sourceBranch, targetBranch);

@@ -51,7 +51,7 @@ Spawn.prototype.exec = function exec(cmd) {
             }
           });
         } else {
-          starflow.logger.warning('STDOUT muted (set starflow.logger.level property to starflow.logger.__proto__.LEVEL.ALL to see these logs)');
+          starflow.logger.warning('STDOUT muted (set starflow.logger.level property to starflow.logger.LEVEL.ALL to see these logs)');
         }
         if (code !== 0) {
           starflow.logger.warning('Errors detected but muted by the task parameters');
