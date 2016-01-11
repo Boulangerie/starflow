@@ -76,9 +76,10 @@ var starflowTaskTester = [
   //{'jira.assignIssue': ['TT-3618', 'unassigned']}
   //{'jira.changeIssueStatus': ['TT-3618', 'Open']},
 
-  {'jira.getIssue': 'TT-1234'},
-  {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', 'TT-1234', 'fs-event-tracker']},
-  {'teads.createPullRequests': ['TT-1234', '{{teads.branchName}}', ['starflow']]}
+  {'teads.linkDependencies': ['teads-player']},
+  {'jira.getIssue': 'TT-3618'},
+  {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', 'TT-3618', 'starflow-test']},
+  {'teads.createPullRequests': ['TT-3618', '{{teads.branchName}}', ['teads-player']]}
   //{'github.getProject': ['ebuzzing', 'starflow']},
   //{'github.getPRBetween': ['ebuzzing', 'starflow', 'master', 'feat/test-branch-for-pr-task']},
   //{'github.createPR': ['ebuzzing', 'starflow', 'master', 'feat/test-branch-for-pr-task', 'Automatopé']},
@@ -86,7 +87,7 @@ var starflowTaskTester = [
 ];
 
 starflow
-  .init(workflow, {})
+  .init(starflowTaskTester, {})
   .register(['$', 'shell.spawn'], starflowShell.spawn)
   .register('prompt', starflowShell.prompt)
   .register('npm.dependencies', starflowNpm.dependencies)

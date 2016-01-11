@@ -32,7 +32,7 @@ module.exports = function (api) {
     createPullRequests: require('./createPullRequests')(helpers, api),
     linkDependencies: require('./linkDependencies')(helpers),
     unlinkDependencies: require('./unlinkDependencies')(helpers),
-    checkoutDependencies: require('./checkoutDependencies'),
+    checkoutDependencies: require('./checkoutDependencies')(helpers),
     noOp: require('./noOp')
   };
 };

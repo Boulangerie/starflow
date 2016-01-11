@@ -5,8 +5,11 @@ var Task = require('../Task');
 var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 
-function UnlinkDependencies() {
-
+function UnlinkDependencies(helpers) {
+  if (!helpers) {
+    throw new Error('Helpers from starflow-teads should be passed to UnlinkDependencies constructor');
+  }
+  this.helpers = helpers;
 }
 
 UnlinkDependencies.prototype.exec = function () {
@@ -36,14 +39,14 @@ UnlinkDependencies.prototype.exec = function () {
       return new Sequence([
         new Task(spawnFactory(), [{
           cmd: 'npm',
-          args: ['unlink', _.last(dep.chain)],
+          args: ['unlink', dep.name],
           options: {
             cwd: pathName
           }
         }], '$'),
         new Task(spawnFactory(), [{
           cmd: 'npm',
-          args: ['install', _.last(dep.chain)],
+          args: ['install', dep.name],
           options: {
             cwd: pathName
           }
@@ -68,6 +71,8 @@ UnlinkDependencies.prototype.exec = function () {
     });
 };
 
-module.exports = function () {
-  return new UnlinkDependencies();
+module.exports = function (helpers) {
+  return function () {
+    return new UnlinkDependencies(helpers);
+  };
 };

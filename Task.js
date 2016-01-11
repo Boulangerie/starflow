@@ -23,9 +23,8 @@ Task.prototype.interpolate = function interpolate(context) {
   // parse each argument with Mustache
   this.args = _.map(this.args, function (arg) {
     if (_.isString(arg)) {
-      arg = arg.replace(/\{\{(.+)\}\}/g, function (match, name) {
-        return _.get(context, name);
-      });
+      _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
+      arg = _.template(arg)(context);
     }
     else if(_.isArray(arg)){
       var embeddedArgs = {args : arg};

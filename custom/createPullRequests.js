@@ -9,7 +9,10 @@ var getIssueFactory = require('../jira/getIssue');
 var createPRFactory = require('../github/createPR');
 
 function CreatePullRequests(helpers, api) {
-  this.helpers = helpers || {};
+  if (!helpers) {
+    throw new Error('Helpers from starflow-teads should be passed to CreatePullRequests constructor');
+  }
+  this.helpers = helpers;
   this.api = api;
 }
 
@@ -58,17 +61,18 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
       try {
         starflow.logger.level = initialLoggerState;
         var npmShow = JSON.parse(_.get(starflow.config, 'lastShellOutput'));
-        var matches = _.get(npmShow, 'repository.url', '').match(/github\.com\/(.+)\/(.+)/);
-        if (matches) {
-          var user = matches[1];
-          var repo = matches[2].replace('.git', '');
-          var title = issue.key + ': ' + _.get(issue, 'fields.summary');
-        } else {
-          throw new Error('Could not get Github user and repository from `npm show ' + dependency.name + '`');
-        }
       } catch (err) {
         // error when doing JSON.parse(...) on the output of `npm show X`
         throw err;
+      }
+
+      var matches = _.get(npmShow, 'repository.url', '').match(/github\.com\/(.+)\/(.+)/);
+      if (matches) {
+        var user = matches[1];
+        var repo = matches[2].replace('.git', '');
+        var title = issue.key + ': ' + _.get(issue, 'fields.summary');
+      } else {
+        throw new Error('Could not get Github user and repository from `npm show ' + dependency.name + '`');
       }
 
       return new Task(createPRFactory(self.api.github)(), [
@@ -79,9 +83,6 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
         title
       ]).run();
     })
-    .catch(function (err) {
-      throw err;
-    });
 };
 
 CreatePullRequests.prototype.exec = function (key, branch, dependencies) {
@@ -94,17 +95,18 @@ CreatePullRequests.prototype.exec = function (key, branch, dependencies) {
     }, './');
     var fullPath = path.resolve(pathName);
 
-    return self.getJiraIssue(key)
-      .then(function (issue) {
-        return self.createPrOnDependency(dep, fullPath, branch, issue);
-      })
+    var issue = _.get(starflow.config, 'jira.issue');
+    return self.createPrOnDependency(dep, fullPath, branch, issue)
       .catch(function (err) {
         starflow.logger.error('Error when creating the PR for ' + dep.baseBranch + ':' + branch + ' on the ' + dep.fullName + ' dependency');
         throw err;
       });
   });
 
-  return Promise.all(promises);
+  return this.getJiraIssue(key)
+    .then(function () {
+      return Promise.all(promises);
+    });
 };
 
 module.exports = function (helpers, api) {
