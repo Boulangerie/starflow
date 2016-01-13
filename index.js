@@ -46,6 +46,12 @@ var starflow = require('./starflow');
 //    }
 //  }
 //};
+
+var workflow = [
+  {'teads.linkDependencies': ['teads-player/teads-vpaid-ui']},
+  {'teads.checkoutDependencies': ['master', ['teads-player', 'teads-player/teads-vpaid-ui']]}
+];
+
 starflow.logger.level = starflow.logger.LEVEL.ALL;
 
 var starflowShell = require('./shell/starflow-shell');
@@ -74,7 +80,7 @@ var starflowTaskTester = [
 ];
 
 starflow
-  .init(starflowTaskTester, {})
+  .init(workflow, {})
   .register(['$', 'shell.spawn'], starflowShell.spawn)
   .register('prompt', starflowShell.prompt)
   .register('npm.dependencies', starflowNpm.dependencies)
@@ -95,5 +101,6 @@ starflow
   .register('teads.buildBranchName', starflowTeads.buildBranchName)
   .register('teads.linkDependencies', starflowTeads.linkDependencies)
   .register('teads.unlinkDependencies', starflowTeads.unlinkDependencies)
+  .register('teads.checkoutDependencies', starflowTeads.checkoutDependencies)
   .runWorkflow()
   .done();

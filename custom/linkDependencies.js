@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var Promise = require("bluebird");
+var path = require('path');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
@@ -15,7 +16,7 @@ LinkDependencies.prototype.exec = function () {
   var dependencyChainSeparator = '/';
 
   var deps = _.map(dependencies, function (dep) {
-    // e.g. dep==="teads-player", dep==="teads-player/lib-format-vpaid-ui"
+    // e.g. dep === "teads-player", dep === "teads-player/teads-vpaid-ui"
     var depChain = dep.split(dependencyChainSeparator);
     return {
       name: dep,
@@ -24,24 +25,21 @@ LinkDependencies.prototype.exec = function () {
   });
 
   var promises = _.map(deps, function (dep) {
-    if (dep.chain.length > 1) {
-      var tasks = [];
-      var path = './', task;
-      _.forEach(dep.chain, function (chainedDep) {
-        task = new Task(spawnFactory(), [{
-          cmd: 'npm',
-          args: ['link', chainedDep],
-          options: {
-            cwd: path
-          }
-        }]);
-        path += 'node_modules/' + chainedDep + '/';
-        tasks.push(task);
-      });
-      return new Sequence(tasks).run();
-    } else { // flat dependency
-      return new Task(spawnFactory(), ['npm', 'link', dep.name]).run();
-    }
+    var tasks = [];
+    var pathName = './';
+    var task;
+    _.forEach(dep.chain, function (chainedDep) {
+      task = new Task(spawnFactory(), [{
+        cmd: 'npm',
+        args: ['link', chainedDep],
+        options: {
+          cwd: path.resolve(pathName)
+        }
+      }]);
+      pathName += 'node_modules/' + chainedDep + '/';
+      tasks.push(task);
+    });
+    return new Sequence(tasks).run();
   });
 
   return Promise.all(promises)
