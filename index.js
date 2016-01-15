@@ -58,7 +58,6 @@ var starflowShell = require('./shell/starflow-shell');
 var starflowNpm = require('./npm/starflow-npm');
 var starflowGit = require('./git/starflow-git');
 var starflowGithub = require('./github/starflow-github')(process.env.GITHUB_TOKEN);
-var starflowTeads = require('./custom/starflow-teads');
 var starflowJira = require('./jira/starflow-jira')(
   'https',
   'jira.teads.net',
@@ -66,6 +65,10 @@ var starflowJira = require('./jira/starflow-jira')(
   process.env.JIRA_USERNAME,
   process.env.JIRA_PASSWORD
 );
+var starflowTeads = require('./custom/starflow-teads')({
+  jira: starflowJira.api,
+  github: starflowGithub.api
+});
 
 var starflowTaskTester = [
   //{'jira.getIssue': 'TT-3618'}
@@ -73,14 +76,18 @@ var starflowTaskTester = [
   //{'jira.assignIssue': ['TT-3618', 'unassigned']}
   //{'jira.changeIssueStatus': ['TT-3618', 'Open']},
 
+  {'teads.linkDependencies': ['teads-player']},
+  {'jira.getIssue': 'TT-3618'},
+  {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', 'TT-3618', 'starflow-test']},
+  {'teads.createPullRequests': ['TT-3618', '{{teads.branchName}}', ['teads-player']]}
   //{'github.getProject': ['ebuzzing', 'starflow']},
   //{'github.getPRBetween': ['ebuzzing', 'starflow', 'master', 'feat/test-branch-for-pr-task']},
   //{'github.createPR': ['ebuzzing', 'starflow', 'master', 'feat/test-branch-for-pr-task', 'Automatopé']},
-  //{'github.assignPR': ['ebuzzing', 'starflow', 'julien-vidal', '{{github.createPR.number}}']}
+  //{'github.assignPR': ['ebuzzing', 'starflow', 'ruizb', '{{github.pr["ebuzzing/starflow master:feat/test-branch-for-pr-task"].number}}']}
 ];
 
 starflow
-  .init(workflow, {})
+  .init(starflowTaskTester, {})
   .register(['$', 'shell.spawn'], starflowShell.spawn)
   .register('prompt', starflowShell.prompt)
   .register('npm.dependencies', starflowNpm.dependencies)
@@ -99,6 +106,7 @@ starflow
   .register('github.getProject', starflowGithub.getProject)
   .register('github.getPRBetween', starflowGithub.getPRBetween)
   .register('teads.buildBranchName', starflowTeads.buildBranchName)
+  .register('teads.createPullRequests', starflowTeads.createPullRequests)
   .register('teads.linkDependencies', starflowTeads.linkDependencies)
   .register('teads.unlinkDependencies', starflowTeads.unlinkDependencies)
   .register('teads.checkoutDependencies', starflowTeads.checkoutDependencies)

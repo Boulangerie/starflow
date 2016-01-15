@@ -8,6 +8,7 @@ function CreatePR(api) {
 
 CreatePR.prototype.createPR = function createPR(username, projectName, sourceBranch, targetBranch, title) {
   var githubCreatePR = Promise.promisify(this.api.pullRequests.create, {context: this.api});
+  var prKey = username + '/' + projectName + ' ' + sourceBranch + ':' + targetBranch; // e.g. me/my-project master:my-dev
   return githubCreatePR({
       user: username,
       repo: projectName,
@@ -18,16 +19,18 @@ CreatePR.prototype.createPR = function createPR(username, projectName, sourceBra
     .then(onSuccess, onError);
 
   function onSuccess(pr) {
-    starflow.logger.success('Pull request successfully created: ' + pr.html_url);
-    _.set(starflow.config, 'github.createPR', pr);
+    starflow.logger.success('Pull-request successfully created: ' + pr.html_url);
+    var githubPrMap = _.get(starflow.config, 'github.pr', {});
+    githubPrMap[prKey] = pr;
+    _.set(starflow.config, 'github.pr', githubPrMap);
   }
 
   function onError(err) {
     if (/already exists/.test(err.message)) {
-      starflow.logger.log('Pull request already exists');
+      starflow.logger.warning('Pull-request "' + prKey + '" already exists');
     }
     else {
-      starflow.logger.error.log('Could not create the pull request');
+      starflow.logger.error('Could not create the pull-request');
       throw err;
     }
   }

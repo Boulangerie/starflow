@@ -12,6 +12,7 @@ module.exports = function githubFactory(token) {
   }
 
   return {
+    api: api,
     assignPR: require('./assignPR')(api),
     createPR: require('./createPR')(api),
     getProject: require('./getProject')(api),
