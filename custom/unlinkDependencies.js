@@ -18,7 +18,7 @@ UnlinkDependencies.prototype.exec = function () {
 
   var sequences = _.map(deps, function (dep) {
     var pathName = _.reduce(dep.chain, function (prev, current, index) {
-      prev += (index === dep.chain.length - 1) ? '../' : current + '/node_modules/';
+      prev += (index === dep.chain.length - 1) ? '../' : (current + '/node_modules/');
       return prev;
     }, './node_modules/');
 

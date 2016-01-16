@@ -6,7 +6,10 @@ var Task = require('../Task');
 var createBranchFactory = require('../git/createBranch');
 
 function CreateBranchDependencies(helpers) {
-  this.helpers = helpers || {};
+  if (!helpers) {
+    throw new Error('Helpers from starflow-teads should be passed to CreatePullRequests constructor');
+  }
+  this.helpers = helpers;
 }
 
 CreateBranchDependencies.prototype.exec = function (branch, dependencies) {

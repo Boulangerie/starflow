@@ -57,7 +57,7 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
       options: {
         cwd: fullPath
       }
-    }, 'npm show --json ' + dependency.name)
+    }, null, 'npm show --json ' + dependency.name)
   ])
     .run()
     .then(function () {
