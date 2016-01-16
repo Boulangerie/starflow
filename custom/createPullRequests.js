@@ -17,6 +17,9 @@ function CreatePullRequests(helpers, api) {
 }
 
 CreatePullRequests.prototype.getJiraIssue = function getJiraIssue(key) {
+  if (!key) {
+    return Promise.resolve({});
+  }
   var issue = _.get(starflow.config, 'jira.issue', {});
   if (issue.key === key) {
     return Promise.resolve(issue);
@@ -29,7 +32,7 @@ CreatePullRequests.prototype.getJiraIssue = function getJiraIssue(key) {
   }
 };
 
-CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependency(dependency, fullPath, branch, issue) {
+CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependency(dependency, fullPath, branch, title) {
   var self = this;
   var initialLoggerState = starflow.logger.level;
   starflow.logger.level = starflow.logger.LEVEL.NORMAL; // to shut the output of `npm show X`
@@ -70,7 +73,6 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
       if (matches) {
         var user = matches[1];
         var repo = matches[2].replace('.git', '');
-        var title = issue.key + ': ' + _.get(issue, 'fields.summary');
       } else {
         throw new Error('Could not get Github user and repository from `npm show ' + dependency.name + '`');
       }
@@ -85,7 +87,11 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
     })
 };
 
-CreatePullRequests.prototype.exec = function (key, branch, dependencies) {
+CreatePullRequests.prototype.exec = function (key, prTitle, branch, dependencies) {
+  if (!key && !prTitle) {
+    throw new Error('You must give either a JIRA issue key or a pull-request title (got key=' + key + ' and prTitle=' + prTitle + ')');
+  }
+
   var deps = this.helpers.parseDependencies(dependencies);
   var self = this;
 
@@ -95,8 +101,12 @@ CreatePullRequests.prototype.exec = function (key, branch, dependencies) {
     }, './');
     var fullPath = path.resolve(pathName);
 
-    var issue = _.get(starflow.config, 'jira.issue');
-    return self.createPrOnDependency(dep, fullPath, branch, issue)
+    if (key) {
+      var issue = _.get(starflow.config, 'jira.issue');
+      // if we have an issue, override the prTitle anyway
+      prTitle = issue.key + ': ' + _.get(issue, 'fields.summary');
+    } // if no key was given, then a prTitle was given
+    return self.createPrOnDependency(dep, fullPath, branch, prTitle)
       .catch(function (err) {
         starflow.logger.error('Error when creating the PR for ' + dep.baseBranch + ':' + branch + ' on the ' + dep.fullName + ' dependency');
         throw err;

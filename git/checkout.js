@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var starflow = require('../starflow');
