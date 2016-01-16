@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var path = require('path');
+var fs = require('fs');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
@@ -17,52 +18,46 @@ LinkDependencies.prototype.exec = function () {
   var dependencies = _.toArray(arguments);
   var deps = this.helpers.parseDependencies(dependencies);
 
-  var promises = _.map(deps, function (dep) {
+  var alreadyLinked = {}; // e.g. {'./teads-player': true} to avoid doing multiple useless npm links
+  var npmLinkItems = [];
+  _.forEach(deps, function (dep) {
     var tasks = [];
     var pathName = './';
-    var task;
+
     _.forEach(dep.chain, function (chainedDep) {
-      task = new Task(spawnFactory(), [{
-        cmd: 'npm',
-        args: ['link', chainedDep],
-        options: {
-          cwd: path.resolve(pathName)
-        }
-      }], null, 'npm link ' + chainedDep);
+      var resolvedPath = path.resolve(pathName);
+      var alreadyKey = resolvedPath + '/' + chainedDep;
+      if (!alreadyLinked[alreadyKey]) {
+        var description = 'cd ' + resolvedPath.replace(process.env.PWD, '.') + ' && npm link ' + chainedDep;
+        var task = new Task(spawnFactory(), {
+          cmd: 'npm',
+          args: ['link', chainedDep],
+          options: {
+            cwd: resolvedPath
+          }
+        }, null, description);
+        alreadyLinked[alreadyKey] = true;
+        tasks.push(task);
+      }
       pathName += 'node_modules/' + chainedDep + '/';
-      tasks.push(task);
     });
-    return new Sequence(tasks).run();
+
+    if (tasks.length > 1) {
+      npmLinkItems.push(new Sequence(tasks));
+    } else {
+      npmLinkItems.push(tasks[0]); // push directly the Task instead of creating a Sequence of 1 Task
+    }
   });
 
-  return new Promise(function (resolve, reject) {
-    Promise.all(promises)
-      .then(function () {
-        starflow.logger.log('NPM dependencies linked: ' + _.pluck(deps, 'name').join(', '));
-        resolve();
-      })
-      .catch(function (err) {
-        starflow.logger.warning('Could not link the dependencies');
-        if (/file already exists, symlink/.test(err.message)) {
-          resolve();
-          return;
-        }
-        reject(err);
-      });
-  });
-  //return Promise.all(promises)
-  //  .then(function () {
-  //    starflow.logger.log('NPM dependencies linked: ' + _.pluck(deps, 'name').join(', '));
-  //  })
-  //  .catch(function (err) {
-  //    starflow.logger.warning('Could not link the dependencies');
-  //    throw err;
-  //  }).catch(function (err) {
-  //    if (/file already exists, symlink/.test(err.message)) {
-  //      return true;
-  //    }
-  //    throw err;
-  //  });
+  return new Sequence(npmLinkItems)
+    .run()
+    .then(function () {
+      starflow.logger.log('NPM dependencies linked: ' + _.pluck(deps, 'name').join(', '));
+    })
+    .catch(function (err) {
+      starflow.logger.warning('Could not link the dependencies');
+      throw err;
+    });
 };
 
 module.exports = function (helpers) {
