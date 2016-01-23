@@ -13,51 +13,34 @@ function UnlinkDependencies(helpers) {
 }
 
 UnlinkDependencies.prototype.exec = function () {
-
   var dependencies = _.toArray(arguments);
-  var dependencyChainSeparator = '/';
-
-  var deps = _.map(dependencies, function (dep) {
-    // e.g. dep === "teads-player", dep === "teads-player/teads-vpaid-ui"
-    var depChain = dep.split(dependencyChainSeparator);
-    return {
-      name: dep,
-      chain: depChain
-    };
-  });
+  var deps = this.helpers.parseDependencies(dependencies);
 
   var sequences = _.map(deps, function (dep) {
-    if (dep.chain.length > 1) {
-      var pathName = _.reduce(dep.chain, function (prev, current, index) {
-        prev += (index === dep.chain.length - 1) ? '../' : current + '/node_modules/';
-        return prev;
-      }, './node_modules/');
+    var pathName = _.reduce(dep.chain, function (prev, current, index) {
+      prev += (index === dep.chain.length - 1) ? '../' : (current + '/node_modules/');
+      return prev;
+    }, './node_modules/');
 
-      // necessary to resolve paths like "a/node_modules/b/node_modules/../" => "a/node_modules/b"
-      pathName = path.resolve(pathName);
+    // necessary to resolve paths like "a/node_modules/b/node_modules/../" => "a/node_modules/b"
+    var resolvedPath = path.resolve(pathName);
 
-      return new Sequence([
-        new Task(spawnFactory(), [{
-          cmd: 'npm',
-          args: ['unlink', dep.name],
-          options: {
-            cwd: pathName
-          }
-        }], '$'),
-        new Task(spawnFactory(), [{
-          cmd: 'npm',
-          args: ['install', dep.name],
-          options: {
-            cwd: pathName
-          }
-        }], '$')
-      ]);
-    } else { // flat dependency
-      return new Sequence([
-        new Task(spawnFactory(), ['npm', 'unlink', dep.name]),
-        new Task(spawnFactory(), ['npm', 'install', dep.name])
-      ]);
-    }
+    return new Sequence([
+      new Task(spawnFactory(), [{
+        cmd: 'npm',
+        args: ['unlink', dep.name],
+        options: {
+          cwd: resolvedPath
+        }
+      }], null, 'cd ' + resolvedPath.replace(process.env.PWD, '.') + ' && npm unlink ' + dep.name),
+      new Task(spawnFactory(), [{
+        cmd: 'npm',
+        args: ['install', dep.name],
+        options: {
+          cwd: resolvedPath
+        }
+      }], null, 'cd ' + resolvedPath.replace(process.env.PWD, '.') + ' && npm install ' + dep.name)
+    ]);
   });
 
   return new Sequence(sequences)

@@ -29,6 +29,8 @@ var helpers = {
 module.exports = function (api) {
   return {
     buildBranchName: require('./buildBranchName'),
+    createBranchDependencies: require('./createBranchDependencies')(helpers),
+    updatePackagesJson: require('./updatePackagesJson')(helpers),
     createPullRequests: require('./createPullRequests')(helpers, api),
     linkDependencies: require('./linkDependencies')(helpers),
     unlinkDependencies: require('./unlinkDependencies')(helpers),
