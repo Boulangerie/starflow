@@ -6,8 +6,11 @@ var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 var gitStashFactory = require('../git/stash');
 
-function CheckoutDependencies () {
-
+function CheckoutDependencies(helpers) {
+  if (!helpers) {
+    throw new Error('Helpers from starflow-teads should be passed to CheckoutDependencies constructor');
+  }
+  this.helpers = helpers;
 }
 
 CheckoutDependencies.prototype.exec = function (branch, dependencies) {
@@ -38,7 +41,7 @@ CheckoutDependencies.prototype.exec = function (branch, dependencies) {
 
     return new Sequence([
       new Task(gitStashFactory({cwd: fullPath})),
-      new Task(spawnFactory(), spawnConfig),
+      new Task(spawnFactory(), spawnConfig, null, 'cd ' + pathName + ' && git checkout ' + branch),
       new Task(gitStashFactory({cwd: fullPath}), true) // git stash pop
     ]);
   });
@@ -54,6 +57,8 @@ CheckoutDependencies.prototype.exec = function (branch, dependencies) {
     });
 };
 
-module.exports = function () {
-  return new CheckoutDependencies();
+module.exports = function (helpers) {
+  return function () {
+    return new CheckoutDependencies(helpers);
+  };
 };
