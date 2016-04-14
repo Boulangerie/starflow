@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Promise = require("bluebird");
+var Promise = require('bluebird');
 var spawn = require('child_process').spawn;
 var starflow = require('../starflow');
 

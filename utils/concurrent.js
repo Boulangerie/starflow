@@ -1,6 +1,6 @@
 var _ = require('lodash');
-var Promise = require('bluebird');
 var Workflow = require('./Workflow');
+var Concurrence = require('./Concurrence');
 
 /**
  *
@@ -19,11 +19,9 @@ function Concurrent() {
 }
 
 Concurrent.prototype.exec = function (subSteps) {
-  var promises = _.map(subSteps, function (step) {
-    var workflow = new Workflow(step);
-    return workflow.run();
-  });
-  return Promise.all(promises);
+  return new Concurrence(_.map(subSteps, function (currentStep) {
+    return Workflow.stepToTask(currentStep);
+  }));
 };
 
 module.exports = function () {

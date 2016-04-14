@@ -1,5 +1,5 @@
 var starflow = require('./starflow');
-
+var config = {};
 //var start = [
 //  'git.stash',
 //  {'$': ['git', ['checkout', 'master']]},
@@ -86,8 +86,8 @@ var starflowTaskTester = [
   //{'github.assignPR': ['ebuzzing', 'starflow', 'ruizb', '{{github.pr["ebuzzing/starflow master:feat/test-branch-for-pr-task"].number}}']}
 ];
 
-starflow
-  .init({})
+return starflow
+  .init(config)
   .register(['$', 'shell.spawn'], starflowShell.spawn)
   .register('prompt', starflowShell.prompt)
   .register('npm.dependencies', starflowNpm.dependencies)
@@ -110,5 +110,4 @@ starflow
   .register('teads.linkDependencies', starflowTeads.linkDependencies)
   .register('teads.unlinkDependencies', starflowTeads.unlinkDependencies)
   .register('teads.checkoutDependencies', starflowTeads.checkoutDependencies)
-  .runWorkflow(starflowTaskTester)
-  .done();
+  .runWorkflow(starflowTaskTester);
