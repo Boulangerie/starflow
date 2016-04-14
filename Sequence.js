@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var Promise = require("bluebird");
-var starflow = require('./starflow');
+var Item = require('./Item');
 
 /**
  * var sq = new Sequence([
@@ -19,8 +19,10 @@ function Sequence(items) {
   this.items = items;
 }
 
+Sequence.prototype = Object.create(Item.prototype);
+
 /**
- * @type {Array<Task|Sequence>}
+ * @type {Array<Item>}
  */
 Sequence.prototype.items = null;
 

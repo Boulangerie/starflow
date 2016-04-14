@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var Promise = require("bluebird");
+var Item = require('./Item');
 
 function Task(instance, args, name, description) {
   this.instance = instance || null;
@@ -14,6 +15,7 @@ function Task(instance, args, name, description) {
   this.description = description || '';
 }
 
+Task.prototype = Object.create(Item.prototype);
 Task.prototype.instance = null;
 Task.prototype.args = [];
 Task.prototype.name = '';
