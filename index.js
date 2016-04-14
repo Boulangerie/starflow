@@ -87,7 +87,7 @@ var starflowTaskTester = [
 ];
 
 starflow
-  .init(starflowTaskTester, {})
+  .init({})
   .register(['$', 'shell.spawn'], starflowShell.spawn)
   .register('prompt', starflowShell.prompt)
   .register('npm.dependencies', starflowNpm.dependencies)
@@ -110,5 +110,5 @@ starflow
   .register('teads.linkDependencies', starflowTeads.linkDependencies)
   .register('teads.unlinkDependencies', starflowTeads.unlinkDependencies)
   .register('teads.checkoutDependencies', starflowTeads.checkoutDependencies)
-  .runWorkflow()
+  .runWorkflow(starflowTaskTester)
   .done();
