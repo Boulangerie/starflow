@@ -50,7 +50,6 @@ function stepToTask(step) {
 
 function processStep(step) {
   var task = stepToTask(step);
-  task.interpolate(starflow.config);
   return task.run();
 }
 

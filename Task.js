@@ -41,6 +41,8 @@ Task.prototype.run = function run() {
   var starflow = require('./starflow');
   var logger = starflow.logger;
 
+  this.interpolate(starflow.config);
+
   var self = this;
 
   if (!_.isFunction(this.instance.exec)) {
