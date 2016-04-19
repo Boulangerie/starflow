@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Promise = require("bluebird");
+var Promise = require('bluebird');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
