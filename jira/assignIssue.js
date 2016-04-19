@@ -1,14 +1,18 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
-function AssignIssue(api) {
+function AssignIssue(name, parentNamespace, api) {
+  BaseExecutable.call(this, name, parentNamespace);
   this.api = api;
   this.nonUserMapping = {
     'unassigned' : '',
     'automatic' : '-1'
   }
 }
+AssignIssue.prototype = Object.create(BaseExecutable.prototype);
+AssignIssue.prototype.constructor = AssignIssue;
 
 //According to : https://confluence.atlassian.com/display/JIRAKB/How+to+Set+Assignee+to+Unassigned+via+REST+API+in+JIRA
 AssignIssue.prototype.mapNonUserAssignee = function mapNonUserAssignee(assignee){
@@ -20,15 +24,14 @@ AssignIssue.prototype.assignIssue = function assignIssue(key, assignee) {
   var jiraAssignIssue = Promise.promisify(this.api.updateIssue, {context: this.api});
 
   return jiraAssignIssue(key, params)
-    .then(onSuccess, onError);
+    .then(onSuccess.bind(this), onError);
 
 
   function onSuccess(response) {
-    if(response === 'Success'){
+    if (response === 'Success') {
       starflow.logger.success('JIRA issue ' + key + ' was assigned to ' + assignee);
-      _.set(starflow.config, 'jira.assignIssue', assignee);
-    }
-    else{
+      this.storage.set('issueAssignee', assignee);
+    } else {
       starflow.logger.error('There was a problem with the request. Args: ' + key + ', ' + assignee);
       throw response;
     }
@@ -53,7 +56,7 @@ AssignIssue.prototype.exec = function exec(key, assignee) {
 };
 
 module.exports = function (api) {
-  return function () {
-    return new AssignIssue(api);
+  return function (parentNamespace) {
+    return new AssignIssue('jira.assignIssue', parentNamespace, api);
   };
 };

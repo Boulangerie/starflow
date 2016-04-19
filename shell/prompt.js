@@ -3,13 +3,17 @@ var Promise = require('bluebird');
 var prompt = require('prompt');
 var chalk = require('chalk');
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
-function Prompt() {
-
+function Prompt(name, parentNamespace) {
+  BaseExecutable.call(this, name, parentNamespace);
 }
+Prompt.prototype = Object.create(BaseExecutable.prototype);
+Prompt.prototype.constructor = Prompt;
 
 Prompt.prototype.exec = function (schemaName) {
-  return new Promise(function(resolve, reject){
+  var self = this;
+  return new Promise(function (resolve, reject) {
     prompt.message = chalk.gray(starflow.logger.getPaddingText()) + ' ?';
     prompt.delimiter = ' ';
 
@@ -24,12 +28,12 @@ Prompt.prototype.exec = function (schemaName) {
       if (err) {
         reject(err);
       }
-      _.set(starflow.config, 'prompt.' + schemaName + '.result', result);
+      self.storage.set(schemaName + '.result', result);
       resolve();
     });
   });
 };
 
-module.exports = function () {
-  return new Prompt();
+module.exports = function (parentNamespace) {
+  return new Prompt('prompt', parentNamespace);
 };

@@ -1,16 +1,23 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var starflow = require('../starflow');
+var Task = require('../Task');
+var BaseExecutable = require('../BaseExecutable');
 
-function GetIssue(api) {
+function GetIssue(name, parentNamespace, api) {
+  BaseExecutable.call(this, name, parentNamespace);
   this.api = api;
 }
+GetIssue.prototype = Object.create(BaseExecutable.prototype);
+GetIssue.prototype.constructor = GetIssue;
 
 GetIssue.prototype.getIssue = function getIssue(key) {
   function onSuccess(issue) {
     starflow.logger.success('JIRA issue "' + key + '" was found');
-    starflow.logger.log('<' + issue.fields.issuetype.name + '> ' + issue.fields.summary + ' (assigned to ' + ((!_.isNull(issue.fields.assignee)) ? issue.fields.assignee.name : 'nobody') + ', status: ' + issue.fields.status.name + ')');
-    _.set(starflow.config, 'jira.issue', issue);
+    var type = _.get(issue, 'fields.issuetype.name', 'Unknown type');
+    var assignee = !_.isNull(_.get(issue, 'fields.assignee')) ? _.get(issue, 'fields.assignee.name') : 'Nobody';
+    starflow.logger.log('<' + type + '> ' + _.get(issue, 'fields.summary') + ' (assigned to ' + assignee + ', status: ' + _.get(issue, 'fields.status.name') + ')');
+    this.storage.set('issue', issue);
   }
 
   function onError(err) {
@@ -19,14 +26,14 @@ GetIssue.prototype.getIssue = function getIssue(key) {
   }
   var jiraFindIssue = Promise.promisify(this.api.findIssue, {context: this.api});
   return jiraFindIssue(key)
-    .then(onSuccess, onError);
+    .then(onSuccess.bind(this), onError);
 };
 
 GetIssue.prototype.openJiraLink = function openJiraLink(key) {
   var spawnFactory = require('../shell/spawn');
   var url = this.api.protocol + '://' + this.api.host + '/browse/' + key;
-  var taskConfig = {args: ['open', [url]]};
-  return starflow.wrapTask(spawnFactory, taskConfig)();
+  var taskConfig = ['open', url];
+  return new Task(spawnFactory(this.namespace), taskConfig).run();
 };
 
 GetIssue.prototype.exec = function exec(key, withOpen) {
@@ -42,7 +49,7 @@ GetIssue.prototype.exec = function exec(key, withOpen) {
 };
 
 module.exports = function (api) {
-  return function () {
-    return new GetIssue(api);
+  return function (parentNamespace) {
+    return new GetIssue('jira.getIssue', parentNamespace, api);
   };
 };

@@ -1,20 +1,25 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
-function GetIssueStatuses(api) {
+function GetIssueStatuses(name, parentNamespace, api) {
+  BaseExecutable.call(this, name, parentNamespace);
   this.api = api;
 }
+GetIssueStatuses.prototype = Object.create(BaseExecutable.prototype);
+GetIssueStatuses.prototype.constructor = GetIssueStatuses;
 
 GetIssueStatuses.prototype.getIssueStatuses = function getIssueStatuses(key) {
   var jiraGetIssueStatuses = Promise.promisify(this.api.listTransitions, {context: this.api});
   return jiraGetIssueStatuses(key)
-    .then(onSuccess, onError);
+    .then(onSuccess.bind(this), onError);
 
   function onSuccess(issue) {
     starflow.logger.success('JIRA issue statuses"' + key + '" were found');
-    starflow.logger.log('Statuses : ' + _.map(issue.transitions, function (status) { return status.to.name; }).join(', '));
-    _.set(starflow.config, 'jira.getIssueStatuses', issue.transitions);
+    var statuses = _.map(issue.transitions, function (status) { return status.to.name; }).join(', ');
+    starflow.logger.log('Statuses: ' + statuses);
+    this.storage.set('issueStatuses', issue.transitions);
   }
 
   function onError(err) {
@@ -31,7 +36,7 @@ GetIssueStatuses.prototype.exec = function exec(key) {
 };
 
 module.exports = function (api) {
-  return function () {
-    return new GetIssueStatuses(api);
+  return function (parentNamespace) {
+    return new GetIssueStatuses('jira.getIssueStatuses', parentNamespace, api);
   };
 };

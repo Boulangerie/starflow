@@ -1,6 +1,6 @@
 var _ = require('lodash');
 
-var Storage =  {
+var Storage = {
   data: {},
   get: getValue,
   set: setValue

@@ -3,13 +3,17 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var taskGetIssueStatuses = require('./getIssueStatuses');
 var Task = require('../Task');
+var BaseExecutable = require('../BaseExecutable');
 
-function ChangeIssueStatus(api) {
+function ChangeIssueStatus(name, parentNamespace, api) {
+  BaseExecutable.call(this, name, parentNamespace);
   this.api = api;
 }
+ChangeIssueStatus.prototype = Object.create(BaseExecutable.prototype);
+ChangeIssueStatus.prototype.constructor = ChangeIssueStatus;
 
 ChangeIssueStatus.prototype.getIssueStatuses = function getIssueStatuses(key, status) {
-  return new Task(taskGetIssueStatuses(this.api)(), [key, status]).run();
+  return new Task(taskGetIssueStatuses(this.api)(this.namespace), [key, status]).run();
 };
 
 ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(key, status) {
@@ -21,15 +25,15 @@ ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(key, 
   }
 
   return jiraChangeIssueStatus(key, {transition : transition})
-    .then(onSuccess, onError);
+    .then(onSuccess.bind(this), onError);
 
 
   function onSuccess(response) {
-    if(response === 'Success'){
+    if (response === 'Success') {
       starflow.logger.success('JIRA issue ' + key + ' has now the status "' + status + '"');
-      _.set(starflow.config, 'jira.changeIssueStatus', status);
+      this.storage.set('changeIssueStatus', status);
     }
-    else{
+    else {
       starflow.logger.error('There was a problem with the request. Args: ' + key + ', ' + status);
       throw response;
     }
@@ -50,7 +54,7 @@ ChangeIssueStatus.prototype.exec = function exec(key, status) {
   }
   return this
     .getIssueStatuses(key, status)
-    .then(function(){
+    .then(function () {
       return this.changeIssueStatus(key, status);
     }.bind(this));
 };

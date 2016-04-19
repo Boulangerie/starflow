@@ -45,7 +45,7 @@ function stepToTask(step) {
     throw new Error('Cannot find the factory for task "' + taskName + '". Did you register it to Starflow?');
   }
 
-  return new Task(taskFactory(), taskArgs, taskName);
+  return new Task(taskFactory(''), taskArgs, taskName);
 }
 
 function processStep(step) {
