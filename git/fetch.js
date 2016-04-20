@@ -1,12 +1,16 @@
 var _ = require('lodash');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
+var BaseExecutable = require('../BaseExecutable');
 
-function Fetch(options) {
+function Fetch(name, parentNamespace, options) {
+  BaseExecutable.call(this, name, parentNamespace);
   this.options = _.defaults({}, options, {
     cwd: './'
   });
 }
+Fetch.prototype = Object.create(BaseExecutable.prototype);
+Fetch.prototype.constructor = Fetch;
 
 Fetch.prototype.fetch = function fetch(remote, branch) {
   var options = this.options;
@@ -21,7 +25,7 @@ Fetch.prototype.fetch = function fetch(remote, branch) {
   if (branch) {
     spawnConfig.args.push(branch);
   }
-  return new Task(spawnFactory(), spawnConfig).run();
+  return new Task(spawnFactory(this.namespace), spawnConfig).run();
 };
 
 Fetch.prototype.exec = function exec(remote, branch) {
@@ -29,6 +33,6 @@ Fetch.prototype.exec = function exec(remote, branch) {
   return this.fetch(remote, branch);
 };
 
-module.exports = function (options) {
-  return new Fetch(options);
+module.exports = function (parentNamespace, options) {
+  return new Fetch('git.fetch', parentNamespace, options);
 };

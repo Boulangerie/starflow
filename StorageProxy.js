@@ -11,13 +11,40 @@ StorageProxy.prototype.get = function get(originalPath) {
   return Storage.get(fullPath);
 };
 
+/**
+ * Get the last value set in a given path
+ * @param originalPath: string
+ * @returns {*}
+ */
+StorageProxy.prototype.getLast = function getLast(originalPath) {
+  var extractedPath = extractFromPath(originalPath);
+
+  var existingValue = this.getAll(extractedPath.namespace);
+  if (existingValue) {
+    extractedPath.index = _.size(existingValue) - 1;
+  }
+
+  var fullPath = generateFullPath(this.namespace, extractedPath);
+  return Storage.get(fullPath);
+};
+
+/**
+ * Get all the values set in a given namespace
+ * @param childNamespace: string
+ */
+StorageProxy.prototype.getAll = function getAll(childNamespace) {
+  var separator = childNamespace !== '' ? '/' : '';
+  var path = childNamespace + separator;
+  return this.get(path);
+};
+
 StorageProxy.prototype.set = function set(originalPath, value) {
   var extractedPath = extractFromPath(originalPath);
   var index = 0;
 
   // if there is already an array in the given namespace
   // then add the value at the end of the array
-  var existingValue = this.get(extractedPath.namespace);
+  var existingValue = this.getAll(extractedPath.namespace);
   if (existingValue) {
     index = _.size(existingValue);
   }
@@ -69,12 +96,12 @@ function generateFullPath(namespace, extractedPath) {
     childNamespace = '/' + extractedPath.namespace;
   }
 
-  var path = extractedPath.index;
+  var path = '';
   if (extractedPath.path) {
-    path += '.' + extractedPath.path;
+    path = '.' + extractedPath.index + '.' + extractedPath.path;
   }
 
-  return '["' + namespace + childNamespace + '"].' + path;
+  return '["' + namespace + childNamespace + '"]' + path;
 }
 
 module.exports = StorageProxy;

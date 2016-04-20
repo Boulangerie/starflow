@@ -2,12 +2,16 @@ var _ = require('lodash');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
-function Checkout(options) {
+function Checkout(name, parentNamespace, options) {
+  BaseExecutable.call(this, name, parentNamespace);
   this.options = _.defaults({}, options, {
     cwd: './'
   });
 }
+Checkout.prototype = Object.create(BaseExecutable.prototype);
+Checkout.prototype.constructor = Checkout;
 
 Checkout.prototype.checkout = function checkout(branchName) {
   function onSuccess() {
@@ -21,7 +25,7 @@ Checkout.prototype.checkout = function checkout(branchName) {
       cwd: options.cwd
     }
   };
-  return new Task(spawnFactory(), spawnConfig)
+  return new Task(spawnFactory(this.namespace), spawnConfig)
     .run()
     .then(onSuccess);
 };
@@ -31,6 +35,6 @@ Checkout.prototype.exec = function exec(branchName) {
   return this.checkout(branchName);
 };
 
-module.exports = function (options) {
-  return new Checkout(options);
+module.exports = function (parentNamespace, options) {
+  return new Checkout('git.checkout', parentNamespace, options);
 };
