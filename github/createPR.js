@@ -1,10 +1,14 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
-function CreatePR(api) {
+function CreatePR(name, parentNamespace, api) {
+  BaseExecutable.call(this, name, parentNamespace);
   this.api = api;
 }
+CreatePR.prototype = Object.create(BaseExecutable.prototype);
+CreatePR.prototype.constructor = CreatePR;
 
 CreatePR.prototype.createPR = function createPR(username, projectName, sourceBranch, targetBranch, title) {
   var githubCreatePR = Promise.promisify(this.api.pullRequests.create, {context: this.api});
@@ -16,13 +20,13 @@ CreatePR.prototype.createPR = function createPR(username, projectName, sourceBra
       head: (username + ':'+ targetBranch),
       title: title
     })
-    .then(onSuccess, onError);
+    .then(onSuccess.bind(this), onError);
 
   function onSuccess(pr) {
     starflow.logger.success('Pull-request successfully created: ' + pr.html_url);
-    var githubPrMap = _.get(starflow.config, 'github.pr', {});
+    var githubPrMap = this.storage.get('pr', {});
     githubPrMap[prKey] = pr;
-    _.set(starflow.config, 'github.pr', githubPrMap);
+    this.storage.set('pr', githubPrMap);
   }
 
   function onError(err) {
@@ -58,7 +62,7 @@ CreatePR.prototype.exec = function exec(username, projectName, sourceBranch, tar
 };
 
 module.exports = function (api) {
-  return function () {
-    return new CreatePR(api);
+  return function (parentNamespace) {
+    return new CreatePR('github.createPR', parentNamespace, api);
   };
 };

@@ -6,12 +6,12 @@ var Storage = {
   set: setValue
 };
 
-function getValue(path) {
-  return _.get(this.data, path);
+function getValue(path, defaultValue) {
+  return _.get(this.data, path, defaultValue);
 }
 
 function setValue(path, value) {
-  _.set(this.data, path, value);
+  return _.set(this.data, path, value);
 }
 
 module.exports = Storage;

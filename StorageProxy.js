@@ -5,10 +5,10 @@ function StorageProxy(namespace) {
   this.namespace = namespace;
 }
 
-StorageProxy.prototype.get = function get(originalPath) {
+StorageProxy.prototype.get = function get(originalPath, defaultValue) {
   var extractedPath = extractFromPath(originalPath);
   var fullPath = generateFullPath(this.namespace, extractedPath);
-  return Storage.get(fullPath);
+  return Storage.get(fullPath, defaultValue);
 };
 
 /**
@@ -16,7 +16,7 @@ StorageProxy.prototype.get = function get(originalPath) {
  * @param originalPath: string
  * @returns {*}
  */
-StorageProxy.prototype.getLast = function getLast(originalPath) {
+StorageProxy.prototype.getLast = function getLast(originalPath, defaultValue) {
   var extractedPath = extractFromPath(originalPath);
 
   var existingValue = this.getAll(extractedPath.namespace);
@@ -25,17 +25,17 @@ StorageProxy.prototype.getLast = function getLast(originalPath) {
   }
 
   var fullPath = generateFullPath(this.namespace, extractedPath);
-  return Storage.get(fullPath);
+  return Storage.get(fullPath, defaultValue);
 };
 
 /**
  * Get all the values set in a given namespace
  * @param childNamespace: string
  */
-StorageProxy.prototype.getAll = function getAll(childNamespace) {
+StorageProxy.prototype.getAll = function getAll(childNamespace, defaultValue) {
   var separator = childNamespace !== '' ? '/' : '';
   var path = childNamespace + separator;
-  return this.get(path);
+  return this.get(path, defaultValue);
 };
 
 StorageProxy.prototype.set = function set(originalPath, value) {

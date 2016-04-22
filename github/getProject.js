@@ -1,10 +1,14 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
-function GetProject(api) {
+function GetProject(name, parentNamespace, api) {
+  BaseExecutable.call(this, name, parentNamespace);
   this.api = api;
 }
+GetProject.prototype = Object.create(BaseExecutable.prototype);
+GetProject.prototype.constructor = GetProject;
 
 GetProject.prototype.getProject = function getProject(username, projectName) {
   var githubGetProject = Promise.promisify(this.api.repos.get, {context: this.api});
@@ -12,11 +16,11 @@ GetProject.prototype.getProject = function getProject(username, projectName) {
       user: username,
       repo: projectName
     })
-    .then(onSuccess, onError);
+    .then(onSuccess.bind(this), onError);
 
   function onSuccess(project) {
     starflow.logger.success('GITHUB project "' + project.full_name + '" found - ☆('+ project.stargazers_count +')');
-    _.set(starflow.config, 'github.project', project);
+    this.storage.set('project', project);
   }
 
   function onError(err) {
@@ -39,7 +43,7 @@ GetProject.prototype.exec = function exec(username, projectName) {
 };
 
 module.exports = function (api) {
-  return function () {
-    return new GetProject(api);
+  return function (parentNamespace) {
+    return new GetProject('github.getProject', parentNamespace, api);
   };
 };
