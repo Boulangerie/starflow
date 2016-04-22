@@ -3,8 +3,7 @@ var StorageProxy = require('./StorageProxy');
 function BaseExecutable(name, parentNamespace) {
   this.name = name;
   this.parentNamespace = parentNamespace;
-  var separator = parentNamespace !== '' ? '/' : '';
-  this.namespace = parentNamespace + separator + name;
+  this.namespace = _.compact([parentNamespace, name]).join('/');
   this.storage = new StorageProxy(this.namespace);
 }
 

@@ -4,13 +4,17 @@ var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
+var BaseExecutable = require('../BaseExecutable');
 
-function UnlinkDependencies(helpers) {
+function UnlinkDependencies(name, parentNamespace, helpers) {
+  BaseExecutable.call(this, name, parentNamespace);
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to UnlinkDependencies constructor');
   }
   this.helpers = helpers;
 }
+UnlinkDependencies.prototype = Object.create(BaseExecutable.prototype);
+UnlinkDependencies.prototype.constructor = UnlinkDependencies;
 
 UnlinkDependencies.prototype.exec = function () {
   var dependencies = _.toArray(arguments);
@@ -26,14 +30,14 @@ UnlinkDependencies.prototype.exec = function () {
     var resolvedPath = path.resolve(pathName);
 
     return new Sequence([
-      new Task(spawnFactory(), [{
+      new Task(spawnFactory(this.namespace), [{
         cmd: 'npm',
         args: ['unlink', dep.name],
         options: {
           cwd: resolvedPath
         }
       }], null, 'cd ' + resolvedPath.replace(process.env.PWD, '.') + ' && npm unlink ' + dep.name),
-      new Task(spawnFactory(), [{
+      new Task(spawnFactory(this.namespace), [{
         cmd: 'npm',
         args: ['install', dep.name],
         options: {
@@ -41,7 +45,7 @@ UnlinkDependencies.prototype.exec = function () {
         }
       }], null, 'cd ' + resolvedPath.replace(process.env.PWD, '.') + ' && npm install ' + dep.name)
     ]);
-  });
+  }.bind(this));
 
   return new Sequence(sequences)
     .run()
@@ -55,7 +59,7 @@ UnlinkDependencies.prototype.exec = function () {
 };
 
 module.exports = function (helpers) {
-  return function () {
-    return new UnlinkDependencies(helpers);
+  return function (parentNamespace) {
+    return new UnlinkDependencies('teads.unlinkDependencies', parentNamespace, helpers);
   };
 };

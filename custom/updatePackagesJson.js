@@ -3,13 +3,17 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var updatePackageVersionFactory = require('../npm/updatePackageVersion');
+var BaseExecutable = require('../BaseExecutable');
 
-function UpdatePackagesJson(helpers) {
+function UpdatePackagesJson(name, parentNamespace, helpers) {
+  BaseExecutable.call(this, name, parentNamespace);
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to UpdatePackagesJson constructor');
   }
   this.helpers = helpers;
 }
+UpdatePackagesJson.prototype = Object.create(BaseExecutable.prototype);
+UpdatePackagesJson.prototype.constructor = UpdatePackagesJson;
 
 UpdatePackagesJson.prototype.getNpmVersionFromBranch = function getNpmVersionFromBranch(branch) {
   return _.kebabCase('0.0.0-' + branch.replace(/[^a-zA-Z0-9_.-]/g, '_').toLowerCase());
@@ -29,14 +33,14 @@ UpdatePackagesJson.prototype.exec = function (branch, dependencies) {
     packageName = _.last(dep.chain);
     npmVersion = self.getNpmVersionFromBranch(branch);
     description = 'Update ' + packageName + ' version to ' + npmVersion;
-    promises.push(new Task(updatePackageVersionFactory(), [pathName + '/package.json', packageName, npmVersion], null, description).run());
-  });
+    promises.push(new Task(updatePackageVersionFactory(this.namespace), [pathName + '/package.json', packageName, npmVersion], null, description).run());
+  }.bind(this));
 
   return Promise.all(promises);
 };
 
 module.exports = function (helpers) {
-  return function () {
-    return new UpdatePackagesJson(helpers);
+  return function (parentNamespace) {
+    return new UpdatePackagesJson('teads.updatePackagesJson', parentNamespace, helpers);
   };
 };

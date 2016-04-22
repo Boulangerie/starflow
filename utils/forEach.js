@@ -1,6 +1,6 @@
 var _ = require('lodash');
-var Workflow = require('./Workflow');
-var Sequence = require('./Sequence');
+var Workflow = require('../Workflow');
+var Sequence = require('../Sequence');
 
 /**
  *
@@ -24,8 +24,12 @@ function ForEach() {
 }
 
 ForEach.prototype.exec = function (arr, subSteps) {
-  return new Sequence(_.map(subSteps, function (currentStep) {
-    return Workflow.stepToTask(currentStep);
+  return new Sequence(_.map(arr, function (value) {
+    return new Sequence(_.map(subSteps, function (currentStep) {
+      var task = Workflow.stepToTask(currentStep);
+      task.instance.storage.set('value', value);
+      return task;
+    }));
   }));
 };
 

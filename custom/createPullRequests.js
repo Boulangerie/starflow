@@ -7,14 +7,18 @@ var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 var getIssueFactory = require('../jira/getIssue');
 var createPRFactory = require('../github/createPR');
+var BaseExecutable = require('../BaseExecutable');
 
-function CreatePullRequests(helpers, api) {
+function CreatePullRequests(name, parentNamespace, helpers, api) {
+  BaseExecutable.call(this, name, parentNamespace);
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to CreatePullRequests constructor');
   }
   this.helpers = helpers;
   this.api = api;
 }
+CreatePullRequests.prototype = Object.create(BaseExecutable.prototype);
+CreatePullRequests.prototype.constructor = CreatePullRequests;
 
 CreatePullRequests.prototype.getJiraIssue = function getJiraIssue(key) {
   if (!key) {
@@ -24,11 +28,12 @@ CreatePullRequests.prototype.getJiraIssue = function getJiraIssue(key) {
   if (issue.key === key) {
     return Promise.resolve(issue);
   } else {
-    return new Task(getIssueFactory(this.api.jira)(), key, 'Get the JIRA issue')
+    var getJiraIssueInstance = getIssueFactory(this.api.jira)(this.namespace);
+    return new Task(getJiraIssueInstance, key, 'Get the JIRA issue')
       .run()
       .then(function () {
-        return _.get(starflow.config, 'jira.issue', {});
-      });
+        return getJiraIssueInstance.storage.get('issue', {});
+      }.bind(this));
   }
 };
 
@@ -36,22 +41,23 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
   var self = this;
   var initialLoggerState = starflow.logger.level;
   starflow.logger.level = starflow.logger.LEVEL.NORMAL; // to shut the output of `npm show X`
+  var npmShowInstance = spawnFactory(this.namespace);
   return new Sequence([
-    new Task(spawnFactory(), {
+    new Task(spawnFactory(this.namespace), {
       cmd: 'git',
       args: ['commit', '--allow-empty', '-m', '[STARFLOW] init'],
       options: {
         cwd: fullPath
       }
     }, null, 'git commit --alow-empty -m "[STARFLOW] init"'),
-    new Task(spawnFactory(), {
+    new Task(spawnFactory(this.namespace), {
       cmd: 'git',
       args: ['push', '-u', 'origin', branch],
       options: {
         cwd: fullPath
       }
     }, null, 'git push -u origin ' + branch),
-    new Task(spawnFactory(), {
+    new Task(npmShowInstance, {
       cmd: 'npm',
       args: ['show', '--json', dependency.name],
       options: {
@@ -63,7 +69,7 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
     .then(function () {
       try {
         starflow.logger.level = initialLoggerState;
-        var npmShow = JSON.parse(_.get(starflow.config, 'lastShellOutput'));
+        var npmShow = JSON.parse(this.storage.get(npmShowInstance.name + '/lastShellOutput'));
       } catch (err) {
         // error when doing JSON.parse(...) on the output of `npm show X`
         throw err;
@@ -84,7 +90,7 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
         branch,
         title
       ]).run();
-    })
+    }.bind(this));
 };
 
 CreatePullRequests.prototype.exec = function (key, prTitle, branch, dependencies) {
@@ -102,7 +108,9 @@ CreatePullRequests.prototype.exec = function (key, prTitle, branch, dependencies
     var fullPath = path.resolve(pathName);
 
     if (key) {
-      var issue = _.get(starflow.config, 'jira.issue');
+      // TODO do not use harcoded Executable names...
+      var issue = this.storage.get('jira.getIssue/issue');
+      // var issue = _.get(starflow.config, 'jira.getIssue/issue');
       // if we have an issue, override the prTitle anyway
       prTitle = issue.key + ': ' + _.get(issue, 'fields.summary');
     } // if no key was given, then a prTitle was given
@@ -120,7 +128,7 @@ CreatePullRequests.prototype.exec = function (key, prTitle, branch, dependencies
 };
 
 module.exports = function (helpers, api) {
-  return function () {
-    return new CreatePullRequests(helpers, api);
+  return function (parentNamespace) {
+    return new CreatePullRequests('teads.createPullRequests', parentNamespace, helpers, api);
   };
 };
