@@ -4,8 +4,8 @@ var starflow = require('../starflow');
 var Task = require('../Task');
 var BaseExecutable = require('../BaseExecutable');
 
-function GetIssue(name, parentNamespace, api) {
-  BaseExecutable.call(this, name, parentNamespace);
+function GetIssue(parentNamespace, api) {
+  BaseExecutable.call(this, 'jira.getIssue', parentNamespace);
   this.api = api;
 }
 GetIssue.prototype = Object.create(BaseExecutable.prototype);
@@ -50,6 +50,6 @@ GetIssue.prototype.exec = function exec(key, withOpen) {
 
 module.exports = function (api) {
   return function (parentNamespace) {
-    return new GetIssue('jira.getIssue', parentNamespace, api);
+    return new GetIssue(parentNamespace, api);
   };
 };

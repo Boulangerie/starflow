@@ -3,8 +3,8 @@ var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var BaseExecutable = require('../BaseExecutable');
 
-function Push(name, parentNamespace, options) {
-  BaseExecutable.call(this, name, parentNamespace);
+function Push(parentNamespace, options) {
+  BaseExecutable.call(this, 'git.push', parentNamespace);
   this.options = _.defaults({}, options, {
     cwd: './'
   });
@@ -33,5 +33,5 @@ Push.prototype.exec = function exec(remote, branch) {
 };
 
 module.exports = function (parentNamespace, options) {
-  return new Push('git.push', parentNamespace, options);
+  return new Push(parentNamespace, options);
 };

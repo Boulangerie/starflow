@@ -1,10 +1,13 @@
 var _ = require('lodash');
 var fs = require('fs');
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
-function Dependencies() {
-
+function Dependencies(parentNamespace) {
+  BaseExecutable.call(this, 'npm.dependencies', parentNamespace);
 }
+Dependencies.prototype = Object.create(BaseExecutable.prototype);
+Dependencies.prototype.constructor = Dependencies;
 
 Dependencies.prototype.get = function get(path, includeVersion) {
   var packageJson = JSON.parse(fs.readFileSync(path + '/package.json', 'utf-8'));
@@ -31,7 +34,7 @@ Dependencies.prototype.get = function get(path, includeVersion) {
     dependencies = _.keys(dependencies);
   }
 
-  _.set(starflow.config, 'npm.dependencies', dependencies);
+  this.storage.set('dependencies', dependencies);
 };
 
 Dependencies.prototype.exec = function exec(path, includeVersion) {
@@ -40,6 +43,6 @@ Dependencies.prototype.exec = function exec(path, includeVersion) {
   return this.get(path, !!includeVersion);
 };
 
-module.exports = function () {
-  return new Dependencies();
+module.exports = function (parentNamespace) {
+  return new Dependencies(parentNamespace);
 };

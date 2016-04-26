@@ -3,8 +3,8 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function CreatePR(name, parentNamespace, api) {
-  BaseExecutable.call(this, name, parentNamespace);
+function CreatePR(parentNamespace, api) {
+  BaseExecutable.call(this, 'github.createPR', parentNamespace);
   this.api = api;
 }
 CreatePR.prototype = Object.create(BaseExecutable.prototype);
@@ -63,6 +63,6 @@ CreatePR.prototype.exec = function exec(username, projectName, sourceBranch, tar
 
 module.exports = function (api) {
   return function (parentNamespace) {
-    return new CreatePR('github.createPR', parentNamespace, api);
+    return new CreatePR(parentNamespace, api);
   };
 };

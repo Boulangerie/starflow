@@ -1,6 +1,7 @@
 var _ = require('lodash');
-var Workflow = require('./Workflow');
-var Concurrence = require('./Concurrence');
+var Workflow = require('../Workflow');
+var Concurrence = require('../Concurrence');
+var BaseExecutable = require('../BaseExecutable');
 
 /**
  *
@@ -14,9 +15,11 @@ var Concurrence = require('./Concurrence');
  *   ]}
  * ];
  */
-function Concurrent() {
-
+function Concurrent(parentNamespace) {
+  BaseExecutable.call(this, 'utils.concurrent', parentNamespace);
 }
+Concurrent.prototype = Object.create(BaseExecutable.prototype);
+Concurrent.prototype.constructor = Concurrent;
 
 Concurrent.prototype.exec = function (subSteps) {
   return new Concurrence(_.map(subSteps, function (currentStep) {
@@ -24,6 +27,6 @@ Concurrent.prototype.exec = function (subSteps) {
   }));
 };
 
-module.exports = function () {
-  return new Concurrent();
+module.exports = function (parentNamespace) {
+  return new Concurrent(parentNamespace);
 };

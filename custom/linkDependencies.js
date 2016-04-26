@@ -8,8 +8,8 @@ var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 var BaseExecutable = require('../BaseExecutable');
 
-function LinkDependencies(name, parentNamespace, helpers) {
-  BaseExecutable.call(this, name, parentNamespace);
+function LinkDependencies(parentNamespace, helpers) {
+  BaseExecutable.call(this, 'teads.linkDependencies', parentNamespace);
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to LinkDependencies constructor');
   }
@@ -67,6 +67,6 @@ LinkDependencies.prototype.exec = function () {
 
 module.exports = function (helpers) {
   return function (parentNamespace) {
-    return new LinkDependencies('teads.linkDependencies', parentNamespace, helpers);
+    return new LinkDependencies(parentNamespace, helpers);
   };
 };

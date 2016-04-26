@@ -9,8 +9,8 @@ var getIssueFactory = require('../jira/getIssue');
 var createPRFactory = require('../github/createPR');
 var BaseExecutable = require('../BaseExecutable');
 
-function CreatePullRequests(name, parentNamespace, helpers, api) {
-  BaseExecutable.call(this, name, parentNamespace);
+function CreatePullRequests(parentNamespace, helpers, api) {
+  BaseExecutable.call(this, 'teads.createPullRequests', parentNamespace);
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to CreatePullRequests constructor');
   }
@@ -24,7 +24,7 @@ CreatePullRequests.prototype.getJiraIssue = function getJiraIssue(key) {
   if (!key) {
     return Promise.resolve({});
   }
-  var issue = _.get(starflow.config, 'jira.issue', {});
+  var issue = this.storage.getLast('jira.getIssue/issue', {});
   if (issue.key === key) {
     return Promise.resolve(issue);
   } else {
@@ -69,7 +69,7 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
     .then(function () {
       try {
         starflow.logger.level = initialLoggerState;
-        var npmShow = JSON.parse(this.storage.get(npmShowInstance.name + '/lastShellOutput'));
+        var npmShow = JSON.parse(npmShowInstance.storage.get('lastShellOutput'));
       } catch (err) {
         // error when doing JSON.parse(...) on the output of `npm show X`
         throw err;
@@ -129,6 +129,6 @@ CreatePullRequests.prototype.exec = function (key, prTitle, branch, dependencies
 
 module.exports = function (helpers, api) {
   return function (parentNamespace) {
-    return new CreatePullRequests('teads.createPullRequests', parentNamespace, helpers, api);
+    return new CreatePullRequests(parentNamespace, helpers, api);
   };
 };

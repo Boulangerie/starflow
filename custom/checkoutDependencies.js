@@ -7,8 +7,8 @@ var spawnFactory = require('../shell/spawn');
 var gitStashFactory = require('../git/stash');
 var BaseExecutable = require('../BaseExecutable');
 
-function CheckoutDependencies(name, parentNamespace, helpers) {
-  BaseExecutable.call(this, name, parentNamespace);
+function CheckoutDependencies(parentNamespace, helpers) {
+  BaseExecutable.call(this, 'teads.checkoutDependencies', parentNamespace);
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to CheckoutDependencies constructor');
   }
@@ -54,6 +54,6 @@ CheckoutDependencies.prototype.exec = function (branch, dependencies) {
 
 module.exports = function (helpers) {
   return function (parentNamespace) {
-    return new CheckoutDependencies('teads.checkoutDependencies', parentNamespace, helpers);
+    return new CheckoutDependencies(parentNamespace, helpers);
   };
 };

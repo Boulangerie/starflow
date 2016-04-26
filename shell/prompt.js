@@ -5,8 +5,8 @@ var chalk = require('chalk');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function Prompt(name, parentNamespace) {
-  BaseExecutable.call(this, name, parentNamespace);
+function Prompt(parentNamespace) {
+  BaseExecutable.call(this, 'prompt', parentNamespace);
 }
 Prompt.prototype = Object.create(BaseExecutable.prototype);
 Prompt.prototype.constructor = Prompt;
@@ -35,5 +35,5 @@ Prompt.prototype.exec = function (schemaName) {
 };
 
 module.exports = function (parentNamespace) {
-  return new Prompt('prompt', parentNamespace);
+  return new Prompt(parentNamespace);
 };

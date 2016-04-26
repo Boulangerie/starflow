@@ -5,8 +5,8 @@ var taskGetIssueStatuses = require('./getIssueStatuses');
 var Task = require('../Task');
 var BaseExecutable = require('../BaseExecutable');
 
-function ChangeIssueStatus(name, parentNamespace, api) {
-  BaseExecutable.call(this, name, parentNamespace);
+function ChangeIssueStatus(parentNamespace, api) {
+  BaseExecutable.call(this, 'jira.changeIssueStatus', parentNamespace);
   this.api = api;
 }
 ChangeIssueStatus.prototype = Object.create(BaseExecutable.prototype);
@@ -60,7 +60,7 @@ ChangeIssueStatus.prototype.exec = function exec(key, status) {
 };
 
 module.exports = function (api) {
-  return function () {
-    return new ChangeIssueStatus(api);
+  return function (parentNamespace) {
+    return new ChangeIssueStatus(parentNamespace, api);
   };
 };

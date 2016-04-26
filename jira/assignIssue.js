@@ -3,8 +3,8 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function AssignIssue(name, parentNamespace, api) {
-  BaseExecutable.call(this, name, parentNamespace);
+function AssignIssue(parentNamespace, api) {
+  BaseExecutable.call(this, 'jira.assignIssue', parentNamespace);
   this.api = api;
   this.nonUserMapping = {
     'unassigned' : '',
@@ -57,6 +57,6 @@ AssignIssue.prototype.exec = function exec(key, assignee) {
 
 module.exports = function (api) {
   return function (parentNamespace) {
-    return new AssignIssue('jira.assignIssue', parentNamespace, api);
+    return new AssignIssue(parentNamespace, api);
   };
 };

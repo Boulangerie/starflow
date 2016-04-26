@@ -18,14 +18,7 @@ StorageProxy.prototype.get = function get(originalPath, defaultValue) {
  */
 StorageProxy.prototype.getLast = function getLast(originalPath, defaultValue) {
   var extractedPath = extractFromPath(originalPath);
-
-  var existingValue = this.getAll(extractedPath.namespace);
-  if (existingValue) {
-    extractedPath.index = _.size(existingValue) - 1;
-  }
-
-  var fullPath = generateFullPath(this.namespace, extractedPath);
-  return Storage.get(fullPath, defaultValue);
+  return _.last(this.getAll(extractedPath.namespace, defaultValue));
 };
 
 /**
@@ -33,7 +26,7 @@ StorageProxy.prototype.getLast = function getLast(originalPath, defaultValue) {
  * @param childNamespace: string
  */
 StorageProxy.prototype.getAll = function getAll(childNamespace, defaultValue) {
-  var separator = childNamespace !== '' ? '/' : '';
+  var separator = (childNamespace !== '') ? '/' : '';
   var path = childNamespace + separator;
   return this.get(path, defaultValue);
 };
@@ -62,7 +55,7 @@ StorageProxy.prototype.set = function set(originalPath, value) {
 function extractFromPath(originalPath) {
   var info = {
     namespace: '',
-    index: -1,
+    index: 0,
     path: originalPath
   };
 
@@ -77,8 +70,6 @@ function extractFromPath(originalPath) {
     info.index = parseInt(matches[1], 10);
     // remove the index from the path
     info.path = info.path.replace(matches[1] + '.', '');
-  } else {
-    info.index = 0;
   }
 
   return info;
@@ -91,10 +82,7 @@ function extractFromPath(originalPath) {
  * @returns {string}
  */
 function generateFullPath(namespace, extractedPath) {
-  var childNamespace = '';
-  if (!_.isEmpty(extractedPath.namespace)) {
-    childNamespace = '/' + extractedPath.namespace;
-  }
+  var childNamespace = _.isEmpty(extractedPath.namespace) ? '' : '/' + extractedPath.namespace;
 
   var path = '';
   if (extractedPath.path) {

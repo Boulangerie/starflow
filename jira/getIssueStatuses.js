@@ -3,8 +3,8 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function GetIssueStatuses(name, parentNamespace, api) {
-  BaseExecutable.call(this, name, parentNamespace);
+function GetIssueStatuses(parentNamespace, api) {
+  BaseExecutable.call(this, 'jira.getIssueStatuses', parentNamespace);
   this.api = api;
 }
 GetIssueStatuses.prototype = Object.create(BaseExecutable.prototype);
@@ -37,6 +37,6 @@ GetIssueStatuses.prototype.exec = function exec(key) {
 
 module.exports = function (api) {
   return function (parentNamespace) {
-    return new GetIssueStatuses('jira.getIssueStatuses', parentNamespace, api);
+    return new GetIssueStatuses(parentNamespace, api);
   };
 };

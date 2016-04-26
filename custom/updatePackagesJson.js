@@ -5,8 +5,8 @@ var Task = require('../Task');
 var updatePackageVersionFactory = require('../npm/updatePackageVersion');
 var BaseExecutable = require('../BaseExecutable');
 
-function UpdatePackagesJson(name, parentNamespace, helpers) {
-  BaseExecutable.call(this, name, parentNamespace);
+function UpdatePackagesJson(parentNamespace, helpers) {
+  BaseExecutable.call(this, 'teads.updatePackagesJson', parentNamespace);
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to UpdatePackagesJson constructor');
   }
@@ -41,6 +41,6 @@ UpdatePackagesJson.prototype.exec = function (branch, dependencies) {
 
 module.exports = function (helpers) {
   return function (parentNamespace) {
-    return new UpdatePackagesJson('teads.updatePackagesJson', parentNamespace, helpers);
+    return new UpdatePackagesJson(parentNamespace, helpers);
   };
 };

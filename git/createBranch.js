@@ -5,8 +5,8 @@ var spawnFactory = require('../shell/spawn');
 var checkoutFactory = require('../git/checkout');
 var BaseExecutable = require('../BaseExecutable');
 
-function CreateBranch(name, parentNamespace, options) {
-  BaseExecutable.call(this, name, parentNamespace);
+function CreateBranch(parentNamespace, options) {
+  BaseExecutable.call(this, 'git.createBranch', parentNamespace);
   this.options = _.defaults({}, options, {
     cwd: './'
   });
@@ -52,5 +52,5 @@ CreateBranch.prototype.exec = function exec(branchName, withCheckout) {
 };
 
 module.exports = function (parentNamespace, options) {
-  return new CreateBranch('git.createBranch', parentNamespace, options);
+  return new CreateBranch(parentNamespace, options);
 };

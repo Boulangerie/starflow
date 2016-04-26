@@ -4,8 +4,8 @@ var spawnFactory = require('../shell/spawn');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function Checkout(name, parentNamespace, options) {
-  BaseExecutable.call(this, name, parentNamespace);
+function Checkout(parentNamespace, options) {
+  BaseExecutable.call(this, 'git.checkout', parentNamespace);
   this.options = _.defaults({}, options, {
     cwd: './'
   });
@@ -36,5 +36,5 @@ Checkout.prototype.exec = function exec(branchName) {
 };
 
 module.exports = function (parentNamespace, options) {
-  return new Checkout('git.checkout', parentNamespace, options);
+  return new Checkout(parentNamespace, options);
 };

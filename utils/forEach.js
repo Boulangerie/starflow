@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var Workflow = require('../Workflow');
 var Sequence = require('../Sequence');
+var BaseExecutable = require('../BaseExecutable');
 
 /**
  *
@@ -19,9 +20,11 @@ var Sequence = require('../Sequence');
  *   }
  * ];
  */
-function ForEach() {
-
+function ForEach(parentNamespace) {
+  BaseExecutable.call(this, 'utils.forEach', parentNamespace);
 }
+ForEach.prototype = Object.create(BaseExecutable.prototype);
+ForEach.prototype.constructor = ForEach;
 
 ForEach.prototype.exec = function (arr, subSteps) {
   return new Sequence(_.map(arr, function (value) {
@@ -33,6 +36,6 @@ ForEach.prototype.exec = function (arr, subSteps) {
   }));
 };
 
-module.exports = function () {
-  return new ForEach();
+module.exports = function (parentNamespace) {
+  return new ForEach(parentNamespace);
 };

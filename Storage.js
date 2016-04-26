@@ -7,7 +7,7 @@ var Storage = {
 };
 
 function getValue(path, defaultValue) {
-  return _.get(this.data, path, defaultValue);
+  return _.cloneDeep(_.get(this.data, path, defaultValue));
 }
 
 function setValue(path, value) {

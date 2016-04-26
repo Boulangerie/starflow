@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var StorageProxy = require('./StorageProxy');
 
 function BaseExecutable(name, parentNamespace) {

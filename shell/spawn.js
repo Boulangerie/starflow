@@ -4,8 +4,8 @@ var spawn = require('child_process').spawn;
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function Spawn(name, parentNamespace) {
-  BaseExecutable.call(this, name, parentNamespace);
+function Spawn(parentNamespace) {
+  BaseExecutable.call(this, 'spawn', parentNamespace);
 }
 Spawn.prototype = Object.create(BaseExecutable.prototype);
 Spawn.prototype.constructor = Spawn;
@@ -70,5 +70,5 @@ Spawn.prototype.exec = function exec(cmd) {
 };
 
 module.exports = function (parentNamespace) {
-  return new Spawn('spawn', parentNamespace);
+  return new Spawn(parentNamespace);
 };

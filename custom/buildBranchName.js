@@ -3,8 +3,8 @@ var slugify = require('slugify');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function BuildBranchName(name, parentNamespace) {
-  BaseExecutable.call(this, name, parentNamespace);
+function BuildBranchName(parentNamespace) {
+  BaseExecutable.call(this, 'teads.buildBranchName', parentNamespace);
 }
 BuildBranchName.prototype = Object.create(BaseExecutable.prototype);
 BuildBranchName.prototype.constructor = BuildBranchName;
@@ -20,5 +20,5 @@ BuildBranchName.prototype.exec = function (type, key, slug) {
 };
 
 module.exports = function (parentNamespace) {
-  return new BuildBranchName('teads.buildBranchName', parentNamespace);
+  return new BuildBranchName(parentNamespace);
 };

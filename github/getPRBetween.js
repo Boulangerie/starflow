@@ -3,8 +3,8 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function GetPRBetween(name, parentNamespace, api) {
-  BaseExecutable.call(this, name, parentNamespace);
+function GetPRBetween(parentNamespace, api) {
+  BaseExecutable.call(this, 'github.getPRBetween', parentNamespace);
   this.api = api;
 }
 GetPRBetween.prototype = Object.create(BaseExecutable.prototype);
@@ -61,6 +61,6 @@ GetPRBetween.prototype.exec = function exec(username, projectName, sourceBranch,
 
 module.exports = function (api) {
   return function (parentNamespace) {
-    return new GetPRBetween('github.getPRBetween', parentNamespace, api);
+    return new GetPRBetween(parentNamespace, api);
   };
 };

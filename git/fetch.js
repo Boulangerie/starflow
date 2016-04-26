@@ -3,8 +3,8 @@ var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var BaseExecutable = require('../BaseExecutable');
 
-function Fetch(name, parentNamespace, options) {
-  BaseExecutable.call(this, name, parentNamespace);
+function Fetch(parentNamespace, options) {
+  BaseExecutable.call(this, 'git.fetch', parentNamespace);
   this.options = _.defaults({}, options, {
     cwd: './'
   });
@@ -34,5 +34,5 @@ Fetch.prototype.exec = function exec(remote, branch) {
 };
 
 module.exports = function (parentNamespace, options) {
-  return new Fetch('git.fetch', parentNamespace, options);
+  return new Fetch(parentNamespace, options);
 };

@@ -8,8 +8,8 @@ var BaseExecutable = require('../BaseExecutable');
 var STASH_NAME = 'starflow-tmp';
 var STASH_ID_UNDEFINED_MESSAGE = 'Could not find any stash ID for starflow-tmp';
 
-function Stash(name, parentNamespace, options) {
-  BaseExecutable.call(this, name, parentNamespace);
+function Stash(parentNamespace, options) {
+  BaseExecutable.call(this, 'git.stash', parentNamespace);
   this.options = _.defaults({}, options, {
     cwd: './'
   });
@@ -22,7 +22,7 @@ Stash.prototype.getStashId = function getStashId() {
 
   function onSuccess() {
     var pattern = '^stash@\\{(\\d+)\\}\\: (?:.+\\: )' + STASH_NAME;
-    var lastShellOutput = this.storage.getLast(spawnExecutableInstance.name + '/lastShellOutput');
+    var lastShellOutput = spawnExecutableInstance.storage.getLast('lastShellOutput');
     var stashLines = lastShellOutput ? lastShellOutput.split('\n') : [];
     var matches;
     _.forEach(stashLines, function (line) {
@@ -90,5 +90,5 @@ Stash.prototype.exec = function exec(isPop) {
 };
 
 module.exports = function (parentNamespace, options) {
-  return new Stash('git.stash', parentNamespace, options);
+  return new Stash(parentNamespace, options);
 };

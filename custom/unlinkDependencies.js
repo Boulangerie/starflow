@@ -6,8 +6,8 @@ var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 var BaseExecutable = require('../BaseExecutable');
 
-function UnlinkDependencies(name, parentNamespace, helpers) {
-  BaseExecutable.call(this, name, parentNamespace);
+function UnlinkDependencies(parentNamespace, helpers) {
+  BaseExecutable.call(this, 'teads.unlinkDependencies', parentNamespace);
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to UnlinkDependencies constructor');
   }
@@ -60,6 +60,6 @@ UnlinkDependencies.prototype.exec = function () {
 
 module.exports = function (helpers) {
   return function (parentNamespace) {
-    return new UnlinkDependencies('teads.unlinkDependencies', parentNamespace, helpers);
+    return new UnlinkDependencies(parentNamespace, helpers);
   };
 };
