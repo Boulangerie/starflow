@@ -3,8 +3,8 @@ var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var BaseExecutable = require('../BaseExecutable');
 
-function Fetch(parentNamespace, options) {
-  BaseExecutable.call(this, 'git.fetch', parentNamespace);
+function Fetch(options) {
+  BaseExecutable.call(this, 'git.fetch');
   this.options = _.defaults({}, options, {
     cwd: './'
   });
@@ -25,7 +25,9 @@ Fetch.prototype.fetch = function fetch(remote, branch) {
   if (branch) {
     spawnConfig.args.push(branch);
   }
-  return new Task(spawnFactory(this.namespace), spawnConfig).run();
+  var executableChild = spawnFactory();
+  this.addChild(executableChild);
+  return new Task(executableChild, spawnConfig).run();
 };
 
 Fetch.prototype.exec = function exec(remote, branch) {
@@ -33,6 +35,6 @@ Fetch.prototype.exec = function exec(remote, branch) {
   return this.fetch(remote, branch);
 };
 
-module.exports = function (parentNamespace, options) {
-  return new Fetch(parentNamespace, options);
+module.exports = function (options) {
+  return new Fetch(options);
 };

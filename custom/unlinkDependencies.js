@@ -6,8 +6,8 @@ var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 var BaseExecutable = require('../BaseExecutable');
 
-function UnlinkDependencies(parentNamespace, helpers) {
-  BaseExecutable.call(this, 'teads.unlinkDependencies', parentNamespace);
+function UnlinkDependencies(helpers) {
+  BaseExecutable.call(this, 'teads.unlinkDependencies');
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to UnlinkDependencies constructor');
   }
@@ -29,15 +29,21 @@ UnlinkDependencies.prototype.exec = function () {
     // necessary to resolve paths like "a/node_modules/b/node_modules/../" => "a/node_modules/b"
     var resolvedPath = path.resolve(pathName);
 
+    var npmUnlinkExec = spawnFactory();
+    this.addChild(npmUnlinkExec);
+
+    var npmInstallExec = spawnFactory();
+    this.addChild(npmInstallExec);
+
     return new Sequence([
-      new Task(spawnFactory(this.namespace), [{
+      new Task(npmUnlinkExec, [{
         cmd: 'npm',
         args: ['unlink', dep.name],
         options: {
           cwd: resolvedPath
         }
       }], null, 'cd ' + resolvedPath.replace(process.env.PWD, '.') + ' && npm unlink ' + dep.name),
-      new Task(spawnFactory(this.namespace), [{
+      new Task(npmInstallExec, [{
         cmd: 'npm',
         args: ['install', dep.name],
         options: {
@@ -59,7 +65,7 @@ UnlinkDependencies.prototype.exec = function () {
 };
 
 module.exports = function (helpers) {
-  return function (parentNamespace) {
-    return new UnlinkDependencies(parentNamespace, helpers);
+  return function () {
+    return new UnlinkDependencies(helpers);
   };
 };

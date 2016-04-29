@@ -4,8 +4,8 @@ var spawnFactory = require('../shell/spawn');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function Checkout(parentNamespace, options) {
-  BaseExecutable.call(this, 'git.checkout', parentNamespace);
+function Checkout(options) {
+  BaseExecutable.call(this, 'git.checkout');
   this.options = _.defaults({}, options, {
     cwd: './'
   });
@@ -17,6 +17,8 @@ Checkout.prototype.checkout = function checkout(branchName) {
   function onSuccess() {
     starflow.logger.log('Checked out to branch "' + branchName + '"');
   }
+  var executableChild = spawnFactory();
+  this.addChild(executableChild);
   var options = this.options;
   var spawnConfig = {
     cmd: 'git',
@@ -25,7 +27,7 @@ Checkout.prototype.checkout = function checkout(branchName) {
       cwd: options.cwd
     }
   };
-  return new Task(spawnFactory(this.namespace), spawnConfig)
+  return new Task(executableChild, spawnConfig)
     .run()
     .then(onSuccess);
 };
@@ -35,6 +37,6 @@ Checkout.prototype.exec = function exec(branchName) {
   return this.checkout(branchName);
 };
 
-module.exports = function (parentNamespace, options) {
-  return new Checkout(parentNamespace, options);
+module.exports = function (options) {
+  return new Checkout(options);
 };

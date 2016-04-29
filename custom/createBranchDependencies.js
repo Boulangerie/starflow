@@ -6,8 +6,8 @@ var Task = require('../Task');
 var createBranchFactory = require('../git/createBranch');
 var BaseExecutable = require('../BaseExecutable');
 
-function CreateBranchDependencies(parentNamespace, helpers) {
-  BaseExecutable.call(this, 'teads.createBranchDependencies', parentNamespace);
+function CreateBranchDependencies(helpers) {
+  BaseExecutable.call(this, 'teads.createBranchDependencies');
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to CreatePullRequests constructor');
   }
@@ -23,7 +23,9 @@ CreateBranchDependencies.prototype.exec = function (branch, dependencies) {
       return prev + 'node_modules/' + current + '/';
     }, './');
     var fullPath = path.resolve(pathName);
-    return new Task(createBranchFactory(this.namespace, {cwd: fullPath}), [branch, true]).run();
+    var createBranchExec = createBranchFactory({cwd: fullPath});
+    this.addChild(createBranchExec);
+    return new Task(createBranchExec, [branch, true]).run();
   }.bind(this));
 
   return Promise.all(promises)
@@ -37,7 +39,7 @@ CreateBranchDependencies.prototype.exec = function (branch, dependencies) {
 };
 
 module.exports = function (helpers) {
-  return function (parentNamespace) {
-    return new CreateBranchDependencies(parentNamespace, helpers);
+  return function () {
+    return new CreateBranchDependencies(helpers);
   };
 };

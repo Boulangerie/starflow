@@ -3,8 +3,8 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function AssignPR(parentNamespace, api) {
-  BaseExecutable.call(this, 'github.assignPR', parentNamespace);
+function AssignPR(api) {
+  BaseExecutable.call(this, 'github.assignPR');
   this.api = api;
 }
 AssignPR.prototype = Object.create(BaseExecutable.prototype);
@@ -29,12 +29,7 @@ AssignPR.prototype.assignPR = function assignPR(username, projectName, assignee,
         number: prNumber
       })
       .then(function (pr) {
-        var sourceBranch = pr.base.ref;
-        var targetBranch = pr.head.ref;
-        var githubPrMap = this.storage.get('pr', {});
-        var prKey = username + '/' + projectName + ' ' + sourceBranch + ':' + targetBranch; // e.g. me/my-project master:my-dev
-        githubPrMap[prKey] = pr;
-        this.storage.set('pr', githubPrMap);
+        this.storage.set('pr', pr);
       }.bind(this));
   }
 
@@ -63,7 +58,7 @@ AssignPR.prototype.exec = function exec(username, projectName, assignee, prNumbe
 };
 
 module.exports = function (api) {
-  return function (parentNamespace) {
-    return new AssignPR(parentNamespace, api);
+  return function () {
+    return new AssignPR(api);
   };
 };

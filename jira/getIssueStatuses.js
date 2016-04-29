@@ -3,8 +3,8 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function GetIssueStatuses(parentNamespace, api) {
-  BaseExecutable.call(this, 'jira.getIssueStatuses', parentNamespace);
+function GetIssueStatuses(api) {
+  BaseExecutable.call(this, 'jira.getIssueStatuses');
   this.api = api;
 }
 GetIssueStatuses.prototype = Object.create(BaseExecutable.prototype);
@@ -16,10 +16,10 @@ GetIssueStatuses.prototype.getIssueStatuses = function getIssueStatuses(key) {
     .then(onSuccess.bind(this), onError);
 
   function onSuccess(issue) {
-    starflow.logger.success('JIRA issue statuses"' + key + '" were found');
-    var statuses = _.map(issue.transitions, function (status) { return status.to.name; }).join(', ');
+    starflow.logger.success('JIRA issue statuses "' + key + '" were found');
+    var statuses = _.map(issue.transitions, function (status) { return _.get(status, 'to.name'); }).join(', ');
     starflow.logger.log('Statuses: ' + statuses);
-    this.storage.set('issueStatuses', issue.transitions);
+    this.storage.set('statuses', issue.transitions);
   }
 
   function onError(err) {
@@ -36,7 +36,7 @@ GetIssueStatuses.prototype.exec = function exec(key) {
 };
 
 module.exports = function (api) {
-  return function (parentNamespace) {
-    return new GetIssueStatuses(parentNamespace, api);
+  return function () {
+    return new GetIssueStatuses(api);
   };
 };

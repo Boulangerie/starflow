@@ -8,8 +8,8 @@ var BaseExecutable = require('../BaseExecutable');
 var STASH_NAME = 'starflow-tmp';
 var STASH_ID_UNDEFINED_MESSAGE = 'Could not find any stash ID for starflow-tmp';
 
-function Stash(parentNamespace, options) {
-  BaseExecutable.call(this, 'git.stash', parentNamespace);
+function Stash(options) {
+  BaseExecutable.call(this, 'git.stash');
   this.options = _.defaults({}, options, {
     cwd: './'
   });
@@ -18,11 +18,12 @@ Stash.prototype = Object.create(BaseExecutable.prototype);
 Stash.prototype.constructor = Stash;
 
 Stash.prototype.getStashId = function getStashId() {
-  var spawnExecutableInstance = spawnFactory(this.namespace);
+  var executableChild = spawnFactory();
+  this.addChild(executableChild);
 
   function onSuccess() {
     var pattern = '^stash@\\{(\\d+)\\}\\: (?:.+\\: )' + STASH_NAME;
-    var lastShellOutput = spawnExecutableInstance.storage.getLast('lastShellOutput');
+    var lastShellOutput = executableChild.storage.get('output');
     var stashLines = lastShellOutput ? lastShellOutput.split('\n') : [];
     var matches;
     _.forEach(stashLines, function (line) {
@@ -46,7 +47,7 @@ Stash.prototype.getStashId = function getStashId() {
       cwd: options.cwd
     }
   };
-  return new Task(spawnExecutableInstance, spawnConfig, '$')
+  return new Task(executableChild, spawnConfig, '$')
     .run()
     .then(onSuccess.bind(this));
 };
@@ -68,7 +69,9 @@ Stash.prototype.stash = function stash(isPop) {
         cwd: options.cwd
       }
     };
-    return new Task(spawnFactory(this.namespace), spawnConfig, '$').run();
+    var executableChild = spawnFactory();
+    this.addChild(executableChild);
+    return new Task(executableChild, spawnConfig, '$').run();
   }
 
   function onGetStashIdError(err) {
@@ -77,7 +80,7 @@ Stash.prototype.stash = function stash(isPop) {
     }
     starflow.logger.warning('No starflow-tmp stash was found');
   }
-  //@todo: Test this case when isPop is false
+  // @todo: Test this case when isPop is false
   var promise = isPop ? this.getStashId.bind(this) : Promise.resolve;
 
   return promise()
@@ -89,6 +92,6 @@ Stash.prototype.exec = function exec(isPop) {
   return this.stash(!!isPop);
 };
 
-module.exports = function (parentNamespace, options) {
-  return new Stash(parentNamespace, options);
+module.exports = function (options) {
+  return new Stash(options);
 };

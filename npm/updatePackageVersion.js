@@ -6,8 +6,8 @@ var BaseExecutable = require('../BaseExecutable');
 
 Promise.promisifyAll(fs);
 
-function UpdatePackageVersion(parentNamespace) {
-  BaseExecutable.call(this, 'npm.updatePackageVersion', parentNamespace);
+function UpdatePackageVersion() {
+  BaseExecutable.call(this, 'npm.updatePackageVersion');
 }
 UpdatePackageVersion.prototype = Object.create(BaseExecutable.prototype);
 UpdatePackageVersion.prototype.constructor = UpdatePackageVersion;
@@ -28,6 +28,6 @@ UpdatePackageVersion.prototype.exec = function (packageJsonPath, name, version) 
     });
 };
 
-module.exports = function (parentNamespace) {
-  return new UpdatePackageVersion(parentNamespace);
+module.exports = function () {
+  return new UpdatePackageVersion();
 };

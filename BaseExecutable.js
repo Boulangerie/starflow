@@ -1,12 +1,14 @@
 var _ = require('lodash');
-var StorageProxy = require('./StorageProxy');
+var Storage = require('./Storage');
 
-function BaseExecutable(name, parentNamespace) {
+function BaseExecutable(name) {
   this.name = name;
-  this.parentNamespace = parentNamespace;
-  this.namespace = _.compact([parentNamespace, name]).join('/');
-  this.storage = new StorageProxy(this.namespace);
+  this.storage = new Storage();
 }
+
+BaseExecutable.prototype.addChild = function addChild(executable) {
+  this.storage.addChild(executable.name, executable.storage);
+};
 
 BaseExecutable.prototype.exec = function exec() {
   throw new Error('The "exec" method must be implemented.');

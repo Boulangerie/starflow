@@ -4,8 +4,8 @@ var spawnFactory = require('../shell/spawn');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function CurrentBranch(parentNamespace, options) {
-  BaseExecutable.call(this, 'git.currentBranch', parentNamespace);
+function CurrentBranch(options) {
+  BaseExecutable.call(this, 'git.currentBranch');
   this.options = _.defaults({}, options, {
     cwd: './'
   });
@@ -14,12 +14,13 @@ CurrentBranch.prototype = Object.create(BaseExecutable.prototype);
 CurrentBranch.prototype.constructor = CurrentBranch;
 
 CurrentBranch.prototype.currentBranch = function currentBranch() {
-  var spawnExecutableInstance = spawnFactory(this.namespace);
+  var executableChild = spawnFactory();
+  this.addChild(executableChild);
 
   function onSuccess() {
-    var branchName = String(spawnExecutableInstance.storage.getLast('lastShellOutput')).trim();
+    var branchName = String(executableChild.storage.get('output')).trim();
     starflow.logger.log('Current git branch: ' + branchName);
-    this.storage.set('currentBranchName', branchName);
+    this.storage.set('name', branchName);
   }
 
   var options = this.options;
@@ -30,7 +31,7 @@ CurrentBranch.prototype.currentBranch = function currentBranch() {
       cwd: options.cwd
     }
   };
-  return new Task(spawnExecutableInstance, spawnConfig, null, 'git rev-parse --abbrev-ref HEAD')
+  return new Task(executableChild, spawnConfig, null, 'git rev-parse --abbrev-ref HEAD')
     .run()
     .then(onSuccess.bind(this));
 };
@@ -39,6 +40,6 @@ CurrentBranch.prototype.exec = function exec() {
   return this.currentBranch();
 };
 
-module.exports = function (parentNamespace, options) {
-  return new CurrentBranch(parentNamespace, options);
+module.exports = function (options) {
+  return new CurrentBranch(options);
 };

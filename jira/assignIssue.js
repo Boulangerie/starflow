@@ -3,19 +3,19 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function AssignIssue(parentNamespace, api) {
-  BaseExecutable.call(this, 'jira.assignIssue', parentNamespace);
+function AssignIssue(api) {
+  BaseExecutable.call(this, 'jira.assignIssue');
   this.api = api;
   this.nonUserMapping = {
     'unassigned' : '',
     'automatic' : '-1'
-  }
+  };
 }
 AssignIssue.prototype = Object.create(BaseExecutable.prototype);
 AssignIssue.prototype.constructor = AssignIssue;
 
-//According to : https://confluence.atlassian.com/display/JIRAKB/How+to+Set+Assignee+to+Unassigned+via+REST+API+in+JIRA
-AssignIssue.prototype.mapNonUserAssignee = function mapNonUserAssignee(assignee){
+// According to: https://confluence.atlassian.com/display/JIRAKB/How+to+Set+Assignee+to+Unassigned+via+REST+API+in+JIRA
+AssignIssue.prototype.mapNonUserAssignee = function mapNonUserAssignee(assignee) {
   return _.get(this.nonUserMapping, assignee, assignee);
 };
 
@@ -30,9 +30,9 @@ AssignIssue.prototype.assignIssue = function assignIssue(key, assignee) {
   function onSuccess(response) {
     if (response === 'Success') {
       starflow.logger.success('JIRA issue ' + key + ' was assigned to ' + assignee);
-      this.storage.set('issueAssignee', assignee);
+      this.storage.set('assignee', assignee);
     } else {
-      starflow.logger.error('There was a problem with the request. Args: ' + key + ', ' + assignee);
+      starflow.logger.error('There was a problem with the request. Args: ' + [key, assignee].join(', '));
       throw response;
     }
   }
@@ -56,7 +56,7 @@ AssignIssue.prototype.exec = function exec(key, assignee) {
 };
 
 module.exports = function (api) {
-  return function (parentNamespace) {
-    return new AssignIssue(parentNamespace, api);
+  return function () {
+    return new AssignIssue(api);
   };
 };

@@ -3,17 +3,19 @@ var Promise = require('bluebird');
 var chalk = require('chalk');
 var FactoryStore = require('./FactoryStore');
 var Task = require('./Task');
+var Storage = require('./Storage');
 
-var publicApi = {
-  runSteps: runSteps,
-  stepToTask: stepToTask
-};
+function Workflow(steps, initialWorkspace) {
+  this.steps = steps || [];
+  this.storage = new Storage(initialWorkspace);
+}
 
-function runSteps(steps) {
-  steps = formatSteps(steps);
+Workflow.prototype.run = function run() {
+  var steps = formatSteps(this.steps);
+  var self = this;
   return _.reduce(steps, function (prev, current) {
       return prev.then(function () {
-        return processStep(current);
+        return self.processStep(current);
       });
     }, Promise.resolve())
     .then(function () {
@@ -27,7 +29,7 @@ function runSteps(steps) {
     });
 };
 
-function stepToTask(step) {
+Workflow.stepToTask = function stepToTask(step) {
   var taskName = '';
   var taskArgs = [];
 
@@ -45,13 +47,14 @@ function stepToTask(step) {
     throw new Error('Cannot find the factory for task "' + taskName + '". Did you register it to Starflow?');
   }
 
-  return new Task(taskFactory(''), taskArgs, taskName);
-}
+  return new Task(taskFactory(), taskArgs, taskName);
+};
 
-function processStep(step) {
-  var task = stepToTask(step);
+Workflow.prototype.processStep = function processStep(step) {
+  var task = Workflow.stepToTask(step);
+  this.storage.addChild(task.instance.name, task.instance.storage);
   return task.run();
-}
+};
 
 function formatSteps(steps) {
   var ret;
@@ -67,4 +70,4 @@ function formatSteps(steps) {
   return ret;
 }
 
-module.exports = publicApi;
+module.exports = Workflow;

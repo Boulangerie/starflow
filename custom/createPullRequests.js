@@ -9,8 +9,8 @@ var getIssueFactory = require('../jira/getIssue');
 var createPRFactory = require('../github/createPR');
 var BaseExecutable = require('../BaseExecutable');
 
-function CreatePullRequests(parentNamespace, helpers, api) {
-  BaseExecutable.call(this, 'teads.createPullRequests', parentNamespace);
+function CreatePullRequests(helpers, api) {
+  BaseExecutable.call(this, 'teads.createPullRequests');
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to CreatePullRequests constructor');
   }
@@ -24,16 +24,13 @@ CreatePullRequests.prototype.getJiraIssue = function getJiraIssue(key) {
   if (!key) {
     return Promise.resolve({});
   }
-  var issue = this.storage.getLast('jira.getIssue/issue', {});
+  var issue = this.storage.get('jira.getIssue/issue', {});
   if (issue.key === key) {
     return Promise.resolve(issue);
   } else {
-    var getJiraIssueInstance = getIssueFactory(this.api.jira)(this.namespace);
-    return new Task(getJiraIssueInstance, key, 'Get the JIRA issue')
-      .run()
-      .then(function () {
-        return getJiraIssueInstance.storage.get('issue', {});
-      }.bind(this));
+    var getJiraIssueExec = getIssueFactory(this.api.jira)();
+    this.addChild(getJiraIssueExec);
+    return new Task(getJiraIssueExec, key, 'Get the JIRA issue').run();
   }
 };
 
@@ -41,23 +38,32 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
   var self = this;
   var initialLoggerState = starflow.logger.level;
   starflow.logger.level = starflow.logger.LEVEL.NORMAL; // to shut the output of `npm show X`
-  var npmShowInstance = spawnFactory(this.namespace);
+
+  var gitCommitExec = spawnFactory();
+  this.addChild(gitCommitExec);
+
+  var gitPushExec = spawnFactory();
+  this.addChild(gitPushExec);
+
+  var npmShowExec = spawnFactory();
+  this.addChild(npmShowExec);
+
   return new Sequence([
-    new Task(spawnFactory(this.namespace), {
+    new Task(gitCommitExec, {
       cmd: 'git',
       args: ['commit', '--allow-empty', '-m', '[STARFLOW] init'],
       options: {
         cwd: fullPath
       }
     }, null, 'git commit --alow-empty -m "[STARFLOW] init"'),
-    new Task(spawnFactory(this.namespace), {
+    new Task(gitPushExec, {
       cmd: 'git',
       args: ['push', '-u', 'origin', branch],
       options: {
         cwd: fullPath
       }
     }, null, 'git push -u origin ' + branch),
-    new Task(npmShowInstance, {
+    new Task(npmShowExec, {
       cmd: 'npm',
       args: ['show', '--json', dependency.name],
       options: {
@@ -69,7 +75,7 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
     .then(function () {
       try {
         starflow.logger.level = initialLoggerState;
-        var npmShow = JSON.parse(npmShowInstance.storage.get('lastShellOutput'));
+        var npmShow = JSON.parse(npmShowExec.storage.get('output'));
       } catch (err) {
         // error when doing JSON.parse(...) on the output of `npm show X`
         throw err;
@@ -83,13 +89,9 @@ CreatePullRequests.prototype.createPrOnDependency = function createPrOnDependenc
         throw new Error('Could not get Github user and repository from `npm show ' + dependency.name + '`');
       }
 
-      return new Task(createPRFactory(self.api.github)(), [
-        user,
-        repo,
-        dependency.baseBranch,
-        branch,
-        title
-      ]).run();
+      var createPrExec = createPRFactory(self.api.github)();
+      this.addChild(createPrExec);
+      return new Task(createPrExec, [user, repo, dependency.baseBranch, branch, title]).run();
     }.bind(this));
 };
 
@@ -108,9 +110,7 @@ CreatePullRequests.prototype.exec = function (key, prTitle, branch, dependencies
     var fullPath = path.resolve(pathName);
 
     if (key) {
-      // TODO do not use harcoded Executable names...
       var issue = this.storage.get('jira.getIssue/issue');
-      // var issue = _.get(starflow.config, 'jira.getIssue/issue');
       // if we have an issue, override the prTitle anyway
       prTitle = issue.key + ': ' + _.get(issue, 'fields.summary');
     } // if no key was given, then a prTitle was given
@@ -128,7 +128,7 @@ CreatePullRequests.prototype.exec = function (key, prTitle, branch, dependencies
 };
 
 module.exports = function (helpers, api) {
-  return function (parentNamespace) {
-    return new CreatePullRequests(parentNamespace, helpers, api);
+  return function () {
+    return new CreatePullRequests(helpers, api);
   };
 };

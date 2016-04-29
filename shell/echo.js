@@ -2,8 +2,8 @@ var _ = require('lodash');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function Echo(parentNamespace) {
-  BaseExecutable.call(this, 'echo', parentNamespace);
+function Echo() {
+  BaseExecutable.call(this, 'echo');
 }
 Echo.prototype = Object.create(BaseExecutable.prototype);
 Echo.prototype.constructor = Echo;
@@ -17,6 +17,6 @@ Echo.prototype.exec = function exec(message/*, fromStarflowConfig*/) {
   starflow.logger.log(formattedMessage);
 };
 
-module.exports = function (parentNamespace) {
-  return new Echo(parentNamespace);
+module.exports = function () {
+  return new Echo();
 };

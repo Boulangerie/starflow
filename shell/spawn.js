@@ -4,8 +4,8 @@ var spawn = require('child_process').spawn;
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function Spawn(parentNamespace) {
-  BaseExecutable.call(this, 'spawn', parentNamespace);
+function Spawn() {
+  BaseExecutable.call(this, 'spawn');
 }
 Spawn.prototype = Object.create(BaseExecutable.prototype);
 Spawn.prototype.constructor = Spawn;
@@ -25,7 +25,7 @@ Spawn.prototype.exec = function exec(cmd) {
   }
 
   var self = this;
-  return new Promise(function(resolve, reject){
+  return new Promise(function (resolve, reject) {
     var stdout = [];
     var stderr = [];
     var s = spawn(cmd, args, _.extend({ stdio: 'pipe' }, options));
@@ -60,7 +60,7 @@ Spawn.prototype.exec = function exec(cmd) {
         if (code !== 0) {
           starflow.logger.warning('Errors detected but muted by the task parameters');
         }
-        self.storage.set('lastShellOutput', String(stdout));
+        self.storage.set('output', String(stdout));
         resolve();
       } else {
         reject(new Error(stderr));
@@ -69,6 +69,6 @@ Spawn.prototype.exec = function exec(cmd) {
   });
 };
 
-module.exports = function (parentNamespace) {
-  return new Spawn(parentNamespace);
+module.exports = function () {
+  return new Spawn();
 };

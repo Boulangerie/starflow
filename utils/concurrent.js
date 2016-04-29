@@ -15,8 +15,8 @@ var BaseExecutable = require('../BaseExecutable');
  *   ]}
  * ];
  */
-function Concurrent(parentNamespace) {
-  BaseExecutable.call(this, 'utils.concurrent', parentNamespace);
+function Concurrent() {
+  BaseExecutable.call(this, 'utils.concurrent');
 }
 Concurrent.prototype = Object.create(BaseExecutable.prototype);
 Concurrent.prototype.constructor = Concurrent;
@@ -27,6 +27,6 @@ Concurrent.prototype.exec = function (subSteps) {
   }));
 };
 
-module.exports = function (parentNamespace) {
-  return new Concurrent(parentNamespace);
+module.exports = function () {
+  return new Concurrent();
 };

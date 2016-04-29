@@ -7,8 +7,8 @@ var spawnFactory = require('../shell/spawn');
 var gitStashFactory = require('../git/stash');
 var BaseExecutable = require('../BaseExecutable');
 
-function CheckoutDependencies(parentNamespace, helpers) {
-  BaseExecutable.call(this, 'teads.checkoutDependencies', parentNamespace);
+function CheckoutDependencies(helpers) {
+  BaseExecutable.call(this, 'teads.checkoutDependencies');
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to CheckoutDependencies constructor');
   }
@@ -34,10 +34,19 @@ CheckoutDependencies.prototype.exec = function (branch, dependencies) {
       }
     };
 
+    var stashExec = gitStashFactory({cwd: fullPath});
+    this.addChild(stashExec);
+
+    var spawnExec = spawnFactory();
+    this.addChild(spawnExec);
+
+    var unstashExec = gitStashFactory({cwd: fullPath});
+    this.addChild(unstashExec);
+
     return new Sequence([
-      new Task(gitStashFactory(this.namespace, {cwd: fullPath})),
-      new Task(spawnFactory(this.namespace), spawnConfig, null, 'cd ' + pathName + ' && git checkout ' + branch),
-      new Task(gitStashFactory(this.namespace, {cwd: fullPath}), true) // git stash pop
+      new Task(stashExec),
+      new Task(spawnExec, spawnConfig, null, 'cd ' + pathName + ' && git checkout ' + branch),
+      new Task(unstashExec, true) // git stash pop
     ]);
   });
 
@@ -53,7 +62,7 @@ CheckoutDependencies.prototype.exec = function (branch, dependencies) {
 };
 
 module.exports = function (helpers) {
-  return function (parentNamespace) {
-    return new CheckoutDependencies(parentNamespace, helpers);
+  return function () {
+    return new CheckoutDependencies(helpers);
   };
 };

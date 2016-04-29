@@ -20,22 +20,24 @@ var BaseExecutable = require('../BaseExecutable');
  *   }
  * ];
  */
-function ForEach(parentNamespace) {
-  BaseExecutable.call(this, 'utils.forEach', parentNamespace);
+function ForEach() {
+  BaseExecutable.call(this, 'utils.forEach');
 }
 ForEach.prototype = Object.create(BaseExecutable.prototype);
 ForEach.prototype.constructor = ForEach;
 
 ForEach.prototype.exec = function (arr, subSteps) {
+  var self = this;
   return new Sequence(_.map(arr, function (value) {
     return new Sequence(_.map(subSteps, function (currentStep) {
       var task = Workflow.stepToTask(currentStep);
+      self.addChild(task.instance);
       task.instance.storage.set('value', value);
       return task;
     }));
-  }));
+  })).run();
 };
 
-module.exports = function (parentNamespace) {
-  return new ForEach(parentNamespace);
+module.exports = function () {
+  return new ForEach();
 };

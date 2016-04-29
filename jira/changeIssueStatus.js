@@ -5,23 +5,25 @@ var taskGetIssueStatuses = require('./getIssueStatuses');
 var Task = require('../Task');
 var BaseExecutable = require('../BaseExecutable');
 
-function ChangeIssueStatus(parentNamespace, api) {
-  BaseExecutable.call(this, 'jira.changeIssueStatus', parentNamespace);
+function ChangeIssueStatus(api) {
+  BaseExecutable.call(this, 'jira.changeIssueStatus');
   this.api = api;
 }
 ChangeIssueStatus.prototype = Object.create(BaseExecutable.prototype);
 ChangeIssueStatus.prototype.constructor = ChangeIssueStatus;
 
 ChangeIssueStatus.prototype.getIssueStatuses = function getIssueStatuses(key, status) {
-  return new Task(taskGetIssueStatuses(this.api)(this.namespace), [key, status]).run();
+  var executableChild = taskGetIssueStatuses(this.api)();
+  this.addChild(executableChild);
+  return new Task(executableChild, [key, status]).run();
 };
 
 ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(key, status) {
-  var transition = _.find(starflow.config.jira.getIssueStatuses, {'to':{'name': status}});
+  var transition = _.find(starflow.config.jira.getIssueStatuses, _.set({}, 'to.name', status));
   var jiraChangeIssueStatus = Promise.promisify(this.api.transitionIssue, {context: this.api});
 
-  if(_.isUndefined(transition)){
-    throw new Error('Issue status "' + status + '" could not be found for issue "' + key + '"')
+  if (_.isUndefined(transition)) {
+    throw new Error('Issue status "' + status + '" could not be found for issue "' + key + '"');
   }
 
   return jiraChangeIssueStatus(key, {transition : transition})
@@ -31,7 +33,7 @@ ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(key, 
   function onSuccess(response) {
     if (response === 'Success') {
       starflow.logger.success('JIRA issue ' + key + ' has now the status "' + status + '"');
-      this.storage.set('changeIssueStatus', status);
+      this.storage.set('status', status);
     }
     else {
       starflow.logger.error('There was a problem with the request. Args: ' + key + ', ' + status);
@@ -60,7 +62,7 @@ ChangeIssueStatus.prototype.exec = function exec(key, status) {
 };
 
 module.exports = function (api) {
-  return function (parentNamespace) {
-    return new ChangeIssueStatus(parentNamespace, api);
+  return function () {
+    return new ChangeIssueStatus(api);
   };
 };

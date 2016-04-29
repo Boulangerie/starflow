@@ -3,8 +3,8 @@ var fs = require('fs');
 var starflow = require('../starflow');
 var BaseExecutable = require('../BaseExecutable');
 
-function Dependencies(parentNamespace) {
-  BaseExecutable.call(this, 'npm.dependencies', parentNamespace);
+function Dependencies() {
+  BaseExecutable.call(this, 'npm.dependencies');
 }
 Dependencies.prototype = Object.create(BaseExecutable.prototype);
 Dependencies.prototype.constructor = Dependencies;
@@ -34,7 +34,7 @@ Dependencies.prototype.get = function get(path, includeVersion) {
     dependencies = _.keys(dependencies);
   }
 
-  this.storage.set('dependencies', dependencies);
+  this.storage.set('list', dependencies);
 };
 
 Dependencies.prototype.exec = function exec(path, includeVersion) {
@@ -43,6 +43,6 @@ Dependencies.prototype.exec = function exec(path, includeVersion) {
   return this.get(path, !!includeVersion);
 };
 
-module.exports = function (parentNamespace) {
-  return new Dependencies(parentNamespace);
+module.exports = function () {
+  return new Dependencies();
 };

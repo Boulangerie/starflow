@@ -4,8 +4,8 @@ var starflow = require('../starflow');
 var Task = require('../Task');
 var BaseExecutable = require('../BaseExecutable');
 
-function GetIssue(parentNamespace, api) {
-  BaseExecutable.call(this, 'jira.getIssue', parentNamespace);
+function GetIssue(api) {
+  BaseExecutable.call(this, 'jira.getIssue');
   this.api = api;
 }
 GetIssue.prototype = Object.create(BaseExecutable.prototype);
@@ -31,9 +31,11 @@ GetIssue.prototype.getIssue = function getIssue(key) {
 
 GetIssue.prototype.openJiraLink = function openJiraLink(key) {
   var spawnFactory = require('../shell/spawn');
+  var executableChild = spawnFactory();
+  this.addChild(executableChild);
   var url = this.api.protocol + '://' + this.api.host + '/browse/' + key;
   var taskConfig = ['open', url];
-  return new Task(spawnFactory(this.namespace), taskConfig).run();
+  return new Task(executableChild, taskConfig).run();
 };
 
 GetIssue.prototype.exec = function exec(key, withOpen) {
@@ -49,7 +51,7 @@ GetIssue.prototype.exec = function exec(key, withOpen) {
 };
 
 module.exports = function (api) {
-  return function (parentNamespace) {
-    return new GetIssue(parentNamespace, api);
+  return function () {
+    return new GetIssue(api);
   };
 };
