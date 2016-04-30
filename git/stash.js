@@ -3,7 +3,7 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 var STASH_NAME = 'starflow-tmp';
 var STASH_ID_UNDEFINED_MESSAGE = 'Could not find any stash ID for starflow-tmp';

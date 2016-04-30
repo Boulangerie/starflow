@@ -5,6 +5,7 @@ var _ = require('lodash');
 
 function Logger() {
   this.depth = -1;
+  this.depthLimit = -1;
   this.level = Logger.prototype.LEVEL.NORMAL;
 }
 
@@ -31,6 +32,10 @@ Logger.prototype.isMute = function isMute() {
   return this.level === Logger.prototype.LEVEL.NONE;
 };
 
+Logger.prototype.setDepthLimit = function setDepthLimit(limit) {
+  this.depthLimit = limit;
+};
+
 Logger.prototype.header = function header(message) {
   this.depth++;
   this.log(message, 'header');
@@ -39,6 +44,12 @@ Logger.prototype.header = function header(message) {
 Logger.prototype.footer = function footer(message) {
   this.log(message, 'footer');
   this.depth--;
+};
+
+Logger.prototype.debug = function debug(message) {
+  if (process.env.DEBUG) {
+    this.log(chalk.magenta(message), 'debug');
+  }
 };
 
 Logger.prototype.error = function error(message) {
@@ -54,7 +65,9 @@ Logger.prototype.warning = function warning(message) {
 };
 
 Logger.prototype.log = function log(message, type) {
-  if (this.level > Logger.prototype.LEVEL.NONE) {
+  var aboveLimit = this.depthLimit >= 0 && this.depth >= this.depthLimit;
+  var enabledLogs = !aboveLimit && this.level > Logger.prototype.LEVEL.NONE;
+  if (type === 'debug' || enabledLogs) {
     type = type || 'log';
     if (type !== 'log') {
       message = chalk.gray(message);
@@ -66,9 +79,10 @@ Logger.prototype.log = function log(message, type) {
 Logger.prototype.getPaddingText = function getPaddingText(type) {
   type = type || 'log';
   var patterns = {
-    header: ['┌', '├────┬', '|    '],
-    log:    ['|', '|    |', '|    '],
-    footer: ['└', '|    └', '|    ']
+    header:   ['┌', '├────┬', '|    '],
+    log:      ['|', '|    |', '|    '],
+    debug:    ['|', '|    |', '|    '],
+    footer:   ['└', '|    └', '|    ']
   };
 
   var offset = '';

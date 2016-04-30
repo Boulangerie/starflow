@@ -63,10 +63,6 @@ Task.prototype.run = function run() {
     throw new Error('The exec property of "' + this.name + '" must be a function');
   }
 
-  if (starflow.config.muteDepth >= 0 && starflow.config.muteDepth === logger.depth) {
-    logger.mute();
-  }
-
   var headerMessage;
   if (this.description) {
     headerMessage = this.description;
@@ -83,14 +79,8 @@ Task.prototype.run = function run() {
   return Promise.resolve(execResult)
     .then(function () {
       logger.footer(logger.SUCCESS_MESSAGE);
-      if (starflow.config.muteDepth >= 0 && starflow.config.muteDepth === logger.depth) {
-        logger.unmute();
-      }
     }, function (err) {
       logger.footer(logger.ERROR_MESSAGE);
-      if (starflow.config.muteDepth >= 0 && starflow.config.muteDepth === logger.depth) {
-        logger.unmute();
-      }
       throw err;
     });
 };

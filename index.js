@@ -47,12 +47,13 @@ var config = {};
 //  }
 //};
 
-var workflow = [
-  {'teads.linkDependencies': ['teads-player/teads-vpaid-ui']},
-  {'teads.checkoutDependencies': ['master', ['teads-player', 'teads-player/teads-vpaid-ui']]}
-];
+// var workflow = [
+//   {'teads.linkDependencies': ['teads-player/teads-vpaid-ui']},
+//   {'teads.checkoutDependencies': ['master', ['teads-player', 'teads-player/teads-vpaid-ui']]}
+// ];
 
 starflow.logger.level = starflow.logger.LEVEL.ALL;
+// starflow.logger.setDepthLimit(1);
 
 var starflowShell = require('./shell/starflow-shell');
 var starflowNpm = require('./npm/starflow-npm');
@@ -87,8 +88,8 @@ var starflowTaskTester = [
   //{'github.assignPR': ['ebuzzing', 'starflow', 'ruizb', '{{github.pr["ebuzzing/starflow master:feat/test-branch-for-pr-task"].number}}']}
 ];
 
-return starflow
-  .init(config)
+var workflow = new starflow.Workflow(starflowTaskTester);
+return workflow
   .register(['$', 'shell.spawn'], starflowShell.spawn)
   .register('prompt', starflowShell.prompt)
   .register('npm.dependencies', starflowNpm.dependencies)
@@ -112,7 +113,4 @@ return starflow
   .register('teads.linkDependencies', starflowTeads.linkDependencies)
   .register('teads.unlinkDependencies', starflowTeads.unlinkDependencies)
   .register('teads.checkoutDependencies', starflowTeads.checkoutDependencies)
-  .runWorkflow(starflowTaskTester)
-  .then(function () {
-    console.log(require('./Storage').data);
-  });
+  .run();

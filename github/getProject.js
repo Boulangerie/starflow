@@ -1,7 +1,7 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var starflow = require('../starflow');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function GetProject(api) {
   BaseExecutable.call(this, 'github.getProject');

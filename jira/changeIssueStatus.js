@@ -3,7 +3,7 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var taskGetIssueStatuses = require('./getIssueStatuses');
 var Task = require('../Task');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function ChangeIssueStatus(api) {
   BaseExecutable.call(this, 'jira.changeIssueStatus');

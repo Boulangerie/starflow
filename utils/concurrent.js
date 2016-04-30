@@ -1,7 +1,7 @@
 var _ = require('lodash');
 var Workflow = require('../Workflow');
-var Concurrence = require('../Concurrence');
-var BaseExecutable = require('../BaseExecutable');
+var Concurrence = require('../Concurrency');
+var BaseExecutable = require('../Executable');
 
 /**
  *

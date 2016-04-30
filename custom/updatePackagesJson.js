@@ -3,7 +3,7 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var updatePackageVersionFactory = require('../npm/updatePackageVersion');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function UpdatePackagesJson(helpers) {
   BaseExecutable.call(this, 'teads.updatePackagesJson');

@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var starflow = require('../starflow');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function Echo() {
   BaseExecutable.call(this, 'echo');

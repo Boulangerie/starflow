@@ -2,7 +2,7 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var spawn = require('child_process').spawn;
 var starflow = require('../starflow');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function Spawn() {
   BaseExecutable.call(this, 'spawn');

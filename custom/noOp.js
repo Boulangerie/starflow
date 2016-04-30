@@ -1,4 +1,4 @@
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function NoOp() {
   BaseExecutable.call(this, 'noOp');

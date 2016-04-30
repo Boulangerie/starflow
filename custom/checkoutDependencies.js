@@ -5,7 +5,7 @@ var Task = require('../Task');
 var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 var gitStashFactory = require('../git/stash');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function CheckoutDependencies(helpers) {
   BaseExecutable.call(this, 'teads.checkoutDependencies');

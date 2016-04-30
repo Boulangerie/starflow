@@ -3,7 +3,7 @@ var starflow = require('../starflow');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var checkoutFactory = require('../git/checkout');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function CreateBranch(options) {
   BaseExecutable.call(this, 'git.createBranch');

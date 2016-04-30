@@ -7,7 +7,7 @@ var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 var getIssueFactory = require('../jira/getIssue');
 var createPRFactory = require('../github/createPR');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function CreatePullRequests(helpers, api) {
   BaseExecutable.call(this, 'teads.createPullRequests');

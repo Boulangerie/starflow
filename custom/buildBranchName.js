@@ -1,7 +1,7 @@
 var _ = require('lodash');
 var slugify = require('slugify');
 var starflow = require('../starflow');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function BuildBranchName() {
   BaseExecutable.call(this, 'teads.buildBranchName');

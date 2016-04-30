@@ -33,6 +33,7 @@ module.exports = function (api) {
     updatePackagesJson: require('./updatePackagesJson')(helpers),
     createPullRequests: require('./createPullRequests')(helpers, api),
     linkDependencies: require('./linkDependencies')(helpers),
+    linkDependency: require('./linkDependency')(helpers),
     unlinkDependencies: require('./unlinkDependencies')(helpers),
     checkoutDependencies: require('./checkoutDependencies')(helpers),
     noOp: require('./noOp')

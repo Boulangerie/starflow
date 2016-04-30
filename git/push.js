@@ -1,7 +1,7 @@
 var _ = require('lodash');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function Push(options) {
   BaseExecutable.call(this, 'git.push');

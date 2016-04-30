@@ -4,6 +4,9 @@ var Storage = require('./Storage');
 function BaseExecutable(name) {
   this.name = name;
   this.storage = new Storage(name);
+  // whether the Executable has been created in a workflow or by hand by the user
+  // if created by a workflow then initiator is a reference to this workflow
+  this.initiator = null;
 }
 
 BaseExecutable.prototype.addChild = function addChild(executable) {

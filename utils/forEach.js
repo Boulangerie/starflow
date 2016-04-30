@@ -1,7 +1,6 @@
 var _ = require('lodash');
-var Workflow = require('../Workflow');
 var Sequence = require('../Sequence');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 /**
  *
@@ -27,10 +26,14 @@ ForEach.prototype = Object.create(BaseExecutable.prototype);
 ForEach.prototype.constructor = ForEach;
 
 ForEach.prototype.exec = function (arr, subSteps) {
+  if (!this.initiator) {
+    throw new Error('Executable ' + this.name + ' needs a workflow as initiator');
+  }
+
   var self = this;
   return new Sequence(_.map(arr, function (value) {
     return new Sequence(_.map(subSteps, function (currentStep) {
-      var task = Workflow.stepToTask(currentStep);
+      var task = self.initiator.stepToTask(currentStep);
       self.addChild(task.instance);
       task.instance.storage.set('value', value);
       task.instance.storage.set('parentValue', self.storage.get('value'));

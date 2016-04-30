@@ -4,7 +4,7 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var createBranchFactory = require('../git/createBranch');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function CreateBranchDependencies(helpers) {
   BaseExecutable.call(this, 'teads.createBranchDependencies');

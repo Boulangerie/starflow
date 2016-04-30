@@ -1,27 +1,11 @@
 var Logger = require('./Logger');
-var FactoryStore = require('./FactoryStore');
-var Workflow = require('./Workflow');
 
-var publicApi = {
-  config: {},
+module.exports = {
   logger: new Logger(),
-  init: init,
-  register: register,
-  runWorkflow: runWorkflow
+  Workflow: require('./Workflow'),
+  Task: require('./Task'),
+  Sequence: require('./Sequence'),
+  Concurrency: require('./Concurrency'),
+  Executable: require('./Executable'),
+  Storage: require('./Storage')
 };
-
-function init(userConfig) {
-  publicApi.config = userConfig || {};
-  return this;
-}
-
-function register(names, taskFactory) {
-  FactoryStore.add(names, taskFactory);
-  return this;
-}
-
-function runWorkflow(userWorkflow, initialWorkspace) {
-  return new Workflow(userWorkflow, initialWorkspace).run();
-}
-
-module.exports = publicApi;

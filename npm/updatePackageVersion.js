@@ -2,7 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var Promise = require('bluebird');
 var starflow = require('../starflow');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 Promise.promisifyAll(fs);
 

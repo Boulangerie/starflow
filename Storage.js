@@ -21,6 +21,8 @@ Storage.prototype.addChild = function addChild(name, storage) {
 };
 
 Storage.prototype.get = function get(path, defaultValue) {
+  var logger = require('./starflow').logger;
+  logger.debug('Storage "' + this.name + '" GET "' + path + '"');
   var extractedPath = this.extractPath(path);
   if (!_.isEmpty(extractedPath.namespaces)) {
     var directChildName = _.get(_.head(extractedPath.namespaces), 'name');
@@ -44,6 +46,8 @@ Storage.prototype.getChildAt = function getChildAt(name, index) {
 };
 
 Storage.prototype.set = function set(path, value) {
+  var logger = require('./starflow').logger;
+  logger.debug('Storage "' + this.name + '" SET "' + path + '"');
   var extractedPath = this.extractPath(path);
   if (!_.isEmpty(extractedPath.namespaces)) {
     var directChildName = _.get(_.head(extractedPath.namespaces), 'name');
@@ -84,6 +88,7 @@ Storage.prototype.extractPath = function extractPath(path) {
         }
       }
     } else {
+      nameIndexSplit.pop(); // remove index
       index = parsedLastElement;
     }
 
