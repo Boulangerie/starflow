@@ -3,7 +3,7 @@ var Storage = require('./Storage');
 
 function BaseExecutable(name) {
   this.name = name;
-  this.storage = new Storage();
+  this.storage = new Storage(name);
 }
 
 BaseExecutable.prototype.addChild = function addChild(executable) {

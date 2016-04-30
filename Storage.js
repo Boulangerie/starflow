@@ -1,6 +1,7 @@
 var _ = require('lodash');
 
-function Storage(initialWorkspace) {
+function Storage(name, initialWorkspace) {
+  this.name = name || 'undefined';
   this.workspace = initialWorkspace || {};
   this.children = {};
   this.root = null;
@@ -20,7 +21,7 @@ Storage.prototype.addChild = function addChild(name, storage) {
 };
 
 Storage.prototype.get = function get(path, defaultValue) {
-  var extractedPath = extractPath(path);
+  var extractedPath = this.extractPath(path);
   if (!_.isEmpty(extractedPath.namespaces)) {
     var directChildName = _.get(_.head(extractedPath.namespaces), 'name');
     var directChildIndex = _.get(_.head(extractedPath.namespaces), 'index');
@@ -37,13 +38,13 @@ Storage.prototype.getChildAt = function getChildAt(name, index) {
   index = _.isUndefined(index) ? 0 : index;
   if (!this.children[name]) {
     // TODO use starflow.logger to log a warning instead of throwing an error?
-    throw new Error('Unable to access child with name "' + name + '"');
+    throw new Error('Unable to access child with name "' + name + '" from storage "' + this.name + '"');
   }
   return this.children[name][index];
 };
 
 Storage.prototype.set = function set(path, value) {
-  var extractedPath = extractPath(path);
+  var extractedPath = this.extractPath(path);
   if (!_.isEmpty(extractedPath.namespaces)) {
     var directChildName = _.get(_.head(extractedPath.namespaces), 'name');
     var directChildIndex = _.get(_.head(extractedPath.namespaces), 'index');
@@ -56,6 +57,47 @@ Storage.prototype.set = function set(path, value) {
   }
 };
 
+Storage.prototype.extractPath = function extractPath(path) {
+  var extraction = {
+    namespaces: [],
+    path: path
+  };
+
+  var splitPath = path.split('/');
+
+  var rawNamespaces = _.initial(splitPath);
+  _.forEach(rawNamespaces, function (rawNamespace, rawNamespaceIndex) {
+    var nameIndexSplit = rawNamespace.split('.');
+
+    var lastElement = _.last(nameIndexSplit);
+    var parsedLastElement = parseInt(lastElement, 10);
+    var index = 0;
+
+    if (_.isNaN(parsedLastElement)) {
+      if (lastElement === '$last') {
+        nameIndexSplit.pop(); // remove '$last'
+        index = lastElement;
+        if (rawNamespaceIndex === 0) {
+          // special case: if index is $last and we are processing the first level of namespaces,
+          // then replace $last with the real value
+          index = _.size(this.children[nameIndexSplit.join('.')]) - 1;
+        }
+      }
+    } else {
+      index = parsedLastElement;
+    }
+
+    extraction.namespaces.push({
+      name: nameIndexSplit.join('.'),
+      index: index
+    });
+  }.bind(this));
+
+  extraction.path = _.last(splitPath);
+
+  return extraction;
+};
+
 /**
  * Given an extracted path, generate the path used by the first child
  * @param extractedPath
@@ -66,35 +108,6 @@ function generateChildPath(extractedPath) {
     return [namespace.name, namespace.index].join('.');
   }).join('/');
   return _.compact([namespacePart, extractedPath.path]).join('/');
-}
-
-function extractPath(path) {
-  var extraction = {
-    namespaces: [],
-    path: path
-  };
-
-  var splitPath = path.split('/');
-
-  var rawNamespaces = _.initial(splitPath);
-  _.forEach(rawNamespaces, function (rawNamespace) {
-    var nameIndexSplit = rawNamespace.split('.');
-
-    var index = parseInt(_.last(nameIndexSplit), 10);
-    if (_.isNaN(index)) {
-      index = 0;
-      nameIndexSplit.push(index);
-    }
-
-    extraction.namespaces.push({
-      name: _.initial(nameIndexSplit).join('.'),
-      index: index
-    });
-  });
-
-  extraction.path = _.last(splitPath);
-
-  return extraction;
 }
 
 module.exports = Storage;

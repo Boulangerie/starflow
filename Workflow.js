@@ -7,7 +7,7 @@ var Storage = require('./Storage');
 
 function Workflow(steps, initialWorkspace) {
   this.steps = steps || [];
-  this.storage = new Storage(initialWorkspace);
+  this.storage = new Storage('root', initialWorkspace);
 }
 
 Workflow.prototype.run = function run() {

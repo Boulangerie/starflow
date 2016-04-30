@@ -33,6 +33,7 @@ ForEach.prototype.exec = function (arr, subSteps) {
       var task = Workflow.stepToTask(currentStep);
       self.addChild(task.instance);
       task.instance.storage.set('value', value);
+      task.instance.storage.set('parentValue', self.storage.get('value'));
       return task;
     }));
   })).run();
