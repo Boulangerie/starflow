@@ -3,17 +3,21 @@ var starflow = require('../starflow');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var checkoutFactory = require('../git/checkout');
+var BaseExecutable = require('../BaseExecutable');
 
 function CreateBranch(options) {
+  BaseExecutable.call(this, 'git.createBranch');
   this.options = _.defaults({}, options, {
     cwd: './'
   });
 }
+CreateBranch.prototype = Object.create(BaseExecutable.prototype);
+CreateBranch.prototype.constructor = CreateBranch;
 
 CreateBranch.prototype.createBranch = function createBranch(branchName) {
   function onCreateBranchSuccess() {
     starflow.logger.log('Git branch created: ' + branchName);
-    _.set(starflow.config, 'git.createdBranch', branchName);
+    this.storage.set('name', branchName);
   }
   function onCreateBranchErr(err) {
     if (!/already exists/.test(err.message)) {
@@ -30,13 +34,17 @@ CreateBranch.prototype.createBranch = function createBranch(branchName) {
       cwd: options.cwd
     }
   };
-  return new Task(spawnFactory(), spawnConfig)
+  var executableChild = spawnFactory();
+  this.addChild(executableChild);
+  return new Task(executableChild, spawnConfig)
     .run()
-    .then(onCreateBranchSuccess, onCreateBranchErr);
+    .then(onCreateBranchSuccess.bind(this), onCreateBranchErr);
 };
 
 CreateBranch.prototype.checkout = function checkout(branchName) {
-  return new Task(checkoutFactory({cwd: this.options.cwd}), [branchName]).run()
+  var executableChild = checkoutFactory({cwd: this.options.cwd});
+  this.addChild(executableChild);
+  return new Task(executableChild, [branchName]).run()
 };
 
 CreateBranch.prototype.exec = function exec(branchName, withCheckout) {

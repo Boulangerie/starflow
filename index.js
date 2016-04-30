@@ -71,15 +71,16 @@ var starflowTeads = require('./custom/starflow-teads')({
 });
 
 var starflowTaskTester = [
-  //{'jira.getIssue': 'TT-3618'}
+  'noop',
+  {'jira.getIssue': 'TT-3618'},
+  {'jira.getIssue': 'TT-4497'}
   //{'jira.getIssueStatuses': 'TT-3618'}
   //{'jira.assignIssue': ['TT-3618', 'unassigned']}
   //{'jira.changeIssueStatus': ['TT-3618', 'Open']},
-
-  {'teads.linkDependencies': ['teads-player']},
-  {'jira.getIssue': 'TT-3618'},
-  {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', 'TT-3618', 'starflow-test']},
-  {'teads.createPullRequests': ['TT-3618', '{{teads.branchName}}', ['teads-player']]}
+  // {'teads.linkDependencies': ['teads-player']},
+  // {'jira.getIssue': 'TT-3618'},
+  // {'teads.buildBranchName': ['{{jira.issue.fields.issuetype.name}}', 'TT-3618', 'starflow-test']},
+  // {'teads.createPullRequests': ['TT-3618', '{{teads.branchName}}', ['teads-player']]}
   //{'github.getProject': ['ebuzzing', 'starflow']},
   //{'github.getPRBetween': ['ebuzzing', 'starflow', 'master', 'feat/test-branch-for-pr-task']},
   //{'github.createPR': ['ebuzzing', 'starflow', 'master', 'feat/test-branch-for-pr-task', 'Automatopé']},
@@ -105,9 +106,13 @@ return starflow
   .register('github.assignPR', starflowGithub.assignPR)
   .register('github.getProject', starflowGithub.getProject)
   .register('github.getPRBetween', starflowGithub.getPRBetween)
+  .register('noop', starflowTeads.noOp)
   .register('teads.buildBranchName', starflowTeads.buildBranchName)
   .register('teads.createPullRequests', starflowTeads.createPullRequests)
   .register('teads.linkDependencies', starflowTeads.linkDependencies)
   .register('teads.unlinkDependencies', starflowTeads.unlinkDependencies)
   .register('teads.checkoutDependencies', starflowTeads.checkoutDependencies)
-  .runWorkflow(starflowTaskTester);
+  .runWorkflow(starflowTaskTester)
+  .then(function () {
+    console.log(require('./Storage').data);
+  });

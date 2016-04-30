@@ -2,10 +2,13 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var spawn = require('child_process').spawn;
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
 function Spawn() {
-
+  BaseExecutable.call(this, 'spawn');
 }
+Spawn.prototype = Object.create(BaseExecutable.prototype);
+Spawn.prototype.constructor = Spawn;
 
 Spawn.prototype.exec = function exec(cmd) {
   var args, muteErrors, options;
@@ -21,7 +24,8 @@ Spawn.prototype.exec = function exec(cmd) {
     options = {};
   }
 
-  return new Promise(function(resolve, reject){
+  var self = this;
+  return new Promise(function (resolve, reject) {
     var stdout = [];
     var stderr = [];
     var s = spawn(cmd, args, _.extend({ stdio: 'pipe' }, options));
@@ -56,7 +60,7 @@ Spawn.prototype.exec = function exec(cmd) {
         if (code !== 0) {
           starflow.logger.warning('Errors detected but muted by the task parameters');
         }
-        _.set(starflow.config, 'lastShellOutput', String(stdout));
+        self.storage.set('output', String(stdout));
         resolve();
       } else {
         reject(new Error(stderr));

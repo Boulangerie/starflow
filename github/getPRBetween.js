@@ -1,15 +1,21 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
 function GetPRBetween(api) {
+  BaseExecutable.call(this, 'github.getPRBetween');
   this.api = api;
 }
+GetPRBetween.prototype = Object.create(BaseExecutable.prototype);
+GetPRBetween.prototype.constructor = GetPRBetween;
 
-//@todo: check head construction fit to our needs
-//Doc for head construction : https://developer.github.com/v3/pulls/#list-pull-requests
+// @todo: check if head construction fits to our needs
+// Doc for head construction: https://developer.github.com/v3/pulls/#list-pull-requests
 GetPRBetween.prototype.getPRBetween = function getPRBetween(username, projectName, sourceBranch, targetBranch) {
   var githubGetPRBetween = Promise.promisify(this.api.pullRequests.getAll, {context: this.api});
+  var prKey = username + '/' + projectName + ' ' + sourceBranch + ':' + targetBranch; // e.g. me/my-project master:my-dev
+
   return githubGetPRBetween({
       user: username,
       repo: projectName,
@@ -17,23 +23,15 @@ GetPRBetween.prototype.getPRBetween = function getPRBetween(username, projectNam
       head: (username + ':'+ targetBranch),
       state: 'open'
     })
-    .then(onSuccess, onError);
+    .then(onSuccess.bind(this));
 
   function onSuccess(pr) {
-    var prKey = username + '/' + projectName + ' ' + sourceBranch + ':' + targetBranch; // e.g. me/my-project master:my-dev
     if (_.isUndefined(pr[0])) {
-      onError('No PR found for ' + prKey);
+      onError('No PR found for "' + prKey + '"');
     } else {
       starflow.logger.success('Github PR "' + prKey + '" found (PR number: ' + pr[0].number + ')');
-      var githubPrMap = _.get(starflow.config, 'github.pr', {});
-      githubPrMap[prKey] = pr[0];
-      _.set(starflow.config, 'github.pr', githubPrMap);
+      this.storage.set('pr', pr);
     }
-  }
-
-  function onError(err) {
-    starflow.logger.error('GITHUB PR between ('+sourceBranch+' ... '+targetBranch+') " on ' + projectName + '" was not found with ' + username + ' user');
-    throw err;
   }
 
 };

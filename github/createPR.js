@@ -1,14 +1,17 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
 function CreatePR(api) {
+  BaseExecutable.call(this, 'github.createPR');
   this.api = api;
 }
+CreatePR.prototype = Object.create(BaseExecutable.prototype);
+CreatePR.prototype.constructor = CreatePR;
 
 CreatePR.prototype.createPR = function createPR(username, projectName, sourceBranch, targetBranch, title) {
   var githubCreatePR = Promise.promisify(this.api.pullRequests.create, {context: this.api});
-  var prKey = username + '/' + projectName + ' ' + sourceBranch + ':' + targetBranch; // e.g. me/my-project master:my-dev
   return githubCreatePR({
       user: username,
       repo: projectName,
@@ -16,17 +19,16 @@ CreatePR.prototype.createPR = function createPR(username, projectName, sourceBra
       head: (username + ':'+ targetBranch),
       title: title
     })
-    .then(onSuccess, onError);
+    .then(onSuccess.bind(this), onError);
 
   function onSuccess(pr) {
     starflow.logger.success('Pull-request successfully created: ' + pr.html_url);
-    var githubPrMap = _.get(starflow.config, 'github.pr', {});
-    githubPrMap[prKey] = pr;
-    _.set(starflow.config, 'github.pr', githubPrMap);
+    this.storage.set('pr', pr);
   }
 
   function onError(err) {
     if (/already exists/.test(err.message)) {
+      var prKey = username + '/' + projectName + ' ' + sourceBranch + ':' + targetBranch; // e.g. me/my-project master:my-dev
       starflow.logger.warning('Pull-request "' + prKey + '" already exists');
     }
     else {

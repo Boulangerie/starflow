@@ -2,12 +2,15 @@ var fs = require('fs');
 var path = require('path');
 var Promise = require('bluebird');
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
 Promise.promisifyAll(fs);
 
 function UpdatePackageVersion() {
-
+  BaseExecutable.call(this, 'npm.updatePackageVersion');
 }
+UpdatePackageVersion.prototype = Object.create(BaseExecutable.prototype);
+UpdatePackageVersion.prototype.constructor = UpdatePackageVersion;
 
 UpdatePackageVersion.prototype.exec = function (packageJsonPath, name, version) {
   packageJsonPath = path.resolve(packageJsonPath);

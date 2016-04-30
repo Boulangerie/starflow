@@ -4,13 +4,17 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var createBranchFactory = require('../git/createBranch');
+var BaseExecutable = require('../BaseExecutable');
 
 function CreateBranchDependencies(helpers) {
+  BaseExecutable.call(this, 'teads.createBranchDependencies');
   if (!helpers) {
     throw new Error('Helpers from starflow-teads should be passed to CreatePullRequests constructor');
   }
   this.helpers = helpers;
 }
+CreateBranchDependencies.prototype = Object.create(BaseExecutable.prototype);
+CreateBranchDependencies.prototype.constructor = CreateBranchDependencies;
 
 CreateBranchDependencies.prototype.exec = function (branch, dependencies) {
   var deps = this.helpers.parseDependencies(dependencies);
@@ -19,8 +23,10 @@ CreateBranchDependencies.prototype.exec = function (branch, dependencies) {
       return prev + 'node_modules/' + current + '/';
     }, './');
     var fullPath = path.resolve(pathName);
-    return new Task(createBranchFactory({cwd: fullPath}), [branch, true]).run();
-  });
+    var createBranchExec = createBranchFactory({cwd: fullPath});
+    this.addChild(createBranchExec);
+    return new Task(createBranchExec, [branch, true]).run();
+  }.bind(this));
 
   return Promise.all(promises)
     .then(function () {

@@ -3,28 +3,36 @@ var Promise = require('bluebird');
 var prompt = require('prompt');
 var chalk = require('chalk');
 var starflow = require('../starflow');
+var BaseExecutable = require('../BaseExecutable');
 
 function Prompt() {
-
+  BaseExecutable.call(this, 'prompt');
 }
+Prompt.prototype = Object.create(BaseExecutable.prototype);
+Prompt.prototype.constructor = Prompt;
 
-Prompt.prototype.exec = function (schemaName) {
-  return new Promise(function(resolve, reject){
+Prompt.prototype.exec = function (name, schema) {
+  var self = this;
+
+  if (!name) {
+    reject(new Error('The name parameter is mandatory'));
+  }
+
+  if (!schema) {
+    reject(new Error('The schema parameter is mandatory'));
+  }
+
+  return new Promise(function (resolve, reject) {
     prompt.message = chalk.gray(starflow.logger.getPaddingText()) + ' ?';
     prompt.delimiter = ' ';
 
     prompt.start();
 
-    var schema = _.get(starflow.config, 'prompt.' + schemaName);
-    if (!schema) {
-      reject(new Error('Schema "' + schemaName + '" form prompt not found'));
-    }
-
     prompt.get(schema, function (err, result) {
       if (err) {
         reject(err);
       }
-      _.set(starflow.config, 'prompt.' + schemaName + '.result', result);
+      self.storage.set('result.' + name, result);
       resolve();
     });
   });

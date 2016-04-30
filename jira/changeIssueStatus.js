@@ -3,33 +3,39 @@ var Promise = require('bluebird');
 var starflow = require('../starflow');
 var taskGetIssueStatuses = require('./getIssueStatuses');
 var Task = require('../Task');
+var BaseExecutable = require('../BaseExecutable');
 
 function ChangeIssueStatus(api) {
+  BaseExecutable.call(this, 'jira.changeIssueStatus');
   this.api = api;
 }
+ChangeIssueStatus.prototype = Object.create(BaseExecutable.prototype);
+ChangeIssueStatus.prototype.constructor = ChangeIssueStatus;
 
 ChangeIssueStatus.prototype.getIssueStatuses = function getIssueStatuses(key, status) {
-  return new Task(taskGetIssueStatuses(this.api)(), [key, status]).run();
+  var executableChild = taskGetIssueStatuses(this.api)();
+  this.addChild(executableChild);
+  return new Task(executableChild, [key, status]).run();
 };
 
 ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(key, status) {
-  var transition = _.find(starflow.config.jira.getIssueStatuses, {'to':{'name': status}});
+  var transition = _.find(starflow.config.jira.getIssueStatuses, _.set({}, 'to.name', status));
   var jiraChangeIssueStatus = Promise.promisify(this.api.transitionIssue, {context: this.api});
 
-  if(_.isUndefined(transition)){
-    throw new Error('Issue status "' + status + '" could not be found for issue "' + key + '"')
+  if (_.isUndefined(transition)) {
+    throw new Error('Issue status "' + status + '" could not be found for issue "' + key + '"');
   }
 
   return jiraChangeIssueStatus(key, {transition : transition})
-    .then(onSuccess, onError);
+    .then(onSuccess.bind(this), onError);
 
 
   function onSuccess(response) {
-    if(response === 'Success'){
+    if (response === 'Success') {
       starflow.logger.success('JIRA issue ' + key + ' has now the status "' + status + '"');
-      _.set(starflow.config, 'jira.changeIssueStatus', status);
+      this.storage.set('status', status);
     }
-    else{
+    else {
       starflow.logger.error('There was a problem with the request. Args: ' + key + ', ' + status);
       throw response;
     }
@@ -50,7 +56,7 @@ ChangeIssueStatus.prototype.exec = function exec(key, status) {
   }
   return this
     .getIssueStatuses(key, status)
-    .then(function(){
+    .then(function () {
       return this.changeIssueStatus(key, status);
     }.bind(this));
 };

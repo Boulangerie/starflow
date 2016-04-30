@@ -20,8 +20,8 @@ function register(names, taskFactory) {
   return this;
 }
 
-function runWorkflow(userWorkflow) {
-  return Workflow.runSteps(userWorkflow);
+function runWorkflow(userWorkflow, initialWorkspace) {
+  return new Workflow(userWorkflow, initialWorkspace).run();
 }
 
 module.exports = publicApi;
