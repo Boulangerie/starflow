@@ -26,6 +26,11 @@ Storage.prototype.get = function get(path, defaultValue) {
   var extractedPath = this.extractPath(path);
   if (!_.isEmpty(extractedPath.namespaces)) {
     var directChildName = _.get(_.head(extractedPath.namespaces), 'name');
+
+    if (_.size(extractedPath.namespaces) === 1 && extractedPath.path === '') {
+      return this.children[directChildName];
+    }
+
     var directChildIndex = _.get(_.head(extractedPath.namespaces), 'index');
     var childStorage = this.getChildAt(directChildName, directChildIndex);
     var childPath = generateChildPath(extractedPath);
@@ -110,7 +115,11 @@ Storage.prototype.extractPath = function extractPath(path) {
 function generateChildPath(extractedPath) {
   // convert [{name: 'a', index: 0}, {name: 'b', index: 2}] into 'a.0/b.2'
   var namespacePart = _.map(_.tail(extractedPath.namespaces), function (namespace) {
-    return [namespace.name, namespace.index].join('.');
+    var namespaceWithIndex = [namespace.name];
+    if (!_.isEmpty(extractedPath.path)) {
+      namespaceWithIndex.push(namespace.index);
+    }
+    return namespaceWithIndex.join('.');
   }).join('/');
   return _.compact([namespacePart, extractedPath.path]).join('/');
 }

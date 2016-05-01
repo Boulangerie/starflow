@@ -31,10 +31,11 @@ ForEach.prototype.exec = function (arr, subSteps) {
   }
 
   var self = this;
-  return new Sequence(_.map(arr, function (value) {
+  return new Sequence(_.map(arr, function (value, index) {
     return new Sequence(_.map(subSteps, function (currentStep) {
       var task = self.initiator.stepToTask(currentStep);
       self.addChild(task.instance);
+      task.instance.storage.set('index', index);
       task.instance.storage.set('value', value);
       task.instance.storage.set('parentValue', self.storage.get('value'));
       return task;
