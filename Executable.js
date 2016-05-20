@@ -13,6 +13,13 @@ BaseExecutable.prototype.addChild = function addChild(executable) {
   this.storage.addChild(executable.name, executable.storage);
 };
 
+BaseExecutable.prototype.createExecutable = function createExecutable(factory, factoryArgs) {
+  factoryArgs = factoryArgs || [];
+  var executable = factory.apply(factory, factoryArgs);
+  this.addChild(executable);
+  return executable;
+};
+
 BaseExecutable.prototype.exec = function exec() {
   throw new Error('The "exec" method must be implemented.');
 };

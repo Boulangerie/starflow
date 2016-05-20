@@ -4,7 +4,7 @@ var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
-var BaseExecutable = require('../BaseExecutable');
+var BaseExecutable = require('../Executable');
 
 function LinkDependency(helpers) {
   BaseExecutable.call(this, 'teads.linkDependency');
@@ -18,7 +18,7 @@ LinkDependency.prototype.constructor = LinkDependency;
 
 LinkDependency.prototype.exec = function (dependencyPath) {
   // e.g. dependencyPath = teads-player:release-v1/teads-vpaid-ui
-  var dependency = _.first(this.helpers.parseDependencies([dependencyPath]));
+  var dependency = this.helpers.parseDependency(dependencyPath);
   // e.g. dependency =
   // {
   //   fullName: 'teads-player:release-v1/teads-vpaid-ui',
@@ -32,8 +32,7 @@ LinkDependency.prototype.exec = function (dependencyPath) {
   _.forEach(dependency.chain, function (depName) {
     var resolvedPath = path.resolve(pathName);
     var taskDescription = 'cd ' + resolvedPath.replace(process.env.PWD, '.') + ' && npm link ' + depName;
-    var npmLinkExec = spawnFactory();
-    this.addChild(npmLinkExec);
+    var npmLinkExec = this.createExecutable(spawnFactory);
     npmLinkTasks.push(new Task(npmLinkExec, {
       cmd: 'npm',
       args: ['link', depName],
