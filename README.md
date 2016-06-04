@@ -1,4 +1,4 @@
-# :star2::rocket::star2: Starflow v0.0.1 :star2::rocket::star2:
+# :star2::rocket::star2: Starflow v0.1.1 :star2::rocket::star2:
 
 ## Description
 Every time you work on a project, you need to do the same tasks over and over again. Would it not be great if there was some sort of a tool that deals with this for us? Introducing Starflow.
