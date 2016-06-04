@@ -19,7 +19,7 @@ UpdatePackageJson.prototype.getNpmVersionFromBranch = function getNpmVersionFrom
   return _.kebabCase('0.0.0-' + branch.replace(/[^a-zA-Z0-9_.-]/g, '_').toLowerCase());
 };
 
-UpdatePackageJson.prototype.exec = function exec(branch, dependencyPath) {
+UpdatePackageJson.prototype.exec = function exec(dependencyPath, branch) {
   var dependency = this.helpers.parseDependency(dependencyPath);
 
   function prefixWithNodeModules(val) {
