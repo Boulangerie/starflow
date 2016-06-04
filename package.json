@@ -1,6 +1,6 @@
 {
   "name": "starflow",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Manage your developement workflows with a configuration file",
   "main": "starflow.js",
   "dependencies": {
