@@ -1,5 +1,4 @@
 var starflow = require('./starflow');
-var config = {};
 //var start = [
 //  'git.stash',
 //  {'$': ['git', ['checkout', 'master']]},
@@ -58,13 +57,11 @@ starflow.logger.level = starflow.logger.LEVEL.ALL;
 var starflowShell = require('./shell/starflow-shell');
 var starflowNpm = require('./npm/starflow-npm');
 var starflowGit = require('./git/starflow-git');
-var starflowGithub = require('./github/starflow-github')(process.env.GITHUB_TOKEN);
+var starflowGithub = require('./github/starflow-github')(starflow.config.get('GITHUB_TOKEN'));
 var starflowJira = require('./jira/starflow-jira')(
-  'https',
-  'jira.teads.net',
-  null,
-  process.env.JIRA_USERNAME,
-  process.env.JIRA_PASSWORD
+  starflow.config.get('JIRA_URL'),
+  starflow.config.get('JIRA_USERNAME'),
+  starflow.config.get('JIRA_PASSWORD')
 );
 var starflowTeads = require('./custom/starflow-teads')({
   jira: starflowJira.api,
@@ -72,9 +69,10 @@ var starflowTeads = require('./custom/starflow-teads')({
 });
 
 var starflowTaskTester = [
-  'noop',
-  {'jira.getIssue': 'TT-3618'},
-  {'jira.getIssue': 'TT-4497'}
+  {'jenkins.buildJob': 'lib-front-utils_master'}
+  // 'noop',
+  // {'jira.getIssue': 'TT-3618'},
+  // {'jira.getIssue': 'TT-4497'}
   //{'jira.getIssueStatuses': 'TT-3618'}
   //{'jira.assignIssue': ['TT-3618', 'unassigned']}
   //{'jira.changeIssueStatus': ['TT-3618', 'Open']},
@@ -91,6 +89,7 @@ var starflowTaskTester = [
 var workflow = new starflow.Workflow(starflowTaskTester);
 return workflow
   .register(['$', 'shell.spawn'], starflowShell.spawn)
+  .register('jenkins.buildJob', require('./jenkins/buildJob'))
   .register('prompt', starflowShell.prompt)
   .register('npm.dependencies', starflowNpm.dependencies)
   .register(['git.getCurrentBranch', 'Get the current Git branch name'], starflowGit.currentBranch)
