@@ -17,7 +17,7 @@ function CheckoutDependency(helpers) {
 CheckoutDependency.prototype = Object.create(BaseExecutable.prototype);
 CheckoutDependency.prototype.constructor = CheckoutDependency;
 
-CheckoutDependency.prototype.exec = function (branch, dependencyPath) {
+CheckoutDependency.prototype.exec = function (dependencyPath, branch) {
   var dependency = this.helpers.parseDependency(dependencyPath);
   var fullPath = this.helpers.generatePath(dependency);
 

@@ -15,7 +15,7 @@ function CreateBranchDependency(helpers) {
 CreateBranchDependency.prototype = Object.create(BaseExecutable.prototype);
 CreateBranchDependency.prototype.constructor = CreateBranchDependency;
 
-CreateBranchDependency.prototype.exec = function (branch, dependencyPath) {
+CreateBranchDependency.prototype.exec = function (dependencyPath, branch) {
   var dependency = this.helpers.parseDependency(dependencyPath);
   var fullPath = this.helpers.generatePath(dependency);
 

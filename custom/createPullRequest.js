@@ -61,7 +61,7 @@ CreatePullRequest.prototype.dummyCommitAndPush = function dummyCommitAndPush(ful
 };
 
 CreatePullRequest.prototype.createPr = function createPr(fullPath, baseBranch, title, branch) {
-  return this.dummyCommitAndPush(fullPath, baseBranch)
+  return this.dummyCommitAndPush(fullPath, branch)
     .then(this.getRepositoryUrl.bind(this, fullPath))
     .then(function (repositoryUrl) {
       starflow.logger.debug('Repository URL: ' + repositoryUrl);
