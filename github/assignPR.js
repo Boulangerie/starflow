@@ -1,17 +1,17 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
+var githubService = require('./GithubService').getInstance();
 var starflow = require('../starflow');
 var BaseExecutable = require('../Executable');
 
-function AssignPR(api) {
+function AssignPR() {
   BaseExecutable.call(this, 'github.assignPR');
-  this.api = api;
 }
 AssignPR.prototype = Object.create(BaseExecutable.prototype);
 AssignPR.prototype.constructor = AssignPR;
 
 AssignPR.prototype.assignPR = function assignPR(username, projectName, assignee, prNumber) {
-  var githubAssignPr = Promise.promisify(this.api.issues.edit, {context: this.api});
+  var githubAssignPr = Promise.promisify(githubService.issues.edit, {context: githubService});
   return githubAssignPr({
       user: username,
       repo: projectName,
@@ -23,7 +23,7 @@ AssignPR.prototype.assignPR = function assignPR(username, projectName, assignee,
   function onSuccess() {
     starflow.logger.success('Pull-request successfully assigned to ' + assignee);
     // there is not the base and head objects in the issue received from api.issues.edit, so we need to get the PR
-    return Promise.promisify(this.api.pullRequests.get, {context: this.api})({
+    return Promise.promisify(githubService.pullRequests.get, {context: githubService})({
         user: username,
         repo: projectName,
         number: prNumber
@@ -57,8 +57,8 @@ AssignPR.prototype.exec = function exec(username, projectName, assignee, prNumbe
   return this.assignPR(username, projectName, assignee, prNumber);
 };
 
-module.exports = function (api) {
+module.exports = function () {
   return function () {
-    return new AssignPR(api);
+    return new AssignPR();
   };
 };

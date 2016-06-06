@@ -1,17 +1,17 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
+var githubService = require('./GithubService').getInstance();
 var starflow = require('../starflow');
 var BaseExecutable = require('../Executable');
 
-function GetProject(api) {
+function GetProject() {
   BaseExecutable.call(this, 'github.getProject');
-  this.api = api;
 }
 GetProject.prototype = Object.create(BaseExecutable.prototype);
 GetProject.prototype.constructor = GetProject;
 
 GetProject.prototype.getProject = function getProject(username, projectName) {
-  var githubGetProject = Promise.promisify(this.api.repos.get, {context: this.api});
+  var githubGetProject = Promise.promisify(githubService.repos.get, {context: githubService});
   return githubGetProject({
       user: username,
       repo: projectName
@@ -42,8 +42,8 @@ GetProject.prototype.exec = function exec(username, projectName) {
   return this.getProject(username, projectName);
 };
 
-module.exports = function (api) {
+module.exports = function () {
   return function () {
-    return new GetProject(api);
+    return new GetProject();
   };
 };

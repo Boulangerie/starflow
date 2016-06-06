@@ -1,6 +1,19 @@
 var _ = require('lodash');
 
-function parseDependency(dependencyPath) {
+function TeadsService() {
+
+}
+
+TeadsService._instance = null;
+
+TeadsService.getInstance = function () {
+  if (!TeadsService._instance) {
+    TeadsService._instance = new TeadsService();
+  }
+  return TeadsService._instance;
+};
+
+TeadsService.prototype.parseDependency = function (dependencyPath) {
   var dependencyChainSeparator = '/';
   // e.g. dep === "teads-player", dep === "teads-player/teads-vpaid-ui"
   var chain, baseBranch;
@@ -18,30 +31,16 @@ function parseDependency(dependencyPath) {
     chain: chain,
     baseBranch: baseBranch
   };
-}
+};
 
-function generatePath(dependency) {
+TeadsService.prototype.generatePath = function (dependency) {
   var path = require('path');
   var pathName = _.reduce(dependency.chain, function (prev, current) {
     return prev + 'node_modules/' + current + '/';
   }, './');
   return path.resolve(pathName);
-}
-
-var helpers = {
-  parseDependency: parseDependency,
-  generatePath: generatePath
 };
 
-module.exports = function (api) {
-  return {
-    buildBranchName: require('./buildBranchName'),
-    createBranchDependency: require('./createBranchDependency')(helpers),
-    updatePackageJson: require('./updatePackageJson')(helpers),
-    createPullRequest: require('./createPullRequest')(helpers, api),
-    linkDependency: require('./linkDependency')(helpers),
-    unlinkDependency: require('./unlinkDependency')(helpers),
-    checkoutDependency: require('./checkoutDependency')(helpers),
-    noOp: require('./noOp')
-  };
-};
+TeadsService.prototype = Object.create(null);
+
+module.exports = TeadsService;

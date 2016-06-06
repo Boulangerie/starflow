@@ -1,26 +1,26 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
+var jiraService = require('./JiraService').getInstance();
 var starflow = require('../starflow');
 var taskGetIssueStatuses = require('./getIssueStatuses');
 var Task = require('../Task');
 var BaseExecutable = require('../Executable');
 
-function ChangeIssueStatus(api) {
+function ChangeIssueStatus() {
   BaseExecutable.call(this, 'jira.changeIssueStatus');
-  this.api = api;
 }
 ChangeIssueStatus.prototype = Object.create(BaseExecutable.prototype);
 ChangeIssueStatus.prototype.constructor = ChangeIssueStatus;
 
 ChangeIssueStatus.prototype.getIssueStatuses = function getIssueStatuses(key, status) {
-  var executableChild = taskGetIssueStatuses(this.api)();
+  var executableChild = taskGetIssueStatuses(jiraService)();
   this.addChild(executableChild);
   return new Task(executableChild, [key, status]).run();
 };
 
 ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(key, status) {
   var transition = _.find(starflow.config.jira.getIssueStatuses, _.set({}, 'to.name', status));
-  var jiraChangeIssueStatus = Promise.promisify(this.api.transitionIssue, {context: this.api});
+  var jiraChangeIssueStatus = Promise.promisify(jiraService.transitionIssue, {context: jiraService});
 
   if (_.isUndefined(transition)) {
     throw new Error('Issue status "' + status + '" could not be found for issue "' + key + '"');
@@ -61,8 +61,8 @@ ChangeIssueStatus.prototype.exec = function exec(key, status) {
     }.bind(this));
 };
 
-module.exports = function (api) {
+module.exports = function () {
   return function () {
-    return new ChangeIssueStatus(api);
+    return new ChangeIssueStatus();
   };
 };

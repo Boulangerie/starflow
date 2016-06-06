@@ -2,6 +2,8 @@ var _ = require('lodash');
 var path = require('path');
 var Promise = require('bluebird');
 var fs = require('fs');
+var teadsService = require('./TeadsService').getInstance();
+var githubService = require('../github/GithubService');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
@@ -11,13 +13,8 @@ var BaseExecutable = require('../Executable');
 
 Promise.promisifyAll(fs);
 
-function CreatePullRequest(helpers, api) {
+function CreatePullRequest() {
   BaseExecutable.call(this, 'teads.createPullRequest');
-  if (!helpers) {
-    throw new Error('Helpers from starflow-teads should be passed to CreatePullRequest constructor');
-  }
-  this.helpers = helpers;
-  this.api = api;
 }
 CreatePullRequest.prototype = Object.create(BaseExecutable.prototype);
 CreatePullRequest.prototype.constructor = CreatePullRequest;
@@ -73,7 +70,7 @@ CreatePullRequest.prototype.createPr = function createPr(fullPath, baseBranch, t
         throw new Error('Could not get Github user and repository for project at "' + fullPath + '"');
       }
 
-      var createPrExec = this.createExecutable(createPRFactory(this.api.github));
+      var createPrExec = this.createExecutable(createPRFactory(githubService));
       var description = 'Create PR "' + title + '" for "' + user + '/' + repo + '"';
       return new Task(createPrExec, [user, repo, baseBranch, branch, title], null, description).run();
     }.bind(this));
@@ -86,8 +83,8 @@ CreatePullRequest.prototype.exec = function exec(dependencyPath, branchName, prT
 
   var fullPath, baseBranch;
   if (dependencyPath) {
-    var dependency = this.helpers.parseDependency(dependencyPath);
-    fullPath = this.helpers.generatePath(dependency);
+    var dependency = teadsService.parseDependency(dependencyPath);
+    fullPath = teadsService.generatePath(dependency);
     baseBranch = dependency.baseBranch;
   } else {
     // no dependencyPath -> create PR for current project
@@ -99,8 +96,8 @@ CreatePullRequest.prototype.exec = function exec(dependencyPath, branchName, prT
   return this.createPr(fullPath, baseBranch, prTitle, branchName);
 };
 
-module.exports = function (helpers, api) {
+module.exports = function () {
   return function () {
-    return new CreatePullRequest(helpers, api);
+    return new CreatePullRequest();
   };
 };

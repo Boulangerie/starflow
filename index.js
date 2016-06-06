@@ -54,20 +54,6 @@ var starflow = require('./starflow');
 starflow.logger.level = starflow.logger.LEVEL.ALL;
 // starflow.logger.setDepthLimit(1);
 
-var starflowShell = require('./shell/starflow-shell');
-var starflowNpm = require('./npm/starflow-npm');
-var starflowGit = require('./git/starflow-git');
-var starflowGithub = require('./github/starflow-github')(starflow.config.get('GITHUB_TOKEN'));
-var starflowJira = require('./jira/starflow-jira')(
-  starflow.config.get('JIRA_URL'),
-  starflow.config.get('JIRA_USERNAME'),
-  starflow.config.get('JIRA_PASSWORD')
-);
-var starflowTeads = require('./custom/starflow-teads')({
-  jira: starflowJira.api,
-  github: starflowGithub.api
-});
-
 var starflowTaskTester = [
   {'jenkins.buildJob': 'lib-front-utils_master'}
   // 'noop',
@@ -88,28 +74,28 @@ var starflowTaskTester = [
 
 var workflow = new starflow.Workflow(starflowTaskTester);
 return workflow
-  .register(['$', 'shell.spawn'], starflowShell.spawn)
+  .register(['$', 'shell.spawn'], require('./shell/spawn'))
   .register('jenkins.buildJob', require('./jenkins/buildJob'))
-  .register('prompt', starflowShell.prompt)
-  .register('npm.dependencies', starflowNpm.dependencies)
-  .register(['git.getCurrentBranch', 'Get the current Git branch name'], starflowGit.currentBranch)
-  .register('git.createBranch', starflowGit.createBranch)
-  .register('git.checkout', starflowGit.checkout)
-  .register('git.fetch', starflowGit.fetch)
-  .register('git.push', starflowGit.push)
-  .register('git.stash', starflowGit.stash)
-  .register('jira.getIssue', starflowJira.getIssue)
-  .register('jira.getIssueStatuses', starflowJira.getIssueStatuses)
-  .register('jira.assignIssue', starflowJira.assignIssue)
-  .register('jira.changeIssueStatus', starflowJira.changeIssueStatus)
-  .register('github.createPR', starflowGithub.createPR)
-  .register('github.assignPR', starflowGithub.assignPR)
-  .register('github.getProject', starflowGithub.getProject)
-  .register('github.getPRBetween', starflowGithub.getPRBetween)
-  .register('noop', starflowTeads.noOp)
-  .register('teads.buildBranchName', starflowTeads.buildBranchName)
-  .register('teads.createPullRequests', starflowTeads.createPullRequests)
-  .register('teads.linkDependencies', starflowTeads.linkDependencies)
-  .register('teads.unlinkDependencies', starflowTeads.unlinkDependencies)
-  .register('teads.checkoutDependencies', starflowTeads.checkoutDependencies)
+  .register('prompt', require('./shell/prompt'))
+  .register('npm.dependencies', require('./npm/dependencies'))
+  .register(['git.getCurrentBranch', 'Get the current Git branch name'], require('./git/currentBranch'))
+  .register('git.createBranch', require('./git/createBranch'))
+  .register('git.checkout', require('./git/checkout'))
+  .register('git.fetch', require('./git/fetch'))
+  .register('git.push', require('./git/push'))
+  .register('git.stash', require('./git/stash'))
+  .register('jira.getIssue', require('./jira/getIssue'))
+  .register('jira.getIssueStatuses', require('./jira/getIssueStatuses'))
+  .register('jira.assignIssue', require('./jira/assignIssue'))
+  .register('jira.changeIssueStatus', require('./jira/changeIssueStatus'))
+  .register('github.createPR', require('./github/createPR'))
+  .register('github.assignPR', require('./github/assignPR'))
+  .register('github.getProject', require('./github/getProject'))
+  .register('github.getPRBetween', require('./github/getPRBetween'))
+  .register('noop', require('./custom/noOp'))
+  .register('teads.buildBranchName', require('./custom/buildBranchName'))
+  .register('teads.createPullRequest', require('./custom/createPullRequest'))
+  .register('teads.linkDependency', require('./custom/linkDependency'))
+  .register('teads.unlinkDependency', require('./custom/unlinkDependency'))
+  .register('teads.checkoutDependency', require('./custom/checkoutDependency'))
   .run();

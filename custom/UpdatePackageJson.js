@@ -1,16 +1,13 @@
 var _ = require('lodash');
 var path = require('path');
+var teadsService = require('./TeadsService').getInstance();
 var starflow = require('../starflow');
 var Task = require('../Task');
 var updatePackageVersionFactory = require('../npm/updatePackageVersion');
 var BaseExecutable = require('../Executable');
 
-function UpdatePackageJson(helpers) {
+function UpdatePackageJson() {
   BaseExecutable.call(this, 'teads.updatePackageJson');
-  if (!helpers) {
-    throw new Error('Helpers from starflow-teads should be passed to UpdatePackageJson constructor');
-  }
-  this.helpers = helpers;
 }
 UpdatePackageJson.prototype = Object.create(BaseExecutable.prototype);
 UpdatePackageJson.prototype.constructor = UpdatePackageJson;
@@ -20,7 +17,7 @@ UpdatePackageJson.prototype.getNpmVersionFromBranch = function getNpmVersionFrom
 };
 
 UpdatePackageJson.prototype.exec = function exec(dependencyPath, branch) {
-  var dependency = this.helpers.parseDependency(dependencyPath);
+  var dependency = teadsService.parseDependency(dependencyPath);
 
   function prefixWithNodeModules(val) {
     return '/node_modules/' + val;
@@ -34,8 +31,8 @@ UpdatePackageJson.prototype.exec = function exec(dependencyPath, branch) {
     .run();
 };
 
-module.exports = function (helpers) {
+module.exports = function () {
   return function () {
-    return new UpdatePackageJson(helpers);
+    return new UpdatePackageJson();
   };
 };
