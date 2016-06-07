@@ -56,7 +56,5 @@ AssignIssue.prototype.exec = function exec(key, assignee) {
 };
 
 module.exports = function () {
-  return function () {
-    return new AssignIssue();
-  };
+  return new AssignIssue();
 };

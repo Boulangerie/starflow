@@ -3,7 +3,6 @@ var path = require('path');
 var Promise = require('bluebird');
 var fs = require('fs');
 var teadsService = require('./teadsService');
-var githubService = require('../github/GithubService');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
@@ -70,7 +69,7 @@ CreatePullRequest.prototype.createPr = function createPr(fullPath, baseBranch, t
         throw new Error('Could not get Github user and repository for project at "' + fullPath + '"');
       }
 
-      var createPrExec = this.createExecutable(createPRFactory(githubService));
+      var createPrExec = this.createExecutable(createPRFactory);
       var description = 'Create PR "' + title + '" for "' + user + '/' + repo + '"';
       return new Task(createPrExec, [user, repo, baseBranch, branch, title], null, description).run();
     }.bind(this));
@@ -97,7 +96,5 @@ CreatePullRequest.prototype.exec = function exec(dependencyPath, branchName, prT
 };
 
 module.exports = function () {
-  return function () {
-    return new CreatePullRequest();
-  };
+  return new CreatePullRequest();
 };

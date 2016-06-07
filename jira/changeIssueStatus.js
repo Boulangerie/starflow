@@ -13,7 +13,7 @@ ChangeIssueStatus.prototype = Object.create(BaseExecutable.prototype);
 ChangeIssueStatus.prototype.constructor = ChangeIssueStatus;
 
 ChangeIssueStatus.prototype.getIssueStatuses = function getIssueStatuses(key, status) {
-  var executableChild = taskGetIssueStatuses(jiraService)();
+  var executableChild = taskGetIssueStatuses();
   this.addChild(executableChild);
   return new Task(executableChild, [key, status]).run();
 };
@@ -62,7 +62,5 @@ ChangeIssueStatus.prototype.exec = function exec(key, status) {
 };
 
 module.exports = function () {
-  return function () {
-    return new ChangeIssueStatus();
-  };
+  return new ChangeIssueStatus();
 };

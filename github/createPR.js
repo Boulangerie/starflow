@@ -60,7 +60,5 @@ CreatePR.prototype.exec = function exec(username, projectName, sourceBranch, tar
 };
 
 module.exports = function () {
-  return function () {
-    return new CreatePR();
-  };
+  return new CreatePR();
 };

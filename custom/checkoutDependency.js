@@ -44,7 +44,5 @@ CheckoutDependency.prototype.exec = function (dependencyPath, branch) {
 };
 
 module.exports = function () {
-  return function () {
-    return new CheckoutDependency();
-  };
+  return new CheckoutDependency();
 };

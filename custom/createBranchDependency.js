@@ -28,7 +28,5 @@ CreateBranchDependency.prototype.exec = function (dependencyPath, branch) {
 };
 
 module.exports = function () {
-  return function () {
-    return new CreateBranchDependency();
-  };
+  return new CreateBranchDependency();
 };

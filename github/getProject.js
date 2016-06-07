@@ -43,7 +43,5 @@ GetProject.prototype.exec = function exec(username, projectName) {
 };
 
 module.exports = function () {
-  return function () {
-    return new GetProject();
-  };
+  return new GetProject();
 };

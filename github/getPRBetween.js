@@ -54,7 +54,5 @@ GetPRBetween.prototype.exec = function exec(username, projectName, sourceBranch,
 };
 
 module.exports = function () {
-  return function () {
-    return new GetPRBetween();
-  };
+  return new GetPRBetween();
 };

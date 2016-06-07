@@ -51,7 +51,5 @@ GetIssue.prototype.exec = function exec(key, withOpen) {
 };
 
 module.exports = function () {
-  return function () {
-    return new GetIssue();
-  };
+  return new GetIssue();
 };

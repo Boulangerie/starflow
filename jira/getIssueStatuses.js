@@ -36,7 +36,5 @@ GetIssueStatuses.prototype.exec = function exec(key) {
 };
 
 module.exports = function () {
-  return function () {
-    return new GetIssueStatuses();
-  };
+  return new GetIssueStatuses();
 };

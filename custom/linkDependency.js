@@ -52,7 +52,5 @@ LinkDependency.prototype.exec = function (dependencyPath) {
 };
 
 module.exports = function () {
-  return function () {
-    return new LinkDependency();
-  };
+  return new LinkDependency();
 };

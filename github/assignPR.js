@@ -58,7 +58,5 @@ AssignPR.prototype.exec = function exec(username, projectName, assignee, prNumbe
 };
 
 module.exports = function () {
-  return function () {
-    return new AssignPR();
-  };
+  return new AssignPR();
 };

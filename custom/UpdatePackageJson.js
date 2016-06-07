@@ -32,7 +32,5 @@ UpdatePackageJson.prototype.exec = function exec(dependencyPath, branch) {
 };
 
 module.exports = function () {
-  return function () {
-    return new UpdatePackageJson();
-  };
+  return new UpdatePackageJson();
 };
