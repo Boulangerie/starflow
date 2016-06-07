@@ -1,24 +1,20 @@
-var _ = require('lodash');
 var path = require('path');
+var teadsService = require('./teadsService');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 var BaseExecutable = require('../Executable');
 
-function UnlinkDependency(helpers) {
+function UnlinkDependency() {
   BaseExecutable.call(this, 'teads.unlinkDependency');
-  if (!helpers) {
-    throw new Error('Helpers from starflow-teads should be passed to UnlinkDependency constructor');
-  }
-  this.helpers = helpers;
 }
 UnlinkDependency.prototype = Object.create(BaseExecutable.prototype);
 UnlinkDependency.prototype.constructor = UnlinkDependency;
 
 UnlinkDependency.prototype.exec = function (dependencyPath) {
   // e.g. dependencyPath = teads-player:release-v1/teads-vpaid-ui
-  var dependency = this.helpers.parseDependency(dependencyPath);
+  var dependency = teadsService.parseDependency(dependencyPath);
 
   var pathName = './';
   var resolvedPath = path.resolve(pathName);
@@ -52,8 +48,6 @@ UnlinkDependency.prototype.exec = function (dependencyPath) {
     });
 };
 
-module.exports = function (helpers) {
-  return function () {
-    return new UnlinkDependency(helpers);
-  };
+module.exports = function () {
+  return new UnlinkDependency();
 };

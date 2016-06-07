@@ -1,5 +1,5 @@
-var _ = require('lodash');
 var path = require('path');
+var teadsService = require('./teadsService');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
@@ -7,19 +7,15 @@ var spawnFactory = require('../shell/spawn');
 var gitStashFactory = require('../git/stash');
 var BaseExecutable = require('../Executable');
 
-function CheckoutDependency(helpers) {
+function CheckoutDependency() {
   BaseExecutable.call(this, 'teads.checkoutDependencies');
-  if (!helpers) {
-    throw new Error('Helpers from starflow-teads should be passed to CheckoutDependency constructor');
-  }
-  this.helpers = helpers;
 }
 CheckoutDependency.prototype = Object.create(BaseExecutable.prototype);
 CheckoutDependency.prototype.constructor = CheckoutDependency;
 
 CheckoutDependency.prototype.exec = function (dependencyPath, branch) {
-  var dependency = this.helpers.parseDependency(dependencyPath);
-  var fullPath = this.helpers.generatePath(dependency);
+  var dependency = teadsService.parseDependency(dependencyPath);
+  var fullPath = teadsService.generatePath(dependency);
 
   var stashExec = this.createExecutable(gitStashFactory, [{cwd: fullPath}]);
   var spawnExec = this.createExecutable(spawnFactory);
@@ -47,8 +43,6 @@ CheckoutDependency.prototype.exec = function (dependencyPath, branch) {
     });
 };
 
-module.exports = function (helpers) {
-  return function () {
-    return new CheckoutDependency(helpers);
-  };
+module.exports = function () {
+  return new CheckoutDependency();
 };

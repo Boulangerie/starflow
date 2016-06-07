@@ -1,11 +1,11 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
+var githubService = require('./githubService');
 var starflow = require('../starflow');
 var BaseExecutable = require('../Executable');
 
-function GetPRBetween(api) {
+function GetPRBetween() {
   BaseExecutable.call(this, 'github.getPRBetween');
-  this.api = api;
 }
 GetPRBetween.prototype = Object.create(BaseExecutable.prototype);
 GetPRBetween.prototype.constructor = GetPRBetween;
@@ -13,7 +13,7 @@ GetPRBetween.prototype.constructor = GetPRBetween;
 // @todo: check if head construction fits to our needs
 // Doc for head construction: https://developer.github.com/v3/pulls/#list-pull-requests
 GetPRBetween.prototype.getPRBetween = function getPRBetween(username, projectName, sourceBranch, targetBranch) {
-  var githubGetPRBetween = Promise.promisify(this.api.pullRequests.getAll, {context: this.api});
+  var githubGetPRBetween = Promise.promisify(githubService.pullRequests.getAll, {context: githubService});
   var prKey = username + '/' + projectName + ' ' + sourceBranch + ':' + targetBranch; // e.g. me/my-project master:my-dev
 
   return githubGetPRBetween({
@@ -53,8 +53,6 @@ GetPRBetween.prototype.exec = function exec(username, projectName, sourceBranch,
   return this.getPRBetween(username, projectName, sourceBranch, targetBranch);
 };
 
-module.exports = function (api) {
-  return function () {
-    return new GetPRBetween(api);
-  };
+module.exports = function () {
+  return new GetPRBetween();
 };

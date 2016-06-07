@@ -28,20 +28,7 @@ function generatePath(dependency) {
   return path.resolve(pathName);
 }
 
-var helpers = {
+module.exports = {
   parseDependency: parseDependency,
   generatePath: generatePath
-};
-
-module.exports = function (api) {
-  return {
-    buildBranchName: require('./buildBranchName'),
-    createBranchDependency: require('./createBranchDependency')(helpers),
-    updatePackageJson: require('./updatePackageJson')(helpers),
-    createPullRequest: require('./createPullRequest')(helpers, api),
-    linkDependency: require('./linkDependency')(helpers),
-    unlinkDependency: require('./unlinkDependency')(helpers),
-    checkoutDependency: require('./checkoutDependency')(helpers),
-    noOp: require('./noOp')
-  };
 };

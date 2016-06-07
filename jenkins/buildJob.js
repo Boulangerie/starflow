@@ -1,6 +1,6 @@
+var jenkinsService = require('./jenkinsService');
 var starflow = require('../starflow');
 var BaseExecutable = require('../Executable');
-var jenkinsService = require('./JenkinsService');
 
 function BuildJob() {
   BaseExecutable.call(this, 'jenkins.buildJob');

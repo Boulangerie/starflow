@@ -1,4 +1,3 @@
-var _ = require('lodash');
 var starflow = require('../starflow');
 var BaseExecutable = require('../Executable');
 

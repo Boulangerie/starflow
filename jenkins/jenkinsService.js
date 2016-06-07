@@ -3,13 +3,12 @@ var JenkinsApi = require('jenkins');
 var starflow = require('../starflow');
 
 var token = new Buffer(starflow.config.get('JENKINS_USERNAME') + ':' + starflow.config.get('JENKINS_PASSWORD'));
-
-var jenkins = new JenkinsApi({
+var jenkinsService = new JenkinsApi({
   baseUrl: starflow.config.get('JENKINS_URL'),
   headers: {
     'Authorization': 'Basic ' + token.toString('base64')
   },
   promisify: true
-})
+});
 
-module.exports = jenkins;
+module.exports = jenkinsService;

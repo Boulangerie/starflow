@@ -1,23 +1,19 @@
-var _ = require('lodash');
 var path = require('path');
+var teadsService = require('./teadsService');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var createBranchFactory = require('../git/createBranch');
 var BaseExecutable = require('../Executable');
 
-function CreateBranchDependency(helpers) {
+function CreateBranchDependency() {
   BaseExecutable.call(this, 'teads.createBranchDependency');
-  if (!helpers) {
-    throw new Error('Helpers from starflow-teads should be passed to CreateBranchDependency constructor');
-  }
-  this.helpers = helpers;
 }
 CreateBranchDependency.prototype = Object.create(BaseExecutable.prototype);
 CreateBranchDependency.prototype.constructor = CreateBranchDependency;
 
 CreateBranchDependency.prototype.exec = function (dependencyPath, branch) {
-  var dependency = this.helpers.parseDependency(dependencyPath);
-  var fullPath = this.helpers.generatePath(dependency);
+  var dependency = teadsService.parseDependency(dependencyPath);
+  var fullPath = teadsService.generatePath(dependency);
 
   var gitCreateBranchExec = this.createExecutable(createBranchFactory, [{cwd: fullPath}]);
   return new Task(gitCreateBranchExec, [branch, true], null, 'Create branch ' + branch + ' for ' + dependencyPath)
@@ -31,8 +27,6 @@ CreateBranchDependency.prototype.exec = function (dependencyPath, branch) {
     });
 };
 
-module.exports = function (helpers) {
-  return function () {
-    return new CreateBranchDependency(helpers);
-  };
+module.exports = function () {
+  return new CreateBranchDependency();
 };

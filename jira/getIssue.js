@@ -1,12 +1,12 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
+var jiraService = require('./jiraService');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var BaseExecutable = require('../Executable');
 
-function GetIssue(api) {
+function GetIssue() {
   BaseExecutable.call(this, 'jira.getIssue');
-  this.api = api;
 }
 GetIssue.prototype = Object.create(BaseExecutable.prototype);
 GetIssue.prototype.constructor = GetIssue;
@@ -24,7 +24,7 @@ GetIssue.prototype.getIssue = function getIssue(key) {
     starflow.logger.error('JIRA issue "' + key + '" was not found');
     throw err;
   }
-  var jiraFindIssue = Promise.promisify(this.api.findIssue, {context: this.api});
+  var jiraFindIssue = Promise.promisify(jiraService.findIssue, {context: jiraService});
   return jiraFindIssue(key)
     .then(onSuccess.bind(this), onError);
 };
@@ -33,7 +33,7 @@ GetIssue.prototype.openJiraLink = function openJiraLink(key) {
   var spawnFactory = require('../shell/spawn');
   var executableChild = spawnFactory();
   this.addChild(executableChild);
-  var url = this.api.protocol + '://' + this.api.host + '/browse/' + key;
+  var url = jiraService.protocol + '://' + jiraService.host + '/browse/' + key;
   var taskConfig = ['open', url];
   return new Task(executableChild, taskConfig).run();
 };
@@ -50,8 +50,6 @@ GetIssue.prototype.exec = function exec(key, withOpen) {
   return promise;
 };
 
-module.exports = function (api) {
-  return function () {
-    return new GetIssue(api);
-  };
+module.exports = function () {
+  return new GetIssue();
 };

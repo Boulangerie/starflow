@@ -1,11 +1,11 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
+var jiraService = require('./jiraService');
 var starflow = require('../starflow');
 var BaseExecutable = require('../Executable');
 
-function AssignIssue(api) {
+function AssignIssue() {
   BaseExecutable.call(this, 'jira.assignIssue');
-  this.api = api;
   this.nonUserMapping = {
     'unassigned' : '',
     'automatic' : '-1'
@@ -21,7 +21,7 @@ AssignIssue.prototype.mapNonUserAssignee = function mapNonUserAssignee(assignee)
 
 AssignIssue.prototype.assignIssue = function assignIssue(key, assignee) {
   var params = _.set({}, 'fields.assignee.name', this.mapNonUserAssignee(assignee));
-  var jiraAssignIssue = Promise.promisify(this.api.updateIssue, {context: this.api});
+  var jiraAssignIssue = Promise.promisify(jiraService.updateIssue, {context: jiraService});
 
   return jiraAssignIssue(key, params)
     .then(onSuccess.bind(this), onError);
@@ -55,8 +55,6 @@ AssignIssue.prototype.exec = function exec(key, assignee) {
   return this.assignIssue(key, assignee);
 };
 
-module.exports = function (api) {
-  return function () {
-    return new AssignIssue(api);
-  };
+module.exports = function () {
+  return new AssignIssue();
 };

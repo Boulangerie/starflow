@@ -1,17 +1,17 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
+var githubService = require('./githubService');
 var starflow = require('../starflow');
 var BaseExecutable = require('../Executable');
 
-function CreatePR(api) {
+function CreatePR() {
   BaseExecutable.call(this, 'github.createPR');
-  this.api = api;
 }
 CreatePR.prototype = Object.create(BaseExecutable.prototype);
 CreatePR.prototype.constructor = CreatePR;
 
 CreatePR.prototype.createPR = function createPR(username, projectName, sourceBranch, targetBranch, title) {
-  var githubCreatePR = Promise.promisify(this.api.pullRequests.create, {context: this.api});
+  var githubCreatePR = Promise.promisify(githubService.pullRequests.create, {context: githubService});
   return githubCreatePR({
       user: username,
       repo: projectName,
@@ -59,8 +59,6 @@ CreatePR.prototype.exec = function exec(username, projectName, sourceBranch, tar
   return this.createPR(username, projectName, sourceBranch, targetBranch, title);
 };
 
-module.exports = function (api) {
-  return function () {
-    return new CreatePR(api);
-  };
+module.exports = function () {
+  return new CreatePR();
 };
