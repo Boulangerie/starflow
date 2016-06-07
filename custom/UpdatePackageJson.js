@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var path = require('path');
-var teadsService = require('./TeadsService').getInstance();
+var teadsService = require('./teadsService');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var updatePackageVersionFactory = require('../npm/updatePackageVersion');

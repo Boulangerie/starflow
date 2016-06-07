@@ -1,4 +1,4 @@
-var jenkinsService = require('./JenkinsService').getInstance();
+var jenkinsService = require('./jenkinsService');
 var starflow = require('../starflow');
 var BaseExecutable = require('../Executable');
 

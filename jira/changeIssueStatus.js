@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
-var jiraService = require('./JiraService').getInstance();
+var jiraService = require('./jiraService');
 var starflow = require('../starflow');
 var taskGetIssueStatuses = require('./getIssueStatuses');
 var Task = require('../Task');
