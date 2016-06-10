@@ -77,8 +77,9 @@ Task.prototype.run = function run() {
   var execResult = this.instance.exec.apply(this.instance, this.args);
 
   return Promise.resolve(execResult)
-    .then(function () {
+    .then(function (res) {
       logger.footer(logger.SUCCESS_MESSAGE);
+      return res;
     }, function (err) {
       logger.footer(logger.ERROR_MESSAGE);
       throw err;
