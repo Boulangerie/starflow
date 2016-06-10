@@ -5,6 +5,10 @@ var JiraApi = require('jira').JiraApi;
 var starflow = require('../starflow');
 
 var baseUrl = starflow.config.get('JIRA_URL');
+if (_.isEmpty(baseUrl)) {
+  throw new Error('Jira url is mandatory');
+}
+
 var user = starflow.config.get('JIRA_USERNAME');
 var pass = starflow.config.get('JIRA_PASSWORD');
 var urlParts = url.parse(baseUrl);
