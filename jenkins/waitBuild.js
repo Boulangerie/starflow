@@ -2,7 +2,7 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var getBuildFactory = require('./getBuild');
 var starflow = require('../starflow');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 var Task = require('../Task');
 
 function WaitBuild() {

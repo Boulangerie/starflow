@@ -3,7 +3,7 @@ var Promise = require('bluebird');
 var prompt = require('prompt');
 var chalk = require('chalk');
 var starflow = require('../starflow');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 function Prompt() {
   BaseExecutable.call(this, 'prompt');

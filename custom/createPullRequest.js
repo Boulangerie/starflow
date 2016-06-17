@@ -8,7 +8,7 @@ var Task = require('../Task');
 var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
 var createPRFactory = require('../github/createPR');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 Promise.promisifyAll(fs);
 

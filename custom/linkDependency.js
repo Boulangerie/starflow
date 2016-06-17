@@ -5,7 +5,7 @@ var starflow = require('../starflow');
 var Task = require('../Task');
 var Sequence = require('../Sequence');
 var spawnFactory = require('../shell/spawn');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 function LinkDependency() {
   BaseExecutable.call(this, 'teads.linkDependency');

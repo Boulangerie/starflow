@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var Sequence = require('../Sequence');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 /**
  *

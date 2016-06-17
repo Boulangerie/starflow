@@ -3,7 +3,7 @@ var teadsService = require('./teadsService');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var createBranchFactory = require('../git/createBranch');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 function CreateBranchDependency() {
   BaseExecutable.call(this, 'teads.createBranchDependency');

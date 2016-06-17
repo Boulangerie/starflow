@@ -8,6 +8,6 @@ module.exports = {
   Task: require('./Task'),
   Sequence: require('./Sequence'),
   Concurrency: require('./Concurrency'),
-  Executable: require('./Executable'),
-  Storage: require('./Storage'),
+  BaseExecutable: require('./BaseExecutable'),
+  Storage: require('./Storage')
 };

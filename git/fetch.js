@@ -1,7 +1,7 @@
 var _ = require('lodash');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 function Fetch(options) {
   BaseExecutable.call(this, 'git.fetch');

@@ -2,7 +2,7 @@ var _ = require('lodash');
 var Task = require('../Task');
 var spawnFactory = require('../shell/spawn');
 var starflow = require('../starflow');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 function CurrentBranch(options) {
   BaseExecutable.call(this, 'git.currentBranch');

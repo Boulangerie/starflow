@@ -1,7 +1,7 @@
 var _ = require('lodash');
 var fs = require('fs');
 var starflow = require('../starflow');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 function Dependencies() {
   BaseExecutable.call(this, 'npm.dependencies');

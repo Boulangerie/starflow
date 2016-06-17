@@ -4,7 +4,7 @@ var teadsService = require('./teadsService');
 var starflow = require('../starflow');
 var Task = require('../Task');
 var updatePackageVersionFactory = require('../npm/updatePackageVersion');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 function UpdatePackageJson() {
   BaseExecutable.call(this, 'teads.updatePackageJson');

@@ -2,7 +2,7 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var githubService = require('./githubService');
 var starflow = require('../starflow');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 function GetPRBetween() {
   BaseExecutable.call(this, 'github.getPRBetween');

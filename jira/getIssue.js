@@ -3,7 +3,7 @@ var Promise = require('bluebird');
 var jiraService = require('./jiraService');
 var starflow = require('../starflow');
 var Task = require('../Task');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 function GetIssue() {
   BaseExecutable.call(this, 'jira.getIssue');

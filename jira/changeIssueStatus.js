@@ -4,7 +4,7 @@ var jiraService = require('./jiraService');
 var starflow = require('../starflow');
 var taskGetIssueStatuses = require('./getIssueStatuses');
 var Task = require('../Task');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 function ChangeIssueStatus() {
   BaseExecutable.call(this, 'jira.changeIssueStatus');

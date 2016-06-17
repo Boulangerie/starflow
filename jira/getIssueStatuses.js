@@ -2,7 +2,7 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var jiraService = require('./jiraService');
 var starflow = require('../starflow');
-var BaseExecutable = require('../Executable');
+var BaseExecutable = require('../BaseExecutable');
 
 function GetIssueStatuses() {
   BaseExecutable.call(this, 'jira.getIssueStatuses');
