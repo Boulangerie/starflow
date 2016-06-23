@@ -10,6 +10,27 @@ function Workflow(steps, initialWorkspace) {
   this.factories = {};
 }
 
+Workflow.prototype.addPlugin = function addPlugin(pluginGetter) {
+  // TODO think about giving 'this' instead of starflow?
+  var starflow = require('starflow');
+  var plugin = pluginGetter(starflow);
+
+  _.forEach(plugin.factories, function (factory) {
+    var dummyExecutable = factory();
+    this.register(dummyExecutable.name, factory);
+  }.bind(this));
+
+  return this;
+};
+
+Workflow.prototype.addAliases = function addAliases(aliases, name) {
+  if (_.isString(aliases)) {
+    aliases = [aliases];
+  }
+  this.register(aliases, this.getFactory(name));
+  return this;
+};
+
 Workflow.prototype.run = function run() {
   var steps = formatSteps(this.steps);
   var self = this;
