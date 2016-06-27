@@ -19,8 +19,9 @@ AssignIssue.prototype.mapNonUserAssignee = function mapNonUserAssignee(assignee)
   return _.get(this.nonUserMapping, assignee, assignee);
 };
 
-AssignIssue.prototype.assignIssue = function assignIssue(key, assignee) {
+AssignIssue.prototype.assignIssue = function assignIssue(issue, assignee) {
   var params = _.set({}, 'fields.assignee.name', this.mapNonUserAssignee(assignee));
+  var key = issue.key;
   var jiraAssignIssue = Promise.promisify(jiraService.updateIssue, {context: jiraService});
 
   return jiraAssignIssue(key, params)
@@ -43,16 +44,15 @@ AssignIssue.prototype.assignIssue = function assignIssue(key, assignee) {
   }
 };
 
-AssignIssue.prototype.exec = function exec(key, assignee) {
-  if (_.isEmpty(key)) {
-    throw new Error('JIRA issue key is required');
+AssignIssue.prototype.exec = function exec(issue, assignee) {
+  if (!_.isObject(issue)) {
+    throw new Error('issue parameter must be an object (got ' + issue + ')');
   }
-
   if (_.isEmpty(assignee)) {
     throw new Error('An assignee is required');
   }
 
-  return this.assignIssue(key, assignee);
+  return this.assignIssue(issue, assignee);
 };
 
 module.exports = function () {

@@ -12,14 +12,14 @@ function ChangeIssueStatus() {
 ChangeIssueStatus.prototype = Object.create(BaseExecutable.prototype);
 ChangeIssueStatus.prototype.constructor = ChangeIssueStatus;
 
-ChangeIssueStatus.prototype.getIssueStatuses = function getIssueStatuses(key, status) {
-  var executableChild = taskGetIssueStatuses();
-  this.addChild(executableChild);
-  return new Task(executableChild, [key, status]).run();
+ChangeIssueStatus.prototype.getIssueStatuses = function getIssueStatuses(issue, status) {
+  var executableChild = this.createExecutable(taskGetIssueStatuses);
+  return new Task(executableChild, [issue, status]).run();
 };
 
-ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(key, status) {
-  var transition = _.find(starflow.config.jira.getIssueStatuses, _.set({}, 'to.name', status));
+ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(issue, status) {
+  var transition = _.find(this.storage.get('jira.getIssueStatuses/statuses'), _.set({}, 'to.name', status));
+  var key = issue.key;
   var jiraChangeIssueStatus = Promise.promisify(jiraService.transitionIssue, {context: jiraService});
 
   if (_.isUndefined(transition)) {
@@ -28,7 +28,6 @@ ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(key, 
 
   return jiraChangeIssueStatus(key, {transition : transition})
     .then(onSuccess.bind(this), onError);
-
 
   function onSuccess(response) {
     if (response === 'Success') {
@@ -47,17 +46,17 @@ ChangeIssueStatus.prototype.changeIssueStatus = function changeIssueStatus(key, 
   }
 };
 
-ChangeIssueStatus.prototype.exec = function exec(key, status) {
-  if (_.isEmpty(key)) {
-    throw new Error('JIRA issue key is required');
+ChangeIssueStatus.prototype.exec = function exec(issue, status) {
+  if (!_.isObject(issue)) {
+    throw new Error('issue parameter must be an object (got ' + issue + ')');
   }
   if (_.isEmpty(status)) {
     throw new Error('JIRA status is required');
   }
-  return this
-    .getIssueStatuses(key, status)
+
+  return this.getIssueStatuses(issue, status)
     .then(function () {
-      return this.changeIssueStatus(key, status);
+      return this.changeIssueStatus(issue, status);
     }.bind(this));
 };
 

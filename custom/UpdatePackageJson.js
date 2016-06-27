@@ -13,7 +13,7 @@ UpdatePackageJson.prototype = Object.create(BaseExecutable.prototype);
 UpdatePackageJson.prototype.constructor = UpdatePackageJson;
 
 UpdatePackageJson.prototype.getNpmVersionFromBranch = function getNpmVersionFromBranch(branch) {
-  return _.kebabCase('0.0.0-' + branch.replace(/[^a-zA-Z0-9_.-]/g, '_').toLowerCase());
+  return '0.0.0-' + _.kebabCase(branch.replace(/[^a-zA-Z0-9_.-]/g, '_').toLowerCase());
 };
 
 UpdatePackageJson.prototype.exec = function exec(dependencyPath, branch) {

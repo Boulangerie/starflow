@@ -10,8 +10,10 @@ function GetIssueStatuses() {
 GetIssueStatuses.prototype = Object.create(BaseExecutable.prototype);
 GetIssueStatuses.prototype.constructor = GetIssueStatuses;
 
-GetIssueStatuses.prototype.getIssueStatuses = function getIssueStatuses(key) {
+GetIssueStatuses.prototype.getIssueStatuses = function getIssueStatuses(issue) {
   var jiraGetIssueStatuses = Promise.promisify(jiraService.listTransitions, {context: jiraService});
+  var key = issue.key;
+
   return jiraGetIssueStatuses(key)
     .then(onSuccess.bind(this), onError);
 
@@ -28,11 +30,11 @@ GetIssueStatuses.prototype.getIssueStatuses = function getIssueStatuses(key) {
   }
 };
 
-GetIssueStatuses.prototype.exec = function exec(key) {
-  if (_.isEmpty(key)) {
-    throw new Error('JIRA issue key is required');
+GetIssueStatuses.prototype.exec = function exec(issue) {
+  if (!_.isObject(issue)) {
+    throw new Error('issue parameter must be an object (got ' + issue + ')');
   }
-  return this.getIssueStatuses(key);
+  return this.getIssueStatuses(issue);
 };
 
 module.exports = function () {
