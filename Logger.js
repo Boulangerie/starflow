@@ -1,4 +1,5 @@
 var chalk = require('chalk');
+var os = require('os');
 var _ = require('lodash');
 
 // └┘┼─┴├┤┬┌┐│
@@ -38,41 +39,52 @@ Logger.prototype.setDepthLimit = function setDepthLimit(limit) {
 
 Logger.prototype.header = function header(message) {
   this.depth++;
-  this.log(message, 'header');
+  this.log(chalk.gray(message), 'header');
 };
 
 Logger.prototype.footer = function footer(message) {
-  this.log(message, 'footer');
+  this.log(chalk.gray(message), 'footer');
   this.depth--;
 };
 
 Logger.prototype.debug = function debug(message) {
   if (process.env.DEBUG) {
-    this.log(chalk.magenta(message), 'debug');
+    this.applyEachLine(message, function (line) {
+      this.log(chalk.magenta(line), 'debug');
+    }.bind(this));
   }
 };
 
 Logger.prototype.error = function error(message) {
-  this.log(chalk.red(message));
+  this.applyEachLine(message, function (line) {
+    this.log(chalk.red(line), 'debug');
+  }.bind(this));
 };
 
 Logger.prototype.success = function success(message) {
-  this.log(chalk.green(message));
+  this.applyEachLine(message, function (line) {
+    this.log(chalk.green(line), 'debug');
+  }.bind(this));
 };
 
 Logger.prototype.warning = function warning(message) {
-  this.log(chalk.yellow(message));
+  this.applyEachLine(message, function (line) {
+    this.log(chalk.yellow(line), 'debug');
+  }.bind(this));
 };
 
 Logger.prototype.log = function log(message, type) {
+  type = type || 'log';
   var aboveLimit = this.depthLimit >= 0 && this.depth >= this.depthLimit;
   var enabledLogs = !aboveLimit && this.level > Logger.prototype.LEVEL.NONE;
   if (type === 'debug' || enabledLogs) {
-    type = type || 'log';
-    if (type !== 'log') {
-      message = chalk.gray(message);
+    if (type === 'log') {
+      this.applyEachLine(message, function (line) {
+        console.log(chalk.gray(this.getPaddingText(type)) + ' ' + line);
+      }.bind(this));
+    } else { // type !== 'log'
+      console.log(chalk.gray(this.getPaddingText(type)) + ' ' + message);
     }
-    console.log(chalk.gray(this.getPaddingText(type)) + ' ' + message);
   }
 };
 
@@ -96,6 +108,26 @@ Logger.prototype.getPaddingText = function getPaddingText(type) {
     }
   }
   return offset;
+};
+
+/**
+ * Apply a callback on each line of a message composed of newline characters
+ * @param message
+ * @param cb
+ * @returns {*}
+ */
+Logger.prototype.applyEachLine = function applyEachLine(message, cb) {
+  return _(message)
+    .split(os.EOL)
+    .filter(function (line) {
+      return !_.isEmpty(line);
+    })
+    .forEach(function (line) {
+      if (_.isFunction(cb)) {
+        cb(line);
+      }
+    })
+    .value();
 };
 
 /**

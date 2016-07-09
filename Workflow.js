@@ -12,7 +12,7 @@ function Workflow(steps, initialWorkspace) {
 
 Workflow.prototype.addPlugin = function addPlugin(pluginGetter) {
   // TODO think about giving 'this' instead of starflow?
-  var starflow = require('starflow');
+  var starflow = require('./starflow');
   var plugin = pluginGetter(starflow);
 
   _.forEach(plugin.factories, function (factory) {
