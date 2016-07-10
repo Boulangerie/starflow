@@ -57,19 +57,19 @@ Logger.prototype.debug = function debug(message) {
 
 Logger.prototype.error = function error(message) {
   this.applyEachLine(message, function (line) {
-    this.log(chalk.red(line), 'debug');
+    this.log(chalk.red(line));
   }.bind(this));
 };
 
 Logger.prototype.success = function success(message) {
   this.applyEachLine(message, function (line) {
-    this.log(chalk.green(line), 'debug');
+    this.log(chalk.green(line));
   }.bind(this));
 };
 
 Logger.prototype.warning = function warning(message) {
   this.applyEachLine(message, function (line) {
-    this.log(chalk.yellow(line), 'debug');
+    this.log(chalk.yellow(line));
   }.bind(this));
 };
 
@@ -78,14 +78,16 @@ Logger.prototype.log = function log(message, type) {
   var aboveLimit = this.depthLimit >= 0 && this.depth >= this.depthLimit;
   var enabledLogs = !aboveLimit && this.level > Logger.prototype.LEVEL.NONE;
   if (type === 'debug' || enabledLogs) {
-    if (type === 'log') {
-      this.applyEachLine(message, function (line) {
-        console.log(chalk.gray(this.getPaddingText(type)) + ' ' + line);
-      }.bind(this));
-    } else { // type !== 'log'
-      console.log(chalk.gray(this.getPaddingText(type)) + ' ' + message);
-    }
+    console.log(this.formatLog(message, type));
   }
+};
+
+Logger.prototype.formatLog = function formatLog(message, type) {
+  type = type || 'log';
+  var lines = this.applyEachLine(message, function (line) {
+    return chalk.gray(this.getPaddingText(type)) + ' ' + line;
+  }.bind(this));
+  return lines.join(os.EOL);
 };
 
 Logger.prototype.getPaddingText = function getPaddingText(type) {
@@ -119,13 +121,8 @@ Logger.prototype.getPaddingText = function getPaddingText(type) {
 Logger.prototype.applyEachLine = function applyEachLine(message, cb) {
   return _(message)
     .split(os.EOL)
-    .filter(function (line) {
-      return !_.isEmpty(line);
-    })
-    .forEach(function (line) {
-      if (_.isFunction(cb)) {
-        cb(line);
-      }
+    .map(function (line) {
+      return _.isFunction(cb) ? cb(line) : line;
     })
     .value();
 };
