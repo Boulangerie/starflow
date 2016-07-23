@@ -1,5 +1,5 @@
 <h1 align="center">Starflow</h1>
-<p align="center">Automate repetitive tasks easily</p>
+<p align="center">Automate your development workflows - <code>npm install starflow</code></p>
 
 ## What is Starflow?
 
