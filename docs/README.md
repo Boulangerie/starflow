@@ -17,7 +17,7 @@ See the [Glossary] page to get a definition of commonly used words in a Starflow
 
 ## Still got questions?
 
-You can post a [new issue](/issues/new) on the Starflow Github project or ask questions to one of the following Twitter accounts:
+You can post a [new issue](https://github.com/Boulangerie/starflow/issues/new) on the Starflow Github project or ask questions to one of the following Twitter accounts:
  
 - [@Haaress]
 - [@YannickGalatol]

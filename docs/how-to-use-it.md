@@ -16,9 +16,9 @@ var starflow = require('starflow');
 // step 1
 var steps = [
   'git.stash',
-  { 'git.checkout': 'master' },
-  { 'git.fetch': ['origin', 'master'] },
-  { '$': ['git', 'rebase', 'origin/master', 'master'] },
+  { '$':         ['git', 'checkout', 'master'] },
+  { '$':         ['git', 'fetch', 'origin', 'master'] },
+  { '$':         ['git', 'rebase', 'origin/master', 'master'] },
   { 'git.stash': true }
 ];
 

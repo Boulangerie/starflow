@@ -3,30 +3,38 @@
   "version": "0.1.2",
   "description": "Automate a part of your development workflow",
   "main": "starflow.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postversion": "git push && git push --tags"
+  },
   "keywords": [
     "starflow",
     "automate",
     "workflow"
   ],
+  "author": {
+    "name": "Benoit Ruiz",
+    "email": "benoit.ruiz01@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "Yannick Galatol"
+    },
+    {
+      "name": "Julien Vidal"
+    }
+  ],
+  "license": "ISC",
   "dependencies": {
-    "bluebird": "^3.1.1",
+    "bluebird": "^3.4.1",
+    "lodash": "^4.13.1",
     "chalk": "^1.0.0",
-    "github": "^0.2.4",
-    "jenkins": "^0.17.0",
-    "jira": "^0.9.2",
-    "lodash": "^3.9.0",
-    "prompt": "^0.2.14",
-    "rc": "^1.1.6",
-    "slugify": "0.1.1"
+    "rc": "^1.1.6"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:Boulangerie/starflow.git"
   },
   "devDependencies": {
-    "grunt-bump": "^0.8.0",
-    "yargs": "^3.30.0"
-  },
-  "author": "bruiz",
-  "license": "ISC"
+  }
 }

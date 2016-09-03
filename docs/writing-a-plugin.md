@@ -6,7 +6,7 @@ A Starflow plugin provides classes that perform a specific action that is someho
 The most basic form of a plugin looks like this:
 
 ```js
-// ./index.js, i.e. the plugin entry point
+// index.js, i.e. the plugin entry point
 module.exports = function (starflow) {
   return {
     factories: {
@@ -15,13 +15,13 @@ module.exports = function (starflow) {
   };
 };
 
-// ./lib/foo.js
+// lib/foo.js
 module.exports = function (starflow) {
   function Foo() {
     // 'my-plugin.foo' is the name of the executable
-    starflow.Executable.call(this, 'my-plugin.foo');
+    starflow.BaseExecutable.call(this, 'my-plugin.foo');
   }
-  Foo.prototype = Object.create(starflow.Executable.prototype);
+  Foo.prototype = Object.create(starflow.BaseExecutable.prototype);
   Foo.prototype.constructor = Foo;
   
   Foo.prototype.exec = function exec() {
@@ -35,7 +35,7 @@ module.exports = function (starflow) {
 };
 ```
 
-The executable classes you write are used when Starflow processes the steps written by an user.
+The executable classes you write are used when Starflow processes the steps written by an end-user.
 Essentially, a step is transformed into a task that holds a reference to an executable instance.
 When the task is processed, it calls the `exec` method of its executable.
 
@@ -43,9 +43,12 @@ The steps transformation and tasks execution mechanics are handled by Starflow, 
 
 ## Writing a simple plugin
 
-A Starflow plugin is basically a function that takes a reference to `starflow` as its first parameter and exports an object which contains the `factories` property that holds a map to the different executable factories provided by the plugin.
+A Starflow plugin is basically a function that:
+ 
+- takes a reference to `starflow` as its first parameter
+- exports an object which contains the `factories` property that holds a map to the different executable factories provided by the plugin
 
-An executable object must extend its prototype from the one from `starflow.Executable`. In OOP terms, an executable class must inherit from `starflow.Executable`.
+An executable object must extend its prototype from the one from `starflow.BaseExecutable`. In object-oriented programming terms, an executable class extends `starflow.BaseExecutable`.
 
 ### Example
 
@@ -70,8 +73,7 @@ Then create the `index.js` file at the root of the project with:
 module.exports = function tplProcessorPlugin(starflow) {
   return {
     factories: {
-      ngService: require('./lib/ngService')(starflow),
-      ngModule: require('./lib/ngModule')(starflow)
+      ngService: require('./lib/ngService')(starflow)
     }
   };
 };
@@ -154,32 +156,36 @@ return workflow
 What if the executables of your plugin need to use a web service? You'll probably have to provide some credentials and base URL.
 Starflow uses the [rc](https://github.com/dominictarr/rc) package to hold some config values and credentials.
 
-For instance, the starflow-github plugin has a `GithubService` (that makes the requests to the Github API) that gets the user's credentials using `starflow.config.get('GITHUB_USERNAME')` and `starflow.config.get('GITHUB_TOKEN')`.
-These values are stored somewhere on the user's machine, for example in its environmental variables or in a `.starflowrc` file at the root of its project
+For instance, the starflow-github plugin has a [GithubService](https://github.com/Boulangerie/starflow-github/blob/master/lib/githubService.js) that uses `starflow.config.get('github.TOKEN')` to access the API.
+These config values are stored somewhere on the user's machine, for example in its environmental variables or in a `.starflowrc` file at the root of its project.
 
-We recommend storing sensible information as env variables whereas the rest (e.g. `GITHUB_URL`) can be stored in a `.starflowrc` file.
+We recommend storing sensible information as env variables whereas the rest (e.g. `shell.SPAWN_DEPTH_LIMIT`) can be stored in a `.starflowrc` file.
 
 ### Example (improving the plugin from above)
 
-Let's pretend the templates are stored somewhere in the _cloud_ (e.g. _templatesStore_ that exposes an API) and not in the plugin "templates" directory anymore.
+Let's pretend the templates are stored somewhere in the _cloud_ (e.g. _The Templates Store_ that exposes an API) and not in the plugin "templates" directory anymore.
 We'll need some credentials to authenticate the user in order to get the template.
 
 First, let's create a `.starflowrc` file at the root of our project:
 
 ```
-TEMPLATES_STORE_URL=https://my.domain.com
+{
+  "tplProcessor": {
+    "URL": "https://templates-store.com"
+  }
+}
 ```
 
 Then export the following env variables (e.g. from your `~/.bash_profile`):
 
 ```
-export starflow_TEMPLATES_STORE_USERNAME=bob
-export starflow_TEMPLATES_STORE_PASSWORD=abc123
+export starflow_tplProcessor__USERNAME=bob
+export starflow_tplProcessor__PASSWORD=abc123
 ```
 
-> **Note**: it's important to start the env variable names with `starflow_` or else they won't be used. Please check the [rc](https://github.com/dominictarr/rc) project for more details.
+> **Note**: it's important to start the env variable names with `starflow_` or else they will be ignored. Please check the [rc](https://github.com/dominictarr/rc) project for more details.
 
-Now, we're going to create a _templatesStoreService_ that will communicate with the API from templatesStore. Furthermore, we'll have to change some parts of our ngService executable to use _templatesStoreService_.
+Now, we're going to create a _templatesStoreService_ that will communicate with the API from _The Templates Store_. Furthermore, we'll have to change some parts of our ngService executable to use _templatesStoreService_.
 
 #### The templatesStore service
 
@@ -191,13 +197,13 @@ module.exports = function (starflow) {
   var request = require('request');
   var Promise = require('bluebird');
   
-  var url = starflow.config.get('TEMPLATES_STORE_URL');
+  var url = starflow.config.get('tplProcessor.URL');
   if (!url) {
     throw new Error('TemplatesStore url is required');
   }
   
-  var username = starflow.config.get('TEMPLATES_STORE_USERNAME');
-  var password = starflow.config.get('TEMPLATES_STORE_PASSWORD');
+  var username = starflow.config.get('tplProcessor.USERNAME');
+  var password = starflow.config.get('tplProcessor.PASSWORD');
   
   var token = new Buffer(username + ':' + password);
   var templatesStoreService = {
@@ -230,6 +236,7 @@ Let's adapt the executable so it gets the template from the web service and not 
 ```js
 // lib/ngService.js
 module.exports = function (starflow) {
+  // get the templates store service we created
   var templatesStoreService = require('./templatesStoreService')(starflow);
   var fs = require('fs');
   var path = require('path');
@@ -242,6 +249,7 @@ module.exports = function (starflow) {
   NgService.prototype.constructor = NgService;
 
   NgService.prototype.exec = function exec(moduleName, name, dependencies, location) {
+    // get the template from a web service instead of a local file
     return templatesStoreService
       .getTemplate(name)
       .then(function (response) {
@@ -269,10 +277,10 @@ And that's it!
 
 If you want people to use your plugin, you have to provide a clear and understandable documentation about it.
 
-If someone wants to use your plugin, these are basically the 2 information he will need:
+If someone wants to use your plugin, these are basically the 2 pieces of information he will need:
 
 - Does your plugin require configuration (such as credentials)?
 - What are the executables (most important: **their name** and the **args** they need) that are provided and what do they do?
 
-By providing answers to these questions, users won't have to check your source code to know what your plugin actually do.
+By providing answers to these questions, users won't have to check your source code to know what your plugin actually does.
 You can check the [starflow-shell](https://github.com/boulangerie/starflow-shell) README to get ideas on how to write yours. 

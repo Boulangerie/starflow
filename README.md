@@ -26,16 +26,17 @@ var starflow = require('starflow');
 
 var args = process.argv.slice(2);
 var steps = [
-  {'git.checkout':     'master'},
-  {'git.fetch':        ['origin', 'master']},
-  {'git.rebase':       ['origin/master', 'master']},
-  {'git.createBranch': args[0]},
-  {'git.checkout':     args[0]}
+  {'$':                ['git', 'checkout', 'master']},
+  {'$':                ['git', 'fetch', 'origin', 'master']},
+  {'$':                ['git', 'rebase', 'origin/master', 'master']},
+  {'git.createBranch': [args[0], true]} // create + checkout
 ];
 
 var workflow = new starflow.Workflow(steps);
 return workflow
+  .addPlugin(require('starflow-shell'))
   .addPlugin(require('starflow-git'))
+  .addAliases('$', 'shell.spawn')
   .run();
 ```
 

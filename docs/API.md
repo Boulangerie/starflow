@@ -81,19 +81,21 @@ For example, if the following `.starflowrc` file is present at the root of your 
 
 ```json
 {
-  "JENKINS_URL": "https://my-team.jenkins.net"
+  "jenkins": {
+    "URL": "https://jenkins.example.com"
+  }
 }
 ```
 
-and the `starflow_JIRA_URL=https://my-team.jira.net` env variable is exported, then:
+and the `starflow_jira__URL=https://jira.example.com` env variable is exported, then:
 
 ```js
 var assert = require('assert');
 var config = require('starflow').config;
 // true
-assert(config.get('JENKINS_URL') === 'https://my-team.jenkins.net');
+assert(config.get('jenkins.URL') === 'https://jenkins.example.com');
 // true
-assert(config.get('JIRA_URL') === 'https://my-team.jira.net');
+assert(config.get('jira.URL') === 'https://jira.example.com');
 ```
 
 ### Methods
@@ -205,7 +207,7 @@ To get or set data to a storage, you need to provide a path.
 You can get data from the current storage or its children and their children (and so on), but you can't go up (from a child to its parent(s)).
 
 ```js
-// Let's assume simplifiedStorage and the children elements are instances of Storage
+// Let's assume storage and the children elements are instances of Storage
 // Here we represent them as simple object for better readability
 
 var storage = {
